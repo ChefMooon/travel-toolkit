@@ -1,0 +1,191 @@
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import type { Couple, NonPayingTraveller, CostEntry, ExchangeRate } from './types';
+
+function generateId(): string {
+  return crypto.randomUUID();
+}
+
+interface TripStore {
+  tripName: string;
+  globalMarkup: number;
+  couples: Couple[];
+  nonPayingTravellers: NonPayingTraveller[];
+  costs: CostEntry[];
+  exchangeRates: ExchangeRate[];
+  theme: 'light' | 'dark';
+
+  // Actions
+  setTripName: (name: string) => void;
+  setGlobalMarkup: (markup: number) => void;
+  setTheme: (theme: 'light' | 'dark') => void;
+
+  // Couple actions
+  addCouple: () => void;
+  removeCouple: (id: string) => void;
+  renameCouple: (id: string, name: string) => void;
+
+  // Non-paying traveller actions
+  addNonPayingTraveller: (coupleId: string) => void;
+  removeNonPayingTraveller: (id: string) => void;
+
+  // Cost actions
+  addCost: (cost: Omit<CostEntry, 'id' | 'sortOrder'>) => void;
+  editCost: (id: string, updates: Partial<Omit<CostEntry, 'id'>>) => void;
+  deleteCost: (id: string) => void;
+  reorderCosts: (orderedIds: string[]) => void;
+  bulkSetCurrency: (costIds: string[], currency: string) => void;
+
+  // Exchange rate actions
+  setExchangeRate: (currency: string, rate: number) => void;
+
+  // Reset
+  resetTrip: () => void;
+}
+
+const nextColorIndex = (couples: Couple[]): number => {
+  const used = new Set(couples.map(c => c.colorIndex));
+  for (let i = 1; i <= 5; i++) {
+    if (!used.has(i)) return i;
+  }
+  return ((couples.length) % 5) + 1;
+};
+
+const initialState = {
+  tripName: 'My Trip',
+  globalMarkup: 2.5,
+  couples: [] as Couple[],
+  nonPayingTravellers: [] as NonPayingTraveller[],
+  costs: [] as CostEntry[],
+  exchangeRates: [] as ExchangeRate[],
+  theme: 'light' as const,
+};
+
+export const useTripStore = create<TripStore>()(
+  persist(
+    (set) => ({
+      ...initialState,
+
+      setTripName: (name) => set({ tripName: name }),
+      setGlobalMarkup: (markup) => set({ globalMarkup: markup }),
+      setTheme: (theme) => {
+        document.documentElement.dataset['theme'] = theme;
+        set({ theme });
+      },
+
+      addCouple: () =>
+        set((state) => {
+          const num = state.couples.length + 1;
+          const newCouple: Couple = {
+            id: generateId(),
+            name: `Couple ${num}`,
+            colorIndex: nextColorIndex(state.couples),
+            sortOrder: state.couples.length,
+          };
+          return { couples: [...state.couples, newCouple] };
+        }),
+
+      removeCouple: (id) =>
+        set((state) => ({
+          couples: state.couples.filter((c) => c.id !== id),
+          nonPayingTravellers: state.nonPayingTravellers.filter((t) => t.coupleId !== id),
+          costs: state.costs.map((cost) => {
+            if (cost.splitType === 'individual' && cost.assignedCoupleIds.includes(id)) {
+              return { ...cost, assignedCoupleIds: [] };
+            }
+            if (cost.splitType === 'subset') {
+              return {
+                ...cost,
+                assignedCoupleIds: cost.assignedCoupleIds.filter((cid) => cid !== id),
+              };
+            }
+            return cost;
+          }),
+        })),
+
+      renameCouple: (id, name) =>
+        set((state) => ({
+          couples: state.couples.map((c) => (c.id === id ? { ...c, name } : c)),
+        })),
+
+      addNonPayingTraveller: (coupleId) =>
+        set((state) => {
+          const num = state.nonPayingTravellers.length + 1;
+          const traveller: NonPayingTraveller = {
+            id: generateId(),
+            label: `Child ${num}`,
+            coupleId,
+          };
+          return { nonPayingTravellers: [...state.nonPayingTravellers, traveller] };
+        }),
+
+      removeNonPayingTraveller: (id) =>
+        set((state) => ({
+          nonPayingTravellers: state.nonPayingTravellers.filter((t) => t.id !== id),
+        })),
+
+      addCost: (cost) =>
+        set((state) => {
+          const newCost: CostEntry = {
+            ...cost,
+            id: generateId(),
+            sortOrder: state.costs.length,
+          };
+          return { costs: [...state.costs, newCost] };
+        }),
+
+      editCost: (id, updates) =>
+        set((state) => ({
+          costs: state.costs.map((c) => (c.id === id ? { ...c, ...updates } : c)),
+        })),
+
+      deleteCost: (id) =>
+        set((state) => ({
+          costs: state.costs.filter((c) => c.id !== id),
+        })),
+
+      reorderCosts: (orderedIds) =>
+        set((state) => {
+          const costMap = new Map(state.costs.map((c) => [c.id, c]));
+          const reordered = orderedIds
+            .map((id, i) => {
+              const cost = costMap.get(id);
+              return cost ? { ...cost, sortOrder: i } : null;
+            })
+            .filter((c): c is CostEntry => c !== null);
+          return { costs: reordered };
+        }),
+
+      bulkSetCurrency: (costIds, currency) =>
+        set((state) => ({
+          costs: state.costs.map((c) =>
+            costIds.includes(c.id) ? { ...c, currency } : c
+          ),
+        })),
+
+      setExchangeRate: (currency, rateToUSD) =>
+        set((state) => {
+          const existing = state.exchangeRates.find((r) => r.currency === currency);
+          if (existing) {
+            return {
+              exchangeRates: state.exchangeRates.map((r) =>
+                r.currency === currency ? { ...r, rateToUSD } : r
+              ),
+            };
+          }
+          return {
+            exchangeRates: [...state.exchangeRates, { currency, rateToUSD }],
+          };
+        }),
+
+      resetTrip: () =>
+        set({
+          ...initialState,
+          theme: document.documentElement.dataset['theme'] as 'light' | 'dark' ?? 'light',
+        }),
+    }),
+    {
+      name: 'mkt-trip-data',
+    }
+  )
+);

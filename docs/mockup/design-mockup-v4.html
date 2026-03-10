@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MKT — Trip Cost Splitter</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,400;1,9..144,700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ══════════════════════════════════════════
+   COUPLE PALETTE — Pressed Flowers
+   Dusty rose · Sage · Periwinkle · Peach · Mauve
+══════════════════════════════════════════ */
+:root {
+  --c1:        #C4737A;  /* dusty rose     */
+  --c1-mid:    #D8979D;
+  --c1-soft:   #F2E4E5;
+  --c1-border: #E8C4C7;
+
+  --c2:        #6A8F7A;  /* sage green     */
+  --c2-mid:    #8AAF9A;
+  --c2-soft:   #E4EFE8;
+  --c2-border: #C0D8CA;
+
+  --c3:        #7B87BE;  /* periwinkle     */
+  --c3-mid:    #9AA5CF;
+  --c3-soft:   #E8EAF6;
+  --c3-border: #C4CAE8;
+
+  --c4:        #C49A6A;  /* warm peach/tan */
+  --c4-mid:    #D4B48A;
+  --c4-soft:   #F5EDE0;
+  --c4-border: #E8D4B8;
+
+  --c5:        #9B7BB4;  /* dusty mauve    */
+  --c5-mid:    #B59CCA;
+  --c5-soft:   #EDE8F4;
+  --c5-border: #D4C4E4;
+
+  /* Semantic */
+  --accent:    #C4737A;  /* primary — dusty rose */
+  --accent-soft: #F2E4E5;
+  --danger:    #B85C5C;
+  --danger-soft: #FAEBEB;
+  --focus:     #7B87BE;  /* periwinkle for focus rings */
+}
+
+/* ══════════════════════════════════════════
+   LIGHT / DARK TOKENS
+══════════════════════════════════════════ */
+[data-theme="light"] {
+  --bg:          #FAFAF7;
+  --bg-2:        #F3F2EE;
+  --bg-3:        #EAEAE4;
+  --surface:     #FFFFFF;
+  --surface-2:   #F8F8F5;
+  --border:      #E2E0D8;
+  --border-2:    #D0CEC4;
+  --text:        #2A2824;
+  --text-2:      #6B6860;
+  --text-3:      #A8A59E;
+  --shadow:      0 1px 4px rgba(42,40,36,0.07), 0 6px 20px rgba(42,40,36,0.05);
+  --shadow-sm:   0 1px 2px rgba(42,40,36,0.06);
+  --shadow-lg:   0 16px 48px rgba(42,40,36,0.13);
+}
+
+[data-theme="dark"] {
+  --bg:          #18171A;
+  --bg-2:        #211F24;
+  --bg-3:        #2A2830;
+  --surface:     #1E1C22;
+  --surface-2:   #252330;
+  --border:      #322F3A;
+  --border-2:    #403D4C;
+  --text:        #EEEBe6;
+  --text-2:      #9E9B96;
+  --text-3:      #625F5A;
+  --shadow:      0 1px 4px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.2);
+  --shadow-sm:   0 1px 2px rgba(0,0,0,0.25);
+  --shadow-lg:   0 16px 48px rgba(0,0,0,0.4);
+
+  /* soften the pastels slightly in dark mode */
+  --c1-soft:   rgba(196,115,122,0.13);  --c1-border: rgba(196,115,122,0.22);
+  --c2-soft:   rgba(106,143,122,0.13);  --c2-border: rgba(106,143,122,0.22);
+  --c3-soft:   rgba(123,135,190,0.13);  --c3-border: rgba(123,135,190,0.22);
+  --c4-soft:   rgba(196,154,106,0.13);  --c4-border: rgba(196,154,106,0.22);
+  --c5-soft:   rgba(155,123,180,0.13);  --c5-border: rgba(155,123,180,0.22);
+  --accent-soft: rgba(196,115,122,0.13);
+  --danger-soft: rgba(184,92,92,0.13);
+}
+
+/* ══════════════════════════════════════════
+   BASE
+══════════════════════════════════════════ */
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+  transition: background 0.4s ease, color 0.3s ease;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, var(--border) 1px, transparent 1px);
+  background-size: 28px 28px;
+  opacity: 0.45;
+  pointer-events: none;
+  z-index: 0;
+  transition: opacity 0.4s;
+}
+
+* { position: relative; z-index: 1; }
+
+/* ══════════════════════════════════════════
+   TOPBAR
+══════════════════════════════════════════ */
+.topbar {
+  background: var(--surface);
+  border-bottom: 1.5px solid var(--border);
+  padding: 0 24px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  box-shadow: var(--shadow-sm);
+  transition: background 0.4s, border-color 0.4s;
+}
+
+.brand { display: flex; align-items: center; gap: 10px; }
+
+.brand-logo {
+  width: 34px; height: 34px;
+  background: var(--accent);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Fraunces', serif;
+  font-style: italic; font-weight: 700; font-size: 17px;
+  color: white;
+  box-shadow: 0 2px 0 rgba(140,60,65,0.3);
+  transform: rotate(-2deg);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+.brand-logo:hover { transform: rotate(1deg) scale(1.06); }
+
+.brand-wordmark {
+  font-family: 'Fraunces', serif;
+  font-style: italic; font-weight: 700; font-size: 21px;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.brand-wordmark em { font-style: normal; color: var(--accent); }
+
+.topbar-center { display: flex; align-items: center; gap: 8px; }
+
+.trip-pill {
+  display: flex; align-items: center; gap: 7px;
+  background: var(--bg-2);
+  border: 1.5px solid var(--border);
+  border-radius: 22px;
+  padding: 5px 14px 5px 10px;
+  cursor: text;
+  transition: border-color 0.15s;
+}
+.trip-pill:hover { border-color: var(--c3); }
+.trip-pill-icon { font-size: 15px; }
+.trip-pill-text { font-size: 13px; font-weight: 700; color: var(--text); }
+.trip-pill-edit { font-size: 10px; color: var(--text-3); margin-left: 2px; }
+
+.topbar-right { display: flex; align-items: center; gap: 10px; }
+
+.markup-pill {
+  display: flex; align-items: center; gap: 6px;
+  background: var(--bg-2);
+  border: 1.5px solid var(--border);
+  border-radius: 22px;
+  padding: 5px 12px;
+  font-size: 12px; font-weight: 700; color: var(--text-2);
+  transition: background 0.4s, border-color 0.4s;
+}
+.markup-num { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text); }
+
+/* Theme toggle */
+.theme-toggle {
+  width: 50px; height: 26px;
+  background: var(--bg-3);
+  border: 1.5px solid var(--border-2);
+  border-radius: 13px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.35s, border-color 0.35s;
+  flex-shrink: 0;
+}
+[data-theme="dark"] .theme-toggle { background: var(--c3); border-color: var(--c3); }
+
+.toggle-knob {
+  width: 20px; height: 20px;
+  background: white;
+  border-radius: 10px;
+  position: absolute;
+  top: 2px; left: 2px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  transition: transform 0.32s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+}
+[data-theme="dark"] .toggle-knob { transform: translateX(24px); }
+
+.btn-new-trip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 13px;
+  border-radius: 22px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 12px; font-weight: 700;
+  cursor: pointer;
+  border: 1.5px solid var(--border-2);
+  background: transparent;
+  color: var(--text-2);
+  transition: all 0.15s;
+}
+.btn-new-trip:hover { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
+
+/* ══════════════════════════════════════════
+   LAYOUT
+══════════════════════════════════════════ */
+.main {
+  display: grid;
+  grid-template-columns: 1fr 382px;
+  gap: 20px;
+  padding: 22px 24px;
+  max-width: 1440px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+/* ══════════════════════════════════════════
+   CARD
+══════════════════════════════════════════ */
+.card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: background 0.4s, border-color 0.4s;
+}
+
+.card + .card { margin-top: 16px; }
+
+.card-header {
+  padding: 13px 20px;
+  border-bottom: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface-2);
+  transition: background 0.4s, border-color 0.4s;
+}
+
+.card-title {
+  font-size: 11px; font-weight: 800;
+  letter-spacing: 0.09em; text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.card-body { padding: 18px 20px; }
+
+/* ══════════════════════════════════════════
+   GROUP SETUP
+══════════════════════════════════════════ */
+.section-label {
+  font-size: 11px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-3);
+  margin-bottom: 9px;
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 10px 5px 7px;
+  border-radius: 22px;
+  border: 1.5px solid;
+  font-size: 12px; font-weight: 700;
+  transition: transform 0.15s, box-shadow 0.15s;
+  cursor: default;
+}
+.chip:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+
+.chip-c1 { background: var(--c1-soft); border-color: var(--c1-border); color: var(--c1); }
+.chip-c2 { background: var(--c2-soft); border-color: var(--c2-border); color: var(--c2); }
+.chip-c3 { background: var(--c3-soft); border-color: var(--c3-border); color: var(--c3); }
+.chip-c4 { background: var(--c4-soft); border-color: var(--c4-border); color: var(--c4); }
+
+.chip-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.chip-c1 .chip-dot { background: var(--c1); }
+.chip-c2 .chip-dot { background: var(--c2); }
+.chip-c3 .chip-dot { background: var(--c3); }
+.chip-c4 .chip-dot { background: var(--c4); }
+
+.chip-grip { opacity: 0.35; font-size: 10px; cursor: grab; }
+.chip-x { opacity: 0.4; cursor: pointer; font-size: 13px; margin-left: 2px; }
+.chip-x:hover { opacity: 1; color: var(--danger); }
+
+.chip-child {
+  font-size: 12px; font-weight: 600;
+}
+/* Children inherit couple color but dashed border + lighter bg */
+.chip-child-c1 { background: var(--c1-soft); border: 1.5px dashed var(--c1-border); color: var(--c1); opacity: 0.85; }
+.chip-child-c2 { background: var(--c2-soft); border: 1.5px dashed var(--c2-border); color: var(--c2); opacity: 0.85; }
+.chip-child-c3 { background: var(--c3-soft); border: 1.5px dashed var(--c3-border); color: var(--c3); opacity: 0.85; }
+
+/* Couple group: couple chip + its children sit together */
+.couple-group { display: flex; flex-direction: column; gap: 5px; }
+.couple-group-row { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+.couple-group-children {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
+  padding-left: 18px; /* indent to show parent relationship */
+}
+.child-connector {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 10px; color: var(--text-3); font-weight: 700;
+}
+.child-connector::before {
+  content: '';
+  display: inline-block;
+  width: 12px; height: 1px;
+  margin-right: 2px;
+  border-bottom: 1.5px dashed var(--border-2);
+}
+
+.add-btns { display: flex; gap: 8px; }
+.btn-add {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 13px;
+  border-radius: 22px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 12px; font-weight: 700;
+  cursor: pointer;
+  border: 1.5px dashed var(--border-2);
+  background: transparent; color: var(--text-2);
+  transition: all 0.14s;
+}
+.btn-add:hover { border-color: var(--c3); color: var(--c3); background: var(--c3-soft); }
+
+/* ══════════════════════════════════════════
+   LEDGER TABLE
+══════════════════════════════════════════ */
+.bulk-bar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 20px;
+  background: var(--c3);
+  color: white;
+  font-size: 12px; font-weight: 700;
+}
+.bulk-sel {
+  padding: 3px 9px;
+  background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.35);
+  color: white; border-radius: 7px;
+  font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700;
+}
+.bulk-apply {
+  padding: 3px 11px;
+  background: white; color: var(--c3);
+  border: none; border-radius: 7px;
+  font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800;
+  cursor: pointer;
+}
+
+table.ledger { width: 100%; border-collapse: collapse; }
+
+table.ledger thead th {
+  padding: 8px 11px;
+  text-align: left;
+  font-size: 10px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-3);
+  border-bottom: 1.5px solid var(--border);
+  background: var(--surface-2);
+  white-space: nowrap;
+  transition: background 0.4s, border-color 0.4s;
+}
+
+table.ledger tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+table.ledger tbody tr:hover { background: var(--bg-2); }
+table.ledger tbody tr.sel { background: var(--c3-soft); }
+
+table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13px; }
+
+.drag-h { color: var(--text-3); cursor: grab; font-size: 15px; }
+
+.chk { width: 15px; height: 15px; border-radius: 4px; border: 1.5px solid var(--border-2); display:inline-flex;align-items:center;justify-content:center;font-size:9px; }
+.chk.on { background: var(--c3); border-color: var(--c3); color: white; }
+
+.cost-name { font-weight: 700; color: var(--text); }
+
+.cur-tag {
+  display: inline-block; padding: 2px 7px;
+  border-radius: 6px; border: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  background: var(--bg-2); color: var(--text-2);
+}
+
+/* Currency dropdown — inline table cell version */
+.cur-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 4px 22px 4px 8px;
+  border-radius: 7px;
+  border: 1.5px solid var(--border-2);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; font-weight: 600;
+  background-color: var(--bg-2);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23A8A59E' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 6px center;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  min-width: 70px;
+}
+.cur-select:focus {
+  outline: none;
+  border-color: var(--focus);
+  box-shadow: 0 0 0 2px rgba(123,135,190,0.15);
+}
+.cur-select:hover { border-color: var(--border-2); background-color: var(--bg-3); }
+
+/* Edit row currency select — slightly larger */
+.ef-select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding: 6px 26px 6px 9px;
+  border: 1.5px solid var(--border-2); border-radius: 9px;
+  background-color: var(--bg);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23A8A59E' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px; font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  width: 100%;
+}
+.ef-select:focus {
+  outline: none;
+  border-color: var(--focus);
+  box-shadow: 0 0 0 3px rgba(123,135,190,0.14);
+}
+
+.amt { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 13px; color: var(--text); }
+
+/* Markup tags */
+.mk-tag {
+  display: inline-block; padding: 2px 7px; border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600;
+}
+.mk-global { background: var(--bg-2); border: 1px solid var(--border); color: var(--text-3); }
+.mk-custom  { background: var(--c4-soft); border: 1px solid var(--c4-border); color: var(--c4); }
+
+/* Split badges */
+.split {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px; border-radius: 8px;
+  font-size: 11px; font-weight: 800;
+  letter-spacing: 0.01em; white-space: nowrap;
+}
+.split-shared  { background: var(--c2-soft); color: var(--c2); border: 1.5px solid var(--c2-border); }
+.split-subset  { background: var(--c3-soft); color: var(--c3); border: 1.5px solid var(--c3-border); }
+.split-solo    { background: var(--c1-soft); color: var(--c1); border: 1.5px solid var(--c1-border); }
+
+.who-dots { display: flex; gap: 4px; align-items: center; }
+.who-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+.total-num { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 13px; color: var(--text); }
+
+.row-acts { display: flex; gap: 3px; }
+.ibtn {
+  width: 27px; height: 27px; border-radius: 7px;
+  border: 1.5px solid transparent; background: transparent;
+  cursor: pointer; display:inline-flex;align-items:center;justify-content:center;
+  font-size: 13px; color: var(--text-3); transition: all 0.12s;
+}
+.ibtn:hover { background: var(--bg-2); border-color: var(--border); color: var(--text); }
+.ibtn.del:hover { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
+
+/* ── EDIT ROW ── */
+tr.edit-row td {
+  background: var(--surface);
+  padding: 14px 11px;
+  border-top: 2px solid var(--c3);
+  border-bottom: 2px solid var(--c3);
+}
+
+.edit-grid {
+  display: grid;
+  grid-template-columns: 2fr 72px 100px auto auto;
+  gap: 9px; align-items: end; margin-bottom: 11px;
+}
+
+.ef { display: flex; flex-direction: column; gap: 3px; }
+.ef-lbl {
+  font-size: 10px; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--text-3);
+}
+.ef-inp {
+  padding: 6px 9px;
+  border: 1.5px solid var(--border-2); border-radius: 9px;
+  background: var(--bg); color: var(--text);
+  font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 600;
+  outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+}
+.ef-inp:focus { border-color: var(--focus); box-shadow: 0 0 0 3px rgba(123,135,190,0.14); }
+.ef-inp.mono { font-family: 'JetBrains Mono', monospace; }
+
+.seg { display: flex; gap: 3px; }
+.seg-btn {
+  padding: 5px 11px;
+  border: 1.5px solid var(--border-2);
+  background: var(--bg-2);
+  font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700;
+  cursor: pointer; color: var(--text-2); border-radius: 9px;
+  transition: all 0.12s;
+}
+.seg-btn:hover { border-color: var(--c3); color: var(--c3); }
+.seg-btn.on { background: var(--c3); border-color: var(--c3); color: white; }
+
+.subset-picks {
+  display: flex; align-items: center; gap: 14px;
+  font-size: 13px; font-weight: 700; margin-top: 2px;
+}
+.subset-picks label { display:inline-flex;align-items:center;gap:5px;cursor:pointer; }
+
+.edit-acts { display: flex; gap: 7px; padding-top: 17px; }
+.btn-save {
+  padding: 6px 17px; background: var(--accent); color: white;
+  border: none; border-radius: 9px;
+  font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800;
+  cursor: pointer; box-shadow: 0 2px 0 rgba(140,60,65,0.25);
+  transition: transform 0.1s, box-shadow 0.1s;
+}
+.btn-save:hover { transform: translateY(-1px); box-shadow: 0 3px 0 rgba(140,60,65,0.25); }
+.btn-cancel {
+  padding: 6px 13px; background: transparent;
+  border: 1.5px solid var(--border-2); border-radius: 9px;
+  font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700;
+  cursor: pointer; color: var(--text-2);
+}
+
+tr.add-row td { padding: 0; border: none; }
+.add-row-btn {
+  width: 100%; padding: 13px;
+  background: transparent; border: none;
+  border-top: 1.5px dashed var(--border-2);
+  color: var(--text-3);
+  font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700;
+  cursor: pointer; display:flex;align-items:center;justify-content:center;gap:6px;
+  transition: all 0.14s;
+}
+.add-row-btn:hover { color: var(--accent); background: var(--accent-soft); }
+
+/* ══════════════════════════════════════════
+   SUMMARY PANEL
+══════════════════════════════════════════ */
+.s-cards { display: flex; flex-direction: column; gap: 13px; }
+
+.s-card {
+  border-radius: 14px; overflow: hidden;
+  border: 1.5px solid; box-shadow: var(--shadow-sm);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.s-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+
+.s-card-c1 { border-color: var(--c1-border); }
+.s-card-c2 { border-color: var(--c2-border); }
+.s-card-c3 { border-color: var(--c3-border); }
+
+.s-head {
+  padding: 10px 15px;
+  display: flex; align-items: center; gap: 8px;
+}
+.s-card-c1 .s-head { background: var(--c1); }
+.s-card-c2 .s-head { background: var(--c2); }
+.s-card-c3 .s-head { background: var(--c3); }
+
+.s-head-name { font-family:'Nunito',sans-serif; font-size:13px; font-weight:800; color:white; }
+.s-head-icon { font-size:16px; }
+
+.s-body { background: var(--surface); padding: 13px 15px; transition: background 0.4s; }
+
+.curr-block { margin-bottom: 11px; }
+.curr-head { display:flex;align-items:center;gap:6px; margin-bottom:5px; }
+.curr-flag { font-size:15px; }
+.curr-code {
+  font-family:'JetBrains Mono',monospace; font-size:10px; font-weight:600;
+  color:var(--text-2); background:var(--bg-2); padding:1px 6px;
+  border-radius:5px; border:1px solid var(--border);
+}
+
+.sline { display:flex;justify-content:space-between;align-items:center;padding:2px 0;font-size:12px; }
+.sline-lbl { color:var(--text-2); font-weight:600; }
+.sline-num { font-family:'JetBrains Mono',monospace; font-weight:600; color:var(--text); }
+.sline-dim { opacity:0.3; }
+.sline.stotal { border-top:1px solid var(--border); margin-top:4px; padding-top:5px; font-weight:800; }
+.sline.stotal .sline-num { font-size:13px; }
+
+.ex-row {
+  display:flex;align-items:center;gap:6px;margin-top:6px;
+  padding:5px 9px;
+  background:var(--bg-2); border-radius:9px; border:1px solid var(--border);
+}
+.ex-lbl { font-size:11px;font-weight:600;color:var(--text-3);flex:1; }
+.ex-inp {
+  width:76px; padding:3px 7px;
+  background:var(--surface); border:1.5px solid var(--border-2); border-radius:7px;
+  font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600; color:var(--text);
+  text-align:right;
+}
+.ex-inp:focus { outline:none; border-color:var(--focus); }
+
+.usd-eq {
+  font-size:11px;font-family:'JetBrains Mono',monospace;font-weight:600;
+  text-align:right;color:var(--c3);padding:2px 9px 0;
+}
+
+.sdivider { border:none; border-top:1px solid var(--border); margin:9px 0; }
+
+.s-grand { display:flex;align-items:center;justify-content:space-between;padding:10px 15px; }
+.s-card-c1 .s-grand { background:var(--c1-soft); }
+.s-card-c2 .s-grand { background:var(--c2-soft); }
+.s-card-c3 .s-grand { background:var(--c3-soft); }
+
+.s-grand-lbl { font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--text-2); }
+.s-grand-num { font-family:'JetBrains Mono',monospace;font-size:19px;font-weight:600; }
+.s-card-c1 .s-grand-num { color:var(--c1); }
+.s-card-c2 .s-grand-num { color:var(--c2); }
+.s-card-c3 .s-grand-num { color:var(--c3); }
+
+/* ══════════════════════════════════════════
+   MODAL
+══════════════════════════════════════════ */
+.modal-bd {
+  position:fixed;inset:0;
+  background:rgba(24,23,26,0.5);
+  backdrop-filter:blur(5px);
+  display:flex;align-items:center;justify-content:center;
+  z-index:1000;
+}
+.modal {
+  background:var(--surface);border:1.5px solid var(--border);
+  border-radius:20px;padding:28px;max-width:370px;width:90%;
+  box-shadow:var(--shadow-lg);
+  animation:pop .22s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes pop { from{opacity:0;transform:scale(.88)} to{opacity:1;transform:scale(1)} }
+
+.modal-ico { font-size:36px;margin-bottom:11px; }
+.modal-title { font-family:'Fraunces',serif;font-style:italic;font-size:21px;font-weight:700;color:var(--text);margin-bottom:7px; }
+.modal-body { color:var(--text-2);font-size:13px;font-weight:500;line-height:1.65;margin-bottom:20px; }
+.modal-acts { display:flex;gap:9px;justify-content:flex-end; }
+.btn-m-cancel { padding:7px 17px;border:1.5px solid var(--border-2);border-radius:10px;background:transparent;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;color:var(--text-2);cursor:pointer; }
+.btn-m-del { padding:7px 17px;border-radius:10px;border:none;background:var(--danger);color:white;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;box-shadow:0 2px 0 rgba(140,50,50,.3); }
+
+/* ══════════════════════════════════════════
+   ENTER ANIMATIONS
+══════════════════════════════════════════ */
+@keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
+.left  { animation:fadeUp .42s ease both; }
+.right { animation:fadeUp .42s ease .13s both; }
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="brand">
+    <div class="brand-logo">M</div>
+    <span class="brand-wordmark">MK<em>T</em></span>
+  </div>
+
+  <div class="topbar-center">
+    <div class="trip-pill">
+      <span class="trip-pill-icon">✈️</span>
+      <span class="trip-pill-text">Portugal & Spain, April 2026</span>
+      <span class="trip-pill-edit">✎</span>
+    </div>
+  </div>
+
+  <div class="topbar-right">
+    <div class="markup-pill">
+      <span>Markup</span>
+      <span class="markup-num">2.5%</span>
+      <span style="font-size:10px;opacity:.4;">✎</span>
+    </div>
+    <button class="theme-toggle" onclick="document.documentElement.dataset.theme=document.documentElement.dataset.theme==='dark'?'light':'dark'">
+      <div class="toggle-knob" id="knob"><span id="ki">☀️</span></div>
+    </button>
+    <button class="btn-new-trip">↺ New Trip</button>
+  </div>
+</header>
+
+<script>
+new MutationObserver(()=>{
+  document.getElementById('ki').textContent=document.documentElement.dataset.theme==='dark'?'🌙':'☀️';
+}).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+</script>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- LEFT -->
+  <div class="left" style="display:flex;flex-direction:column;">
+
+    <!-- PARTY -->
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Travelling Party</span>
+        <div class="add-btns">
+          <button class="btn-add">＋ Add Couple</button>
+          <button class="btn-add">＋ Add Child</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="section-label">Travelling Party</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+
+          <!-- Couple 1 group with 1 child -->
+          <div class="couple-group">
+            <div class="couple-group-row">
+              <div class="chip chip-c1"><span class="chip-grip">⠿</span><span class="chip-dot"></span>Couple 1<span class="chip-x">×</span></div>
+            </div>
+            <div class="couple-group-children">
+              <span class="child-connector"></span>
+              <div class="chip chip-child chip-child-c1">👶 Child 1<span class="chip-x">×</span></div>
+            </div>
+          </div>
+
+          <!-- Couple 2, no children -->
+          <div class="couple-group">
+            <div class="couple-group-row">
+              <div class="chip chip-c2"><span class="chip-grip">⠿</span><span class="chip-dot"></span>Couple 2<span class="chip-x">×</span></div>
+            </div>
+          </div>
+
+          <!-- The Nguyens with 2 children -->
+          <div class="couple-group">
+            <div class="couple-group-row">
+              <div class="chip chip-c3"><span class="chip-grip">⠿</span><span class="chip-dot"></span>The Nguyens<span class="chip-x">×</span></div>
+            </div>
+            <div class="couple-group-children">
+              <span class="child-connector"></span>
+              <div class="chip chip-child chip-child-c3">👶 Child 2<span class="chip-x">×</span></div>
+              <div class="chip chip-child chip-child-c3">👶 Child 3<span class="chip-x">×</span></div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- LEDGER -->
+    <div class="card" style="margin-top:16px;">
+      <div class="card-header">
+        <span class="card-title">Cost Ledger</span>
+        <span style="font-size:11px;color:var(--text-3);font-weight:700;">5 entries</span>
+      </div>
+
+      <div class="bulk-bar">
+        <span>1 selected —</span>
+        <span style="font-weight:500;">Bulk currency:</span>
+        <select class="bulk-sel"><option>EUR</option><option>USD</option><option>MXN</option></select>
+        <button class="bulk-apply">Apply</button>
+        <span style="margin-left:auto;cursor:pointer;opacity:.7;font-size:12px;">✕ Clear</span>
+      </div>
+
+      <table class="ledger">
+        <thead>
+          <tr>
+            <th style="width:26px;"></th>
+            <th style="width:26px;"><div class="chk"></div></th>
+            <th>Name</th>
+            <th style="width:60px;">Cur.</th>
+            <th style="width:92px;">Amount</th>
+            <th style="width:96px;">Markup</th>
+            <th style="width:92px;">Split</th>
+            <th style="width:60px;">Who</th>
+            <th style="width:96px;">Total</th>
+            <th style="width:58px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <!-- Shared -->
+          <tr>
+            <td><span class="drag-h">⠿</span></td>
+            <td><div class="chk"></div></td>
+            <td><span class="cost-name">Hotel Bairro Alto — 3 nights</span></td>
+            <td><select class="cur-select"><option selected>EUR</option><option>USD</option><option>GBP</option><option>MXN</option><option>JPY</option><option>CAD</option><option>AUD</option><option>CHF</option></select></td>
+            <td><span class="amt">420.00</span></td>
+            <td><span class="mk-tag mk-global">2.5% (g)</span></td>
+            <td><span class="split split-shared">◆ Shared</span></td>
+            <td><span style="font-size:10px;color:var(--text-3);font-weight:700;">All</span></td>
+            <td><span class="total-num">€144.38</span></td>
+            <td><div class="row-acts"><button class="ibtn">✎</button><button class="ibtn del">🗑</button></div></td>
+          </tr>
+
+          <!-- Subset (selected) -->
+          <tr class="sel">
+            <td><span class="drag-h">⠿</span></td>
+            <td><div class="chk on">✓</div></td>
+            <td><span class="cost-name">Day trip to Sintra</span></td>
+            <td><select class="cur-select"><option selected>EUR</option><option>USD</option><option>GBP</option><option>MXN</option><option>JPY</option><option>CAD</option><option>AUD</option><option>CHF</option></select></td>
+            <td><span class="amt">180.00</span></td>
+            <td><span class="mk-tag mk-global">2.5% (g)</span></td>
+            <td><span class="split split-subset">◑ Subset</span></td>
+            <td><div class="who-dots"><span class="who-dot" style="background:var(--c1)"></span><span class="who-dot" style="background:var(--c3)"></span></div></td>
+            <td><span class="total-num">€92.25</span></td>
+            <td><div class="row-acts"><button class="ibtn">✎</button><button class="ibtn del">🗑</button></div></td>
+          </tr>
+
+          <!-- Individual, custom markup -->
+          <tr>
+            <td><span class="drag-h">⠿</span></td>
+            <td><div class="chk"></div></td>
+            <td><span class="cost-name">Anniversary dinner</span></td>
+            <td><select class="cur-select"><option selected>EUR</option><option>USD</option><option>GBP</option><option>MXN</option><option>JPY</option><option>CAD</option><option>AUD</option><option>CHF</option></select></td>
+            <td><span class="amt">210.00</span></td>
+            <td><span class="mk-tag mk-custom">0% ✦</span></td>
+            <td><span class="split split-solo">◉ Solo</span></td>
+            <td><div class="who-dots"><span class="who-dot" style="background:var(--c2)"></span></div></td>
+            <td><span class="total-num">€210.00</span></td>
+            <td><div class="row-acts"><button class="ibtn">✎</button><button class="ibtn del">🗑</button></div></td>
+          </tr>
+
+          <!-- EDIT ROW -->
+          <tr class="edit-row">
+            <td colspan="10">
+              <div class="edit-grid">
+                <div class="ef">
+                  <label class="ef-lbl">Name</label>
+                  <input class="ef-inp" type="text" value="Fado show tickets">
+                </div>
+                <div class="ef">
+                  <label class="ef-lbl">Currency</label>
+                  <select class="ef-select">
+                    <option selected>EUR</option>
+                    <option>USD</option>
+                    <option>GBP</option>
+                    <option>MXN</option>
+                    <option>JPY</option>
+                    <option>CAD</option>
+                    <option>AUD</option>
+                    <option>CHF</option>
+                    <option>SGD</option>
+                    <option>HKD</option>
+                    <option>DKK</option>
+                    <option>SEK</option>
+                    <option>NOK</option>
+                    <option>NZD</option>
+                    <option>BRL</option>
+                    <option>INR</option>
+                    <option>THB</option>
+                    <option>ZAR</option>
+                  </select>
+                </div>
+                <div class="ef">
+                  <label class="ef-lbl">Amount</label>
+                  <input class="ef-inp mono" type="number" value="90.00">
+                </div>
+                <div class="ef">
+                  <label class="ef-lbl">Split</label>
+                  <div class="seg">
+                    <button class="seg-btn">All</button>
+                    <button class="seg-btn on">Subset</button>
+                    <button class="seg-btn">Solo</button>
+                  </div>
+                </div>
+                <div class="edit-acts">
+                  <button class="btn-save">Save</button>
+                  <button class="btn-cancel">✕</button>
+                </div>
+              </div>
+              <div class="subset-picks">
+                <span style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.07em;color:var(--text-3);">Include:</span>
+                <label><input type="checkbox" checked> <span style="color:var(--c1);font-weight:700;">● Couple 1</span></label>
+                <label><input type="checkbox"> <span style="color:var(--c2);font-weight:700;">● Couple 2</span></label>
+                <label><input type="checkbox" checked> <span style="color:var(--c3);font-weight:700;">● The Nguyens</span></label>
+              </div>
+            </td>
+          </tr>
+
+          <!-- MXN -->
+          <tr>
+            <td><span class="drag-h">⠿</span></td>
+            <td><div class="chk"></div></td>
+            <td><span class="cost-name">Group taxi from airport</span></td>
+            <td><select class="cur-select"><option>EUR</option><option>USD</option><option>GBP</option><option selected>MXN</option><option>JPY</option><option>CAD</option><option>AUD</option><option>CHF</option></select></td>
+            <td><span class="amt">1,200.00</span></td>
+            <td><span class="mk-tag mk-global">2.5% (g)</span></td>
+            <td><span class="split split-shared">◆ Shared</span></td>
+            <td><span style="font-size:10px;color:var(--text-3);font-weight:700;">All</span></td>
+            <td><span class="total-num">MX$410</span></td>
+            <td><div class="row-acts"><button class="ibtn">✎</button><button class="ibtn del">🗑</button></div></td>
+          </tr>
+
+          <tr class="add-row">
+            <td colspan="10"><button class="add-row-btn">＋ Add Cost Entry</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- RIGHT: SUMMARY -->
+  <div class="right">
+    <div class="card">
+      <div class="card-header">
+        <span class="card-title">Cost Summary</span>
+        <span style="font-size:11px;color:var(--text-3);font-weight:700;">3 couples · 2 currencies</span>
+      </div>
+      <div class="card-body" style="padding:15px 16px;">
+        <div class="s-cards">
+
+          <!-- C1: Dusty rose -->
+          <div class="s-card s-card-c1">
+            <div class="s-head"><span class="s-head-icon">🧳</span><span class="s-head-name">Couple 1</span></div>
+            <div class="s-body">
+              <div class="curr-block">
+                <div class="curr-head"><span class="curr-flag">🇪🇺</span><span class="curr-code">EUR</span></div>
+                <div class="sline"><span class="sline-lbl">Shared</span><span class="sline-num">€144.38</span></div>
+                <div class="sline"><span class="sline-lbl">Subset</span><span class="sline-num">€92.25</span></div>
+                <div class="sline sline-dim"><span class="sline-lbl">Individual</span><span class="sline-num">€0.00</span></div>
+                <div class="sline stotal"><span class="sline-lbl">Subtotal</span><span class="sline-num">€236.63</span></div>
+                <div class="ex-row">
+                  <span class="ex-lbl">1 EUR = __ USD</span>
+                  <input class="ex-inp" value="1.0853">
+                </div>
+                <div class="usd-eq">≈ $256.81</div>
+              </div>
+              <hr class="sdivider">
+              <div class="curr-block">
+                <div class="curr-head"><span class="curr-flag">🇲🇽</span><span class="curr-code">MXN</span></div>
+                <div class="sline"><span class="sline-lbl">Shared</span><span class="sline-num">MX$410.00</span></div>
+                <div class="sline stotal"><span class="sline-lbl">Subtotal</span><span class="sline-num">MX$410.00</span></div>
+                <div class="ex-row">
+                  <span class="ex-lbl">1 MXN = __ USD</span>
+                  <input class="ex-inp" value="0.0490">
+                </div>
+                <div class="usd-eq">≈ $20.09</div>
+              </div>
+            </div>
+            <div class="s-grand"><span class="s-grand-lbl">Grand Total</span><span class="s-grand-num">$276.90</span></div>
+          </div>
+
+          <!-- C2: Sage -->
+          <div class="s-card s-card-c2">
+            <div class="s-head"><span class="s-head-icon">🌿</span><span class="s-head-name">Couple 2</span></div>
+            <div class="s-body">
+              <div class="curr-block">
+                <div class="curr-head"><span class="curr-flag">🇪🇺</span><span class="curr-code">EUR</span></div>
+                <div class="sline"><span class="sline-lbl">Shared</span><span class="sline-num">€144.38</span></div>
+                <div class="sline sline-dim"><span class="sline-lbl">Subset</span><span class="sline-num">€0.00</span></div>
+                <div class="sline"><span class="sline-lbl">Individual</span><span class="sline-num">€210.00</span></div>
+                <div class="sline stotal"><span class="sline-lbl">Subtotal</span><span class="sline-num">€354.38</span></div>
+                <div class="ex-row">
+                  <span class="ex-lbl">1 EUR = __ USD</span>
+                  <input class="ex-inp" value="1.0853">
+                </div>
+                <div class="usd-eq">≈ $384.59</div>
+              </div>
+            </div>
+            <div class="s-grand"><span class="s-grand-lbl">Grand Total</span><span class="s-grand-num">$384.59</span></div>
+          </div>
+
+          <!-- C3: Periwinkle -->
+          <div class="s-card s-card-c3">
+            <div class="s-head"><span class="s-head-icon">🗺️</span><span class="s-head-name">The Nguyens</span></div>
+            <div class="s-body">
+              <div class="curr-block">
+                <div class="curr-head"><span class="curr-flag">🇪🇺</span><span class="curr-code">EUR</span></div>
+                <div class="sline"><span class="sline-lbl">Shared</span><span class="sline-num">€144.38</span></div>
+                <div class="sline"><span class="sline-lbl">Subset</span><span class="sline-num">€92.25</span></div>
+                <div class="sline stotal"><span class="sline-lbl">Subtotal</span><span class="sline-num">€236.63</span></div>
+                <div class="ex-row">
+                  <span class="ex-lbl">1 EUR = __ USD</span>
+                  <input class="ex-inp" value="1.0853">
+                </div>
+                <div class="usd-eq">≈ $256.81</div>
+              </div>
+            </div>
+            <div class="s-grand"><span class="s-grand-lbl">Grand Total</span><span class="s-grand-num">$256.81</span></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+</body>
+</html>
