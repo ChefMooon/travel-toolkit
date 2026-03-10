@@ -7,7 +7,7 @@ Built as a static web app deployed to Cloudflare Workers.
 ## Features
 
 - **Three split modes** — shared (all couples), subset (selected couples only), or individual (one couple)
-- **Multi-currency** — log costs in any currency; apply exchange rates at the end to convert everything to USD
+- **Multi-currency with region filtering** — log costs in any currency; select currencies by geographic region; apply exchange rates at the end to convert everything to USD
 - **Cost markup** — configure a global markup percentage (e.g. a credit card foreign transaction fee); override per cost
 - **Drag-and-drop reordering** of cost entries
 - **Bulk currency assignment** — select multiple costs and assign a currency in one action
@@ -15,6 +15,7 @@ Built as a static web app deployed to Cloudflare Workers.
 - **Persistent state** — all data saved to `localStorage` automatically and restored on page load
 - **Start New Trip** — confirmed reset that clears all data
 - **Light and dark mode**
+- **Fully responsive** — mobile-optimized card layout and adaptive UI for all screen sizes
 
 ## Tech Stack
 

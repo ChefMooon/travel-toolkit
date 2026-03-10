@@ -11,6 +11,7 @@ MKT is a single-page React application with no backend. All state lives in the b
 ```
 App
 ├── Topbar            Trip name, global markup, theme toggle, Start New Trip
+├── RegionSelector    Geographic region picker for currency filtering
 ├── GroupSetup        Add / rename / reorder couples and non-paying travellers
 ├── CostLedger        Cost entry list with drag-and-drop (dnd-kit)
 │   ├── CostRow       Read-only display row for a single cost entry
@@ -39,6 +40,7 @@ Defined in `src/store/tripStore.ts`. Persisted to `localStorage` under the key `
 | `costs` | `CostEntry[]` | All cost entries |
 | `exchangeRates` | `ExchangeRate[]` | Per-currency USD exchange rates entered by the user |
 | `theme` | `'light' \| 'dark'` | Active UI theme |
+| `region` | `Region` | Active geographic region for currency filtering (e.g. 'North America', 'Europe', 'Asia') |
 
 Full type definitions are in `src/store/types.ts`.
 
@@ -53,6 +55,7 @@ Full type definitions are in `src/store/types.ts`.
 | `reorderCosts` | Persist a new cost sort order after drag-and-drop |
 | `bulkSetCurrency` | Apply a currency to an array of cost IDs in one action |
 | `setExchangeRate` | Set or update the USD rate for a given currency |
+| `setRegion` | Update the active region to filter available currencies |
 | `resetTrip` | Clear all state and `localStorage`; return to initial values |
 
 ---
@@ -103,6 +106,49 @@ Zustand's `persist` middleware serialises the entire store to `localStorage` as 
 The **Start New Trip** action calls `resetTrip()`, which:
 1. Resets all state fields to their initial values (empty arrays, default markup, etc.)
 2. Clears the `localStorage` key via Zustand's `persist` `clearStorage` utility
+
+---
+
+## Region Filtering
+
+Regions organize currencies by geography and are defined in `src/store/types.ts` as a mapping from region name to available currency codes:
+- **North America**: CAD, USD
+- **Europe**: EUR, GBP
+- **Asia**: JPY, SGD, HKD, INR, THB
+- **Oceania**: AUD, NZD
+- **Americas**: MXN, BRL
+- **Africa**: ZAR
+
+CAD and USD are globally available in all regions as fallbacks. When a user selects a region via the `RegionSelector` component, the cost entry form displays currencies available in that region plus the always-available currencies. This streamlines the currency selection UX for users on multi-region trips.
+
+---
+
+## Responsive Design
+
+The app uses a mobile-first responsive CSS approach:
+
+1. **Mobile Card Layout** — Cost ledger displays as a card-based layout on small screens (defined in `src/index.css`), with each cost rendered as a horizontal card.
+2. **Adaptive Grid** — Edit forms use responsive grid layout that adjusts field widths and spacing for different screen sizes.
+3. **Theme-aware Styling** — All components use CSS custom properties (`--bg-1`, `--text`, `--border`, etc.) to adapt colors for light and dark modes without component-level logic.
+4. **Touch-friendly** — Interactive elements use sufficient padding and border-radius for touch targets on mobile devices.
+
+---
+
+## Testing
+
+The project uses **Vitest** as the test runner with React Testing Library for component testing.
+
+### Test Files
+- `src/**/*.test.tsx` — Unit and integration tests colocated with source files
+- `src/integration.test.tsx` — High-level integration tests covering couple management, dark mode, and persistence
+
+### Tested Areas (v1.0.1)
+- Couple icon and color updates
+- Dark mode theme toggling and persistence
+- State persistence to `localStorage`
+- CostRow component rendering and interactions
+
+Run tests with `npm run test` or `npm run test:watch` for development.
 
 ---
 

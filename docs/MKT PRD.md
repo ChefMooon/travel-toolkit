@@ -260,15 +260,45 @@ Renaming a couple updates all references to that couple throughout the cost list
 
 **FR-14: Start New Trip (Reset)** A "Start New Trip" button is available at all times. It triggers a confirmation prompt before clearing all `localStorage` data and resetting the tool to its initial empty state.
 
----
-
-## 12. Open Questions
-
-There are no remaining open questions. All decisions have been resolved as of v1.3.
+**FR-15: Region Selection for Currencies** A geographic region selector allows users to filter the available currency list by region (North America, Europe, Asia, Oceania, Americas, Africa). CAD and USD are always available in all regions as fallbacks. Region selection simplifies currency picking on multi-region trips without limiting access to any currency.
 
 ---
 
-## 13. Version History
+## 12. Testing & Quality Assurance
+
+### Testing Framework
+
+The project uses **Vitest** with **React Testing Library** for test authoring and execution.
+
+### Test Coverage (v1.0.1)
+
+- **Couple Management** — Tests verify adding, renaming, and reordering couples; colour and icon updates persist and display correctly.
+- **Dark Mode** — Integration tests confirm theme toggling works and persists to `localStorage`.
+- **State Persistence** — Tests verify that all store state (couples, costs, exchange rates, region, theme) is saved and restored from `localStorage` correctly.
+- **CostRow Component** — Unit tests cover rendering, inline editing workflows, and currency/markup display.
+
+### Running Tests
+
+```sh
+npm run test          # Run all tests once
+npm run test:watch    # Watch mode for development
+```
+
+### Future Testing Goals
+
+- Expand CostRow and EditRow test coverage to include all split types and edge cases (single couple, zero markup, etc.)
+- Integration tests for bulk currency assignment and drag-and-drop reordering
+- Exchange rate calculation tests across all currency combinations
+
+---
+
+## 13. Open Questions
+
+There are no remaining open questions. All decisions have been resolved as of v1.4.
+
+---
+
+## 14. Version History
 
 |Version|Date|Author|Notes|
 |---|---|---|---|
@@ -276,3 +306,4 @@ There are no remaining open questions. All decisions have been resolved as of v1
 |1.1|March 2026|TBD|Resolved open questions: subset splitting, auto-naming with editable couple names, half-up rounding, currency workflow clarified (foreign → USD), markup always visible in UI, edit/delete on cost entries, platform confirmed as static website, export deferred.|
 |1.2|March 2026|TBD|Added localStorage persistence, confirmation prompt on cost entry deletion, drag-and-drop reordering of cost entries.|
 |1.3|March 2026|TBD|Added Start New Trip reset with confirmation prompt. All open questions resolved.|
+|1.4|March 2026|TBD|Added Region Selection filtering for currencies. Documented testing framework and coverage. Implemented mobile responsiveness with card layouts and responsive grids.|

@@ -10,6 +10,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [1.0.1] — 2026-03-10
+
+### Added
+
+- Region selection dropdown — organize currencies by geographic region (North America, Europe, Asia, Oceania, Americas, Africa) with fallback to globally available currencies (CAD, USD)
+- Mobile-responsive card layout for cost ledger table with improved readability on small screens
+- Comprehensive test suite — integration tests for couple management (icon/color updates, dark mode, persistence) and unit tests for CostRow component
+- Favicon and apple touch icons with multiple resolutions for improved bookmark/home screen experience
+
+### Fixed
+
+- Improved responsive grid layout in edit components for better mobile UX
+- Enhanced body styling with border-radius for consistent rounded corners across mobile layouts
+- Page title consistency for better tab/browser identification
+
+---
+
 ## [1.0.0] — 2026-03-10
 
 ### Added
@@ -28,5 +45,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Start New Trip action with confirmation prompt; clears all `localStorage` data and resets to initial state
 - Light and dark theme with toggle; theme preference persisted to `localStorage`
 
-[Unreleased]: https://github.com/ChefMooon/mkt/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/ChefMooon/mkt/compare/v1.0.1...HEAD
+[1.0.1]: https://github.com/ChefMooon/mkt/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/ChefMooon/mkt/releases/tag/v1.0.0
