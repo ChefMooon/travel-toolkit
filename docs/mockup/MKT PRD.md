@@ -110,7 +110,7 @@ Each cost entry contains the following fields:
 
 ### 6.1 Global Markup
 
-A single global markup percentage is configured at the trip level. This markup is applied to all costs by default. Common use case: a credit card foreign transaction fee (e.g. 2.5%) applied uniformly to all expenses.
+A single global markup percentage is configured at the trip level. This markup is applied to all costs by default. Common use case: a service fee or tip percentage (e.g. 66%) applied uniformly to all expenses.
 
 ### 6.2 Per-Cost Markup Override
 
@@ -118,7 +118,7 @@ Individual costs can override the global markup. The per-cost markup can be set 
 
 ### 6.3 Markup UI Requirement
 
-The effective markup rate must be visible on every cost entry row — not hidden behind an edit screen. When a cost uses the global default, it should be labelled as such (e.g. "2.5% (global)"). When overridden, the custom value is shown with a visual indicator (e.g. "0% (custom)"). This prevents silent errors from forgotten overrides.
+The effective markup rate must be visible on every cost entry row — not hidden behind an edit screen. When a cost uses the global default, it should be labelled as such (e.g. "66% (global)"). When overridden, the custom value is shown with a visual indicator (e.g. "0% (custom)"). This prevents silent errors from forgotten overrides.
 
 > **Rule:** Final cost value = base value × (1 + effective_markup%). Effective markup defaults to global unless a per-cost override is set.
 

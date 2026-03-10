@@ -56,6 +56,12 @@ export default function EditRow({ initial, onSave, onCancel }: EditRowProps) {
       finalAssigned = [assignedCoupleIds[0]!];
     }
 
+    // Validate that individual and subset have at least 1 assignment
+    if ((splitType === 'individual' || splitType === 'subset') && finalAssigned.length === 0) {
+      alert(`Cannot save: ${splitType === 'individual' ? 'Solo' : 'Subset'} cost must have at least 1 person assigned.`);
+      return;
+    }
+
     onSave({
       name: name.trim(),
       currency,
@@ -157,16 +163,36 @@ export default function EditRow({ initial, onSave, onCancel }: EditRowProps) {
             Use global markup ({globalMarkup}%)
           </label>
           {!useGlobalMarkup && (
-            <input
-              className="ef-inp mono"
-              type="number"
-              step="0.1"
-              min="0"
-              value={markupOverride}
-              onChange={(e) => setMarkupOverride(e.target.value)}
-              style={{ width: 70, padding: '3px 7px', fontSize: 12 }}
-              placeholder="0"
-            />
+            <>
+              <input
+                className="ef-inp mono"
+                type="number"
+                step="0.1"
+                min="0"
+                value={markupOverride}
+                onChange={(e) => setMarkupOverride(e.target.value)}
+                style={{ width: 70, padding: '3px 7px', fontSize: 12 }}
+                placeholder="0"
+              />
+              <button
+                type="button"
+                onClick={() => {
+                  setMarkupOverride(String(globalMarkup));
+                  setUseGlobalMarkup(true);
+                }}
+                style={{
+                  padding: '3px 7px',
+                  fontSize: 12,
+                  marginLeft: '5px',
+                  cursor: 'pointer',
+                  background: 'var(--btn-bg)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '3px',
+                }}
+              >
+                Reset
+              </button>
+            </>
           )}
         </div>
 

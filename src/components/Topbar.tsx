@@ -35,12 +35,11 @@ export default function Topbar() {
       <header className="topbar">
         <div className="brand">
           <div className="brand-logo">M</div>
-          <span className="brand-wordmark">MK<em>T</em></span>
+          <span className="brand-wordmark">M<span style={{ color: '#ec4899' }}>K</span><span style={{ color: '#06b6d4' }}>T</span></span>
         </div>
 
         <div className="topbar-center">
           <div className="trip-pill">
-            <span className="trip-pill-icon">✈️</span>
             <input
               className="trip-pill-text"
               value={tripName}

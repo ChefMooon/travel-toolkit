@@ -9,6 +9,46 @@ export function roundHalfUp(value: number, decimals: number = 2): number {
   return Math.floor(value * factor + 0.5) / factor;
 }
 
+/**
+ * Validate a cost entry for consistency errors.
+ * Returns an object with validation status and error message if invalid.
+ */
+export interface CostValidation {
+  isValid: boolean;
+  errorMessage: string | null;
+}
+
+export function validateCost(cost: CostEntry): CostValidation {
+  // Shared costs are always valid
+  if (cost.splitType === 'shared') {
+    return { isValid: true, errorMessage: null };
+  }
+
+  // Individual (solo) costs must have exactly 1 person assigned
+  if (cost.splitType === 'individual') {
+    if (cost.assignedCoupleIds.length === 0) {
+      return {
+        isValid: false,
+        errorMessage: 'Solo cost must have 1 person assigned',
+      };
+    }
+    return { isValid: true, errorMessage: null };
+  }
+
+  // Subset costs must have at least 1 person assigned
+  if (cost.splitType === 'subset') {
+    if (cost.assignedCoupleIds.length === 0) {
+      return {
+        isValid: false,
+        errorMessage: 'Subset cost must have ≥1 person assigned',
+      };
+    }
+    return { isValid: true, errorMessage: null };
+  }
+
+  return { isValid: true, errorMessage: null };
+}
+
 export function getEffectiveMarkup(cost: CostEntry, globalMarkup: number): number {
   return cost.markupOverride !== null ? cost.markupOverride : globalMarkup;
 }

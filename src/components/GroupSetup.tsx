@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useTripStore } from '@/store/tripStore';
+import type { Couple } from '@/store/types';
 import { Plus, X } from 'lucide-react';
 import Modal from './Modal';
 
@@ -12,11 +13,13 @@ export default function GroupSetup() {
   const addCouple = useTripStore((s) => s.addCouple);
   const removeCouple = useTripStore((s) => s.removeCouple);
   const renameCouple = useTripStore((s) => s.renameCouple);
+  const reorderCouples = useTripStore((s) => s.reorderCouples);
   const addNonPayingTraveller = useTripStore((s) => s.addNonPayingTraveller);
   const removeNonPayingTraveller = useTripStore((s) => s.removeNonPayingTraveller);
 
   const [showChildPicker, setShowChildPicker] = useState(false);
   const [removingCouple, setRemovingCouple] = useState<string | null>(null);
+  const [draggedId, setDraggedId] = useState<string | null>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -38,6 +41,39 @@ export default function GroupSetup() {
     [addNonPayingTraveller]
   );
 
+  const handleDragStart = (coupleId: string) => {
+    setDraggedId(coupleId);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    if (e.dataTransfer) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+    }
+  };
+
+  const handleDrop = (targetCoupleId: string) => {
+    if (!draggedId || draggedId === targetCoupleId) {
+      setDraggedId(null);
+      return;
+    }
+
+    const draggedIndex = couples.findIndex((c) => c.id === draggedId);
+    const targetIndex = couples.findIndex((c) => c.id === targetCoupleId);
+
+    if (draggedIndex === -1 || targetIndex === -1) {
+      setDraggedId(null);
+      return;
+    }
+
+    const newOrder = [...couples];
+    const [movedCouple] = newOrder.splice(draggedIndex, 1) as [Couple];
+    newOrder.splice(targetIndex, 0, movedCouple);
+
+    reorderCouples(newOrder.map((c) => c.id));
+    setDraggedId(null);
+  };
+
   const coupleToRemove = couples.find((c) => c.id === removingCouple);
 
   return (
@@ -47,7 +83,7 @@ export default function GroupSetup() {
           <span className="card-title">Travelling Party</span>
           <div className="add-btns">
             <button className="btn-add" onClick={addCouple}>
-              <Plus size={12} /> Add Couple
+              <Plus size={12} /> Add Group
             </button>
             <div style={{ position: 'relative' }} ref={pickerRef}>
               <button
@@ -60,7 +96,7 @@ export default function GroupSetup() {
               {showChildPicker && couples.length > 0 && (
                 <div className="child-picker">
                   <div style={{ padding: '4px 14px', fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-3)' }}>
-                    Assign to couple:
+                    Assign to group:
                   </div>
                   {couples.map((c) => (
                     <button
@@ -81,21 +117,33 @@ export default function GroupSetup() {
           {couples.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state-icon">👥</div>
-              <div className="empty-state-text">No couples yet</div>
-              <div className="empty-state-sub">Add couples to start splitting costs</div>
+              <div className="empty-state-text">No groups yet</div>
+              <div className="empty-state-sub">Add groups to start splitting costs</div>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {couples.map((couple) => {
                 const children = nonPayingTravellers.filter((t) => t.coupleId === couple.id);
                 return (
-                  <div className="couple-group" key={couple.id}>
-                    <div className="couple-group-row">
+                  <div
+                    className="group-group"
+                    key={couple.id}
+                    draggable
+                    onDragStart={() => handleDragStart(couple.id)}
+                    onDragOver={handleDragOver}
+                    onDrop={() => handleDrop(couple.id)}
+                    style={{
+                      opacity: draggedId === couple.id ? 0.5 : 1,
+                      cursor: 'grab',
+                      transition: 'opacity 0.2s',
+                    }}
+                  >
+                    <div className="group-group-row">
                       <div className={`chip ${colorClass(couple.colorIndex)}`}>
                         <span className="chip-grip">⠿</span>
                         <span className="chip-dot"></span>
                         <input
-                          className="couple-name-input"
+                          className="group-name-input"
                           value={couple.name}
                           onChange={(e) => renameCouple(couple.id, e.target.value)}
                           style={{ color: 'inherit' }}
@@ -111,7 +159,7 @@ export default function GroupSetup() {
                       </div>
                     </div>
                     {children.length > 0 && (
-                      <div className="couple-group-children">
+                      <div className="group-group-children">
                         <span className="child-connector"></span>
                         {children.map((child) => (
                           <div
@@ -149,6 +197,7 @@ export default function GroupSetup() {
             setRemovingCouple(null);
           }}
           onCancel={() => setRemovingCouple(null)}
+          compact
         />
       )}
     </>

@@ -9,9 +9,9 @@
 
 ### 1.1 Concept: "Vacation Vibes"
 
-Elegant and playful at once — a "Pressed Flowers" pastel palette of dusty rose, sage green, periwinkle, warm peach, and dusty mauve. Desaturated enough to feel refined, saturated enough to be joyful and distinct. Each couple is auto-assigned one of these tones, threading their color through chip, row highlight, and summary card like a personalised luggage tag.
+Elegant and playful at once — a "Pressed Flowers" pastel palette of dusty rose, sage green, periwinkle, warm peach, and dusty mauve. Desaturated enough to feel refined, saturated enough to be joyful and distinct. Each group is auto-assigned one of these tones, threading their color through chip, row highlight, and summary card like a personalised luggage tag.
 
-**One unforgettable thing:** The couple colors are muted pastels that feel like a curated travel mood board — soft but unmistakably intentional. In dark mode the same hues glow warmly against a near-black background.
+**One unforgettable thing:** The group colors are muted pastels that feel like a curated travel mood board — soft but unmistakably intentional. In dark mode the same hues glow warmly against a near-black background.
 
 **Title:** `MKT` — displayed in `Fraunces` italic with the last letter accented in coral.
 
@@ -21,7 +21,7 @@ Elegant and playful at once — a "Pressed Flowers" pastel palette of dusty rose
 
 #### Color Palette (CSS variables)
 
-**Couple accent palette — "Pressed Flowers"** (assigned round-robin):
+**Group accent palette — "Pressed Flowers"** (assigned round-robin):
 ```css
 /* Dusty rose */
 --c1: #C4737A;  --c1-mid: #D8979D;  --c1-soft: #F2E4E5;  --c1-border: #E8C4C7;
@@ -86,10 +86,10 @@ Use `lucide-react` exclusively. Key icons:
 - `GripVertical` — drag handle
 - `Pencil` — edit inline
 - `Trash2` — delete (red on hover)
-- `Plus` — add cost, add couple
+- `Plus` — add cost, add group
 - `ChevronDown` — dropdowns
 - `Sun` / `Moon` — theme toggle knob icons
-- `Users` — couple
+- `Users` — group
 - `Baby` — non-paying traveller
 - `RotateCcw` — start new trip
 - `CheckSquare` — bulk select
@@ -107,7 +107,7 @@ Use `lucide-react` exclusively. Key icons:
 │                            │                                │
 │  ┌──────────────────────┐  │  ┌──────────────────────────┐  │
 │  │  GROUP SETUP         │  │  │  COST SUMMARY            │  │
-│  │  (Couples + children)│  │  │  Per couple · by currency│  │
+│  │  (Groups + children)│  │  │  Per group · by currency│  │
 │  └──────────────────────┘  │  │  Exchange rate inputs    │  │
 │                            │  │  USD totals              │  │
 │  ┌──────────────────────┐  │  └──────────────────────────┘  │
@@ -123,6 +123,77 @@ On mobile (<768px): Panels stack vertically; Summary panel moves below Cost Ledg
 
 ---
 
+### 1.3b Mobile Responsiveness Specification
+
+**Target Breakpoints:**
+- **Mobile small:** 320–479px (phones in portrait)
+- **Mobile:** 480–767px (larger phones, small tablets)
+- **Tablet:** 768–1023px (tablets, landscape phones)
+- **Desktop:** 1024px+ (full experience)
+
+**Key Mobile Adaptations:**
+
+**Topbar (320–479px):**
+- Navbar height reduced to 48px
+- Logo shrinks: 34px → 28px
+- Wordmark font: 21px → 16px
+- Trip pill: `min-width: 80px`, font-size 11px
+- Markup pill: font-size 10px, reduced padding
+- "New Trip" button: font-size 10px, reduced padding
+- All buttons maintain ≥44px touch target height (padding adjusted)
+
+**Navbar (480–767px):**
+- Navbar height: 52px
+- Logo: 34px
+- Wordmark: 18px
+- Trip pill: `min-width: 100px`, font-size 12px
+- Buttons: minimal padding reduction
+
+**Layout & Panels (320–767px):**
+- Main grid collapses to single column (1fr only)
+- Padding reduces: 22px 24px → 12px 12px (mobile small), 16px 16px (mobile), 20px 20px (tablet)
+- Gap between cards: 20px → 12px (mobile small), 16px (mobile), 20px (tablet)
+
+**Cards (Mobile):**
+- Border-radius: 16px → 12px on mobile small
+- Card header: flex-direction column on mobile small; adjust padding to 9px 12px
+- Card body: padding 18px 20px → 14px 16px (tablet), 12px 12px (mobile)
+- Card header buttons wrap on small screens
+
+**Chips & Buttons:**
+- Chip sizing: 12px → 11px (tablet), 10px (mobile)
+- Padding: 5px 10px → 4px 9px (tablet), 3px 8px (mobile)
+- All interactive chips/buttons: min-height 44px on mobile (touch-friendly)
+- "Add Group" / "Add Child" buttons: flex to full width on mobile small
+
+**Table & Cost Ledger (320–767px):**
+- Reduce font sizes: 13px body → 12px (tablet), 10px (mobile)
+- Header font: 10px → 9px (tablet), 8px (mobile)
+- Padding: 9px 11px → 8px 9px (tablet), 6px 7px (mobile)
+- Horizontal scroll container added if needed (table widths may require scroll on very small screens)
+- Column headers: white-space nowrap, text-overflow ellipsis on mobile
+
+**Edit Row / Form (320–767px):**
+- Grid layout (2fr 72px 100px auto auto) collapses to single column on <768px
+- All inputs stack vertically, full width (padding: 4px 7px on mobile)
+- Button sizing: font-size 12px → 11px (tablet), 10px (mobile); min-height 44px
+
+**Typography Scaling:**
+- General: -1–2px on mobile from desktop baseline
+- Button/chip text: maintain readability, minimal reduction
+- Table/form text: reduce more aggressively (9–10px on mobile) to fit constraints
+
+**Touch Targets:**
+- All interactive elements (buttons, chips, inputs, checkboxes): minimum 44px height
+- Gap between touch targets: ≥8px to prevent mis-taps
+- Icon sizes scale with container (no smaller than 12px on mobile)
+
+**Dark Mode:**
+- All responsive values apply equally in both light and dark themes
+- No theme-specific breakpoint adjustments
+
+---
+
 ### 1.4 Component Designs
 
 #### A. Topbar
@@ -132,12 +203,12 @@ On mobile (<768px): Panels stack vertically; Summary panel moves below Cost Ledg
 - Right: Global markup pill · sun/moon theme toggle · "↺ New Trip" button (ghost, turns red on hover)
 
 #### B. Group Setup Panel
-- Section header "Travelling Party" with "+ Add Couple" and "+ Add Child" buttons
-- Each **couple** rendered as a solid pill chip in its assigned couple color: `[drag handle] [● dot] [Name — editable] [× remove]`
-- Couples auto-named "Couple 1", "Couple 2" etc — click name to rename inline
-- **Children are visually linked to a couple.** Each child is assigned to a couple when added. The child chip uses the same couple color but with a *dashed* border and 85% opacity to signal it is a dependent traveller, not a payer. Children are indented below their couple with a dashed connector line (`::before` pseudo-element on `.couple-group-children`).
+- Section header "Travelling Party" with "+ Add Group" and "+ Add Child" buttons
+- Each **group** rendered as a solid pill chip in its assigned group color: `[drag handle] [● dot] [Name — editable] [× remove]`
+- Groups auto-named "Group 1", "Group 2" etc — click name to rename inline
+- **Children are visually linked to a group.** Each child is assigned to a group when added. The child chip uses the same group color but with a *dashed* border and 85% opacity to signal it is a dependent traveller, not a payer. Children are indented below their group with a dashed connector line (`::before` pseudo-element on `.couple-group-children`).
 - Layout: `.couple-group` column → `.couple-group-row` (the couple chip) → `.couple-group-children` (indented, dashed-border child chips in same color)
-- "+ Add Child" always prompts which couple the child belongs to before adding
+- "+ Add Child" always prompts which group the child belongs to before adding
 
 #### C. Cost Ledger Table
 
@@ -149,7 +220,7 @@ On mobile (<768px): Panels stack vertically; Summary panel moves below Cost Ledg
 | 3 | Name | flex | Editable inline on click |
 | 4 | Currency | 80px | `<select class="cur-select">` — styled dropdown with 18 common currencies (EUR, USD, GBP, MXN, JPY, CAD, AUD, CHF, SGD, HKD, DKK, SEK, NOK, NZD, BRL, INR, THB, ZAR). Uses custom chevron arrow via `background-image` SVG, `appearance: none`. Also used in the edit row as `.ef-select` (larger variant). |
 | 5 | Amount | 100px | Monospace number input |
-| 6 | Markup | 90px | Shows `2.5% (g)` or `0% (c)` — click to override |
+| 6 | Markup | 90px | Shows `66% (g)` or `0% (c)` — click to override |
 | 7 | Split | 100px | Badge: `Shared` / `Subset` / `Individual` |
 | 8 | Assigned To | flex | Couple chips, shown for Subset/Individual |
 | 9 | Total w/ Markup | 110px | Computed, monospace, muted gold |
@@ -356,7 +427,7 @@ Pure functions, fully tested:
 | Task | Agent | Description |
 |---|---|---|
 | 2-A | UI Agent A | Build `app/components/ui/Modal.tsx`: accessible dialog with backdrop blur, animation, confirm/cancel slot. Build `app/components/ui/Button.tsx`: variants (primary/ghost/destructive/secondary), sizes. |
-| 2-B | UI Agent B | Build `app/components/ui/Badge.tsx`: split-type badges (Shared=gold, Subset=sky, Individual=ink), markup badges showing `2.5% (g)` / `0% (c)` with visual distinction. Build `app/components/ui/InlineEdit.tsx`: click-to-edit text field with save on blur/enter, cancel on escape. |
+| 2-B | UI Agent B | Build `app/components/ui/Badge.tsx`: split-type badges (Shared=gold, Subset=sky, Individual=ink), markup badges showing `66% (g)` / `0% (c)` with visual distinction. Build `app/components/ui/InlineEdit.tsx`: click-to-edit text field with save on blur/enter, cancel on escape. |
 | 2-C | UI Agent C | Build `app/components/Topbar.tsx`: logo, editable trip name (uses InlineEdit), global markup input, Start New Trip button wired to Modal. Style per §1.4-A. |
 
 ---
@@ -367,8 +438,8 @@ Pure functions, fully tested:
 
 | Task | Agent | Description |
 |---|---|---|
-| 3-A | Feature Agent A | Build `app/components/GroupSetup.tsx`: couple chips with inline rename (InlineEdit), drag-to-reorder couples, remove couple button, add couple button (auto-names), add non-paying traveller, remove non-paying traveller. Wire all actions to Zustand store. |
-| 3-B | Feature Agent B | Build `app/components/CostSummary/CoupleCard.tsx` and `ExchangeRateInput.tsx`. Build `app/components/CostSummary.tsx`: renders one CoupleCard per couple, shows per-currency breakdown (shared/subset/individual subtotals), exchange rate inputs per currency, USD equivalents, grand total. All numbers in IBM Plex Mono. Animate number changes with a count-up effect. Wire to store selectors from Phase 1-B. |
+| 3-A | Feature Agent A | Build `app/components/GroupSetup.tsx`: group chips with inline rename (InlineEdit), drag-to-reorder groups, remove group button, add group button (auto-names), add non-paying traveller, remove non-paying traveller. Wire all actions to Zustand store. |
+| 3-B | Feature Agent B | Build `app/components/CostSummary/GroupCard.tsx` and `ExchangeRateInput.tsx`. Build `app/components/CostSummary.tsx`: renders one GroupCard per group, shows per-currency breakdown (shared/subset/individual subtotals), exchange rate inputs per currency, USD equivalents, grand total. All numbers in IBM Plex Mono. Animate number changes with a count-up effect. Wire to store selectors from Phase 1-B. |
 
 ---
 

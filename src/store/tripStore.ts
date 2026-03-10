@@ -24,6 +24,7 @@ interface TripStore {
   addCouple: () => void;
   removeCouple: (id: string) => void;
   renameCouple: (id: string, name: string) => void;
+  reorderCouples: (orderedIds: string[]) => void;
 
   // Non-paying traveller actions
   addNonPayingTraveller: (coupleId: string) => void;
@@ -53,7 +54,7 @@ const nextColorIndex = (couples: Couple[]): number => {
 
 const initialState = {
   tripName: 'My Trip',
-  globalMarkup: 2.5,
+  globalMarkup: 66,
   couples: [] as Couple[],
   nonPayingTravellers: [] as NonPayingTraveller[],
   costs: [] as CostEntry[],
@@ -78,7 +79,7 @@ export const useTripStore = create<TripStore>()(
           const num = state.couples.length + 1;
           const newCouple: Couple = {
             id: generateId(),
-            name: `Couple ${num}`,
+            name: `Group ${num}`,
             colorIndex: nextColorIndex(state.couples),
             sortOrder: state.couples.length,
           };
@@ -107,6 +108,18 @@ export const useTripStore = create<TripStore>()(
         set((state) => ({
           couples: state.couples.map((c) => (c.id === id ? { ...c, name } : c)),
         })),
+
+      reorderCouples: (orderedIds) =>
+        set((state) => {
+          const coupleMap = new Map(state.couples.map((c) => [c.id, c]));
+          const reordered = orderedIds
+            .map((id, i) => {
+              const couple = coupleMap.get(id);
+              return couple ? { ...couple, sortOrder: i } : null;
+            })
+            .filter((c): c is Couple => c !== null);
+          return { couples: reordered };
+        }),
 
       addNonPayingTraveller: (coupleId) =>
         set((state) => {

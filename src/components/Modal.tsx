@@ -7,9 +7,10 @@ interface ModalProps {
   confirmLabel: string;
   onConfirm: () => void;
   onCancel: () => void;
+  compact?: boolean;
 }
 
-export default function Modal({ icon, title, body, confirmLabel, onConfirm, onCancel }: ModalProps) {
+export default function Modal({ icon, title, body, confirmLabel, onConfirm, onCancel, compact = false }: ModalProps) {
   const handleBackdropClick = useCallback(
     (e: React.MouseEvent) => {
       if (e.target === e.currentTarget) onCancel();
@@ -18,8 +19,8 @@ export default function Modal({ icon, title, body, confirmLabel, onConfirm, onCa
   );
 
   return (
-    <div className="modal-bd" onClick={handleBackdropClick}>
-      <div className="modal" role="dialog" aria-modal="true">
+    <div className={`modal-bd ${compact ? 'modal-bd-compact' : ''}`} onClick={handleBackdropClick}>
+      <div className={`modal ${compact ? 'modal-compact' : ''}`} role="dialog" aria-modal="true">
         <div className="modal-ico">{icon}</div>
         <div className="modal-title">{title}</div>
         <div className="modal-body">{body}</div>

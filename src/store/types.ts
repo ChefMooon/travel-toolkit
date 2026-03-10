@@ -48,7 +48,8 @@ export interface CoupleSummary {
 
 export const CURRENCIES = [
   'EUR', 'USD', 'GBP', 'MXN', 'JPY', 'CAD', 'AUD', 'CHF',
-  'SGD', 'HKD', 'DKK', 'SEK', 'NOK', 'NZD', 'BRL', 'INR', 'THB', 'ZAR'
+  'SGD', 'HKD', 'DKK', 'SEK', 'NOK', 'NZD', 'BRL', 'INR', 'THB', 'ZAR',
+  'CZK', 'HUF', 'PLN', 'RON'
 ] as const;
 
 export const CURRENCY_FLAGS: Record<string, string> = {
@@ -56,6 +57,7 @@ export const CURRENCY_FLAGS: Record<string, string> = {
   CAD: '🇨🇦', AUD: '🇦🇺', CHF: '🇨🇭', SGD: '🇸🇬', HKD: '🇭🇰',
   DKK: '🇩🇰', SEK: '🇸🇪', NOK: '🇳🇴', NZD: '🇳🇿', BRL: '🇧🇷',
   INR: '🇮🇳', THB: '🇹🇭', ZAR: '🇿🇦',
+  CZK: '🇨🇿', HUF: '🇭🇺', PLN: '🇵🇱', RON: '🇷🇴',
 };
 
 export const CURRENCY_SYMBOLS: Record<string, string> = {
@@ -63,6 +65,7 @@ export const CURRENCY_SYMBOLS: Record<string, string> = {
   CAD: 'C$', AUD: 'A$', CHF: 'CHF', SGD: 'S$', HKD: 'HK$',
   DKK: 'kr', SEK: 'kr', NOK: 'kr', NZD: 'NZ$', BRL: 'R$',
   INR: '₹', THB: '฿', ZAR: 'R',
+  CZK: 'Kč', HUF: 'Ft', PLN: 'zł', RON: 'lei',
 };
 
 export const COUPLE_ICONS = ['🧳', '🌿', '🗺️', '🌸', '✨'];

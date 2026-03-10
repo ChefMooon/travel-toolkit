@@ -24,7 +24,7 @@ export default function CostSummary() {
       <div className="card-header">
         <span className="card-title">Cost Summary</span>
         <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 700 }}>
-          {couples.length} {couples.length === 1 ? 'couple' : 'couples'}
+          {couples.length} {couples.length === 1 ? 'group' : 'groups'}
           {currenciesUsed > 0 && ` · ${currenciesUsed} ${currenciesUsed === 1 ? 'currency' : 'currencies'}`}
         </span>
       </div>
@@ -33,7 +33,7 @@ export default function CostSummary() {
           <div className="empty-state">
             <div className="empty-state-icon">📊</div>
             <div className="empty-state-text">No summary yet</div>
-            <div className="empty-state-sub">Add couples and costs to see the breakdown</div>
+            <div className="empty-state-sub">Add groups and costs to see the breakdown</div>
           </div>
         ) : (
           <div className="s-cards">
