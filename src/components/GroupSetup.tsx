@@ -2,7 +2,10 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useTripStore } from '@/store/tripStore';
 import type { Couple } from '@/store/types';
 import { Plus, X } from 'lucide-react';
+import { COUPLE_ICONS } from '@/store/types';
 import Modal from './Modal';
+import IconChoiceModal from './IconChoiceModal';
+import ColorChoiceModal from './ColorChoiceModal';
 
 const colorClass = (i: number) => `chip-c${i}`;
 const childColorClass = (i: number) => `chip-child-c${i}`;
@@ -14,12 +17,17 @@ export default function GroupSetup() {
   const removeCouple = useTripStore((s) => s.removeCouple);
   const renameCouple = useTripStore((s) => s.renameCouple);
   const reorderCouples = useTripStore((s) => s.reorderCouples);
+  const updateCoupleIcon = useTripStore((s) => s.updateCoupleIcon);
+  const updateCoupleColor = useTripStore((s) => s.updateCoupleColor);
   const addNonPayingTraveller = useTripStore((s) => s.addNonPayingTraveller);
   const removeNonPayingTraveller = useTripStore((s) => s.removeNonPayingTraveller);
 
   const [showChildPicker, setShowChildPicker] = useState(false);
   const [removingCouple, setRemovingCouple] = useState<string | null>(null);
   const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [iconModalOpen, setIconModalOpen] = useState(false);
+  const [colorModalOpen, setColorModalOpen] = useState(false);
+  const [selectedCoupleId, setSelectedCoupleId] = useState<string | null>(null);
   const pickerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -141,7 +149,40 @@ export default function GroupSetup() {
                     <div className="group-group-row">
                       <div className={`chip ${colorClass(couple.colorIndex)}`}>
                         <span className="chip-grip">⠿</span>
-                        <span className="chip-dot"></span>
+                        <div
+                          className="icon-interactive"
+                          onClick={() => {
+                            setSelectedCoupleId(couple.id);
+                            setColorModalOpen(false);
+                            setIconModalOpen(true);
+                          }}
+                          style={{ position: 'relative', zIndex: 10 }}
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`Change icon for ${couple.name}`}
+                        >
+                          <span className="chip-icon">
+                            {COUPLE_ICONS[couple.iconIndex]}
+                          </span>
+                        </div>
+                        <div
+                          className="color-dot-interactive"
+                          onClick={() => {
+                            setSelectedCoupleId(couple.id);
+                            setIconModalOpen(false);
+                            setColorModalOpen(true);
+                          }}
+                          style={{
+                            position: 'relative',
+                            zIndex: 10,
+                            '--group-color': `var(--c${couple.colorIndex})`
+                          } as React.CSSProperties}
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`Change color for ${couple.name}`}
+                        >
+                          <span className="chip-dot"></span>
+                        </div>
                         <input
                           className="group-name-input"
                           value={couple.name}
@@ -185,6 +226,36 @@ export default function GroupSetup() {
           )}
         </div>
       </div>
+
+      {iconModalOpen && selectedCoupleId && (
+        <IconChoiceModal
+          iconIndex={couples.find((c) => c.id === selectedCoupleId)?.iconIndex || 0}
+          onConfirm={(iconIndex) => {
+            updateCoupleIcon(selectedCoupleId, iconIndex);
+            setIconModalOpen(false);
+            setSelectedCoupleId(null);
+          }}
+          onCancel={() => {
+            setIconModalOpen(false);
+            setSelectedCoupleId(null);
+          }}
+        />
+      )}
+
+      {colorModalOpen && selectedCoupleId && (
+        <ColorChoiceModal
+          colorIndex={couples.find((c) => c.id === selectedCoupleId)?.colorIndex || 1}
+          onConfirm={(colorIndex) => {
+            updateCoupleColor(selectedCoupleId, colorIndex);
+            setColorModalOpen(false);
+            setSelectedCoupleId(null);
+          }}
+          onCancel={() => {
+            setColorModalOpen(false);
+            setSelectedCoupleId(null);
+          }}
+        />
+      )}
 
       {removingCouple && coupleToRemove && (
         <Modal

@@ -25,6 +25,8 @@ interface TripStore {
   removeCouple: (id: string) => void;
   renameCouple: (id: string, name: string) => void;
   reorderCouples: (orderedIds: string[]) => void;
+  updateCoupleIcon: (id: string, iconIndex: number) => void;
+  updateCoupleColor: (id: string, colorIndex: number) => void;
 
   // Non-paying traveller actions
   addNonPayingTraveller: (coupleId: string) => void;
@@ -81,6 +83,7 @@ export const useTripStore = create<TripStore>()(
             id: generateId(),
             name: `Group ${num}`,
             colorIndex: nextColorIndex(state.couples),
+            iconIndex: 1,
             sortOrder: state.couples.length,
           };
           return { couples: [...state.couples, newCouple] };
@@ -120,6 +123,16 @@ export const useTripStore = create<TripStore>()(
             .filter((c): c is Couple => c !== null);
           return { couples: reordered };
         }),
+
+      updateCoupleIcon: (id, iconIndex) =>
+        set((state) => ({
+          couples: state.couples.map((c) => (c.id === id ? { ...c, iconIndex } : c)),
+        })),
+
+      updateCoupleColor: (id, colorIndex) =>
+        set((state) => ({
+          couples: state.couples.map((c) => (c.id === id ? { ...c, colorIndex } : c)),
+        })),
 
       addNonPayingTraveller: (coupleId) =>
         set((state) => {

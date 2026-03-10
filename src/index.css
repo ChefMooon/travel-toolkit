@@ -396,10 +396,12 @@ body::before {
   transition: transform 0.15s, box-shadow 0.15s;
   cursor: default;
   max-width: 100%;
-  overflow: hidden;
+  overflow: visible;
   text-overflow: ellipsis;
   min-height: 44px;
   justify-content: center;
+  position: relative;
+  z-index: 1;
 }
 .chip:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
 
@@ -447,6 +449,210 @@ body::before {
 
 .group-group { display: flex; flex-direction: column; gap: 5px; }
 .group-group-row { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; }
+/* ══════════════════════════════════════════
+   INTERACTIVE AFFORDANCES — Hover & Focus States
+══════════════════════════════════════════ */
+
+/* Icon interactive styling */
+.icon-interactive {
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Desktop hover states for icons (@media (hover: hover)) */
+@media (hover: hover) {
+  .icon-interactive {
+    padding: 4px;
+  }
+  .icon-interactive:hover {
+    transform: translateY(-3px);
+    filter: brightness(1.1);
+  }
+  .icon-interactive:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+}
+
+/* Mobile tap target sizes */
+@media (hover: none) {
+  .icon-interactive {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .icon-interactive:active {
+    transform: scale(0.92);
+  }
+  [data-theme="light"] .icon-interactive:active {
+    filter: brightness(0.85);
+  }
+  [data-theme="dark"] .icon-interactive:active {
+    filter: brightness(1.2);
+  }
+}
+
+/* Keyboard focus for all themes */
+.icon-interactive:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Color dot interactive styling with dynamic ring */
+.color-dot-interactive {
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  color: color-mix(in srgb, var(--group-color, #999) 55%, white);
+}
+.color-dot-interactive .chip-dot {
+  flex-shrink: 0;
+}
+
+/* Desktop hover states for color dots */
+@media (hover: hover) {
+  .color-dot-interactive {
+    width: 20px;
+    height: 20px;
+  }
+  .color-dot-interactive:hover {
+    transform: translateY(-2px);
+  }
+  .color-dot-interactive:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+}
+
+/* Cost summary card color dot - larger */
+.s-card .color-dot-interactive {
+  width: 28px;
+  height: 28px;
+}
+/* Mobile tap target sizes for color dot */
+@media (hover: none) {
+  .color-dot-interactive {
+    min-width: 44px;
+    min-height: 44px;
+    width: auto;
+    height: auto;
+    padding: 8px;
+  }
+  .color-dot-interactive:active {
+    transform: scale(0.92);
+  }
+  [data-theme="light"] .color-dot-interactive:active {
+    filter: brightness(0.85);
+  }
+  [data-theme="dark"] .color-dot-interactive:active {
+    filter: brightness(1.2);
+  }
+}
+
+/* Keyboard focus for color dot */
+.color-dot-interactive:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Icon container with hover tint (for cards/rows) */
+.icon-with-tint {
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 6px;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (hover: hover) {
+  .icon-with-tint:hover {
+    background: color-mix(in srgb, var(--group-color, #999) 15%, transparent);
+    transform: scale(1.08);
+  }
+  .icon-with-tint:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+}
+
+@media (hover: none) {
+  .icon-with-tint {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 6px;
+  }
+  .icon-with-tint:active {
+    transform: scale(0.92);
+    background: color-mix(in srgb, var(--group-color, #999) 15%, transparent);
+  }
+  [data-theme="light"] .icon-with-tint:active {
+    filter: brightness(0.85);
+  }
+  [data-theme="dark"] .icon-with-tint:active {
+    filter: brightness(1.2);
+  }
+}
+
+.icon-with-tint:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+/* Grip and delete button hover states */
+.chip-grip {
+  opacity: 0.35;
+  font-size: 10px;
+  cursor: grab;
+  transition: opacity 0.15s ease;
+}
+
+@media (hover: hover) {
+  .chip-grip:hover {
+    opacity: 0.65;
+  }
+}
+
+/* Tooltip container base styles */
+.affordance-tooltip {
+  position: absolute;
+  z-index: 100;
+  padding: 6px 10px;
+  background: #1f2937;
+  color: #f3f4f6;
+  font-size: 11px;
+  font-weight: 500;
+  border-radius: 4px;
+  white-space: nowrap;
+  border: 1px solid #374151;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  pointer-events: none;
+}
+
+[data-theme="light"] .affordance-tooltip {
+  background: #1f2937;
+  color: #f3f4f6;
+  border-color: #374151;
+}
+
+[data-theme="dark"] .affordance-tooltip {
+  background: #f3f4f6;
+  color: #1f2937;
+  border-color: #e5e7eb;
+}
+
 .group-group-children {
   display: flex; align-items: center; flex-wrap: wrap; gap: 6px;
   padding-left: 18px;
@@ -1225,7 +1431,7 @@ tr.add-row td { padding: 0; border: none; }
 .s-card-c4 { border-color: var(--c4-border); }
 .s-card-c5 { border-color: var(--c5-border); }
 
-.s-head { padding: 10px 15px; display: flex; align-items: center; gap: 8px; }
+.s-head { padding: 10px 15px; display: flex; align-items: center; gap: 8px; overflow: visible; }
 .s-card-c1 .s-head { background: var(--c1); }
 .s-card-c2 .s-head { background: var(--c2); }
 .s-card-c3 .s-head { background: var(--c3); }
@@ -1527,3 +1733,148 @@ tr.add-row td { padding: 0; border: none; }
   cursor: not-allowed;
 }
 
+
+/* ══════════════════════════════════════════ ICON CHOICE MODAL */
+.icon-choice-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(24, 23, 26, 0.5);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.icon-choice-modal {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: min(90vw, 380px);
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  animation: pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.icon-modal-header {
+  margin-bottom: 20px;
+}
+
+.icon-modal-title {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.icon-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+
+.icon-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-2);
+  font-size: 32px;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
+}
+
+.icon-item:hover {
+  background: var(--bg-3);
+  border-color: var(--text-2);
+  transform: translateY(-2px);
+}
+
+.icon-item.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 3px rgba(196, 115, 122, 0.15);
+}
+
+/* ══════════════════════════════════════════ COLOR CHOICE MODAL */
+.color-choice-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(24, 23, 26, 0.5);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.color-choice-modal {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: min(90vw, 360px);
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+  animation: pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.color-modal-header {
+  margin-bottom: 20px;
+}
+
+.color-modal-title {
+  font-family: 'Fraunces', serif;
+  font-style: italic;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+
+.color-swatch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
+  position: relative;
+}
+
+.color-swatch:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.color-swatch.selected {
+  border-color: var(--text);
+  border-width: 3px;
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--text);
+}
+
+.color-indicator {
+  font-size: 20px;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}

@@ -167,6 +167,7 @@ export function buildSummary(
       coupleId: couple.id,
       coupleName: couple.name,
       colorIndex: couple.colorIndex,
+      iconIndex: couple.iconIndex,
       currencies: activeCurrencies.length > 0 ? activeCurrencies : currencies,
       grandTotalUSD,
     };
