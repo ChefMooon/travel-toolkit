@@ -49,26 +49,42 @@ export interface CoupleSummary {
 }
 
 export const CURRENCIES = [
-  'EUR', 'USD', 'GBP', 'MXN', 'JPY', 'CAD', 'AUD', 'CHF',
-  'SGD', 'HKD', 'DKK', 'SEK', 'NOK', 'NZD', 'BRL', 'INR', 'THB', 'ZAR',
-  'CZK', 'HUF', 'PLN', 'RON'
+  'EUR', 'USD', 'GBP', 'MXN', 'JPY', 'CAD', 'AUD',
+  'SGD', 'HKD', 'NZD', 'BRL', 'INR', 'THB', 'ZAR'
 ] as const;
 
 export const CURRENCY_FLAGS: Record<string, string> = {
   EUR: '🇪🇺', USD: '🇺🇸', GBP: '🇬🇧', MXN: '🇲🇽', JPY: '🇯🇵',
-  CAD: '🇨🇦', AUD: '🇦🇺', CHF: '🇨🇭', SGD: '🇸🇬', HKD: '🇭🇰',
-  DKK: '🇩🇰', SEK: '🇸🇪', NOK: '🇳🇴', NZD: '🇳🇿', BRL: '🇧🇷',
-  INR: '🇮🇳', THB: '🇹🇭', ZAR: '🇿🇦',
-  CZK: '🇨🇿', HUF: '🇭🇺', PLN: '🇵🇱', RON: '🇷🇴',
+  CAD: '🇨🇦', AUD: '🇦🇺', SGD: '🇸🇬', HKD: '🇭🇰',
+  NZD: '🇳🇿', BRL: '🇧🇷', INR: '🇮🇳', THB: '🇹🇭', ZAR: '🇿🇦',
 };
 
 export const CURRENCY_SYMBOLS: Record<string, string> = {
   EUR: '€', USD: '$', GBP: '£', MXN: 'MX$', JPY: '¥',
-  CAD: 'C$', AUD: 'A$', CHF: 'CHF', SGD: 'S$', HKD: 'HK$',
-  DKK: 'kr', SEK: 'kr', NOK: 'kr', NZD: 'NZ$', BRL: 'R$',
-  INR: '₹', THB: '฿', ZAR: 'R',
-  CZK: 'Kč', HUF: 'Ft', PLN: 'zł', RON: 'lei',
+  CAD: 'C$', AUD: 'A$', SGD: 'S$', HKD: 'HK$',
+  NZD: 'NZ$', BRL: 'R$', INR: '₹', THB: '฿', ZAR: 'R',
 };
+
+export type Region = 'North America' | 'Europe' | 'Asia' | 'Oceania' | 'Americas' | 'Africa';
+
+export const REGIONS: Record<Region, string[]> = {
+  'North America': ['CAD', 'USD'],
+  'Europe': ['EUR', 'GBP'],
+  'Asia': ['JPY', 'SGD', 'HKD', 'INR', 'THB'],
+  'Oceania': ['AUD', 'NZD'],
+  'Americas': ['MXN', 'BRL'],
+  'Africa': ['ZAR'],
+};
+
+export const ALWAYS_AVAILABLE_CURRENCIES = ['CAD', 'USD'];
+
+export const REGION_LIST = Object.keys(REGIONS) as Region[];
+
+export function getAvailableCurrencies(region: Region): string[] {
+  const regionCurrencies = REGIONS[region] || [];
+  const available = new Set([...regionCurrencies, ...ALWAYS_AVAILABLE_CURRENCIES]);
+  return Array.from(available).sort();
+}
 
 export const COUPLE_ICONS = [
   '🧳', '🌿', '🗺️', '🌸', '✨',
@@ -96,5 +112,5 @@ export function getColorThemeValue(
   mode: 'light' | 'dark'
 ): string {
   const color = COUPLE_COLORS[colorIndex];
-  return color[mode];
+  return color?.[mode] ?? '#000000';
 }

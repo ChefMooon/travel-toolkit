@@ -6,6 +6,7 @@ import { COUPLE_ICONS } from '@/store/types';
 import Modal from './Modal';
 import IconChoiceModal from './IconChoiceModal';
 import ColorChoiceModal from './ColorChoiceModal';
+import RegionSelector from './RegionSelector';
 
 const colorClass = (i: number) => `chip-c${i}`;
 const childColorClass = (i: number) => `chip-child-c${i}`;
@@ -86,6 +87,7 @@ export default function GroupSetup() {
 
   return (
     <>
+      <RegionSelector />
       <div className="card">
         <div className="card-header">
           <span className="card-title">Travelling Party</span>

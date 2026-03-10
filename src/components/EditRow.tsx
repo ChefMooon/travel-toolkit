@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useTripStore } from '@/store/tripStore';
-import { CURRENCIES } from '@/store/types';
+import { getAvailableCurrencies } from '@/store/types';
 import type { SplitType } from '@/store/types';
 
 interface EditRowProps {
@@ -27,6 +27,7 @@ interface EditRowProps {
 export default function EditRow({ initial, onSave, onCancel }: EditRowProps) {
   const couples = useTripStore((s) => s.couples);
   const globalMarkup = useTripStore((s) => s.globalMarkup);
+  const region = useTripStore((s) => s.region);
 
   const [name, setName] = useState(initial?.name ?? '');
   const [currency, setCurrency] = useState(initial?.currency ?? 'USD');
@@ -104,7 +105,7 @@ export default function EditRow({ initial, onSave, onCancel }: EditRowProps) {
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
             >
-              {CURRENCIES.map((c) => (
+              {getAvailableCurrencies(region).map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>

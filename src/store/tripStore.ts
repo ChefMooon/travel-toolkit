@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Couple, NonPayingTraveller, CostEntry, ExchangeRate } from './types';
+import type { Couple, NonPayingTraveller, CostEntry, ExchangeRate, Region } from './types';
 
 function generateId(): string {
   return crypto.randomUUID();
@@ -14,11 +14,13 @@ interface TripStore {
   costs: CostEntry[];
   exchangeRates: ExchangeRate[];
   theme: 'light' | 'dark';
+  region: Region;
 
   // Actions
   setTripName: (name: string) => void;
   setGlobalMarkup: (markup: number) => void;
   setTheme: (theme: 'light' | 'dark') => void;
+  setRegion: (region: Region) => void;
 
   // Couple actions
   addCouple: () => void;
@@ -62,6 +64,7 @@ const initialState = {
   costs: [] as CostEntry[],
   exchangeRates: [] as ExchangeRate[],
   theme: 'light' as const,
+  region: 'Europe' as const,
 };
 
 export const useTripStore = create<TripStore>()(
@@ -75,6 +78,7 @@ export const useTripStore = create<TripStore>()(
         document.documentElement.dataset['theme'] = theme;
         set({ theme });
       },
+      setRegion: (region) => set({ region }),
 
       addCouple: () =>
         set((state) => {

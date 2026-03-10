@@ -4,7 +4,7 @@ import { useTripStore } from '@/store/tripStore';
 import { getEffectiveMarkup, getCostWithMarkup, formatCurrency, validateCost } from '@/lib/calculations';
 import { Pencil, Trash2, GripVertical, ChevronLeft, ChevronRight, X, AlertCircle } from 'lucide-react';
 import type { CostEntry, SplitType } from '@/store/types';
-import { CURRENCIES } from '@/store/types';
+import { getAvailableCurrencies } from '@/store/types';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -18,6 +18,7 @@ interface CostRowProps {
 
 export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDelete }: CostRowProps) {
   const globalMarkup = useTripStore((s) => s.globalMarkup);
+  const region = useTripStore((s) => s.region);
   const couples = useTripStore((s) => s.couples);
   const editCost = useTripStore((s) => s.editCost);
 
@@ -276,7 +277,7 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
           value={cost.currency}
           onChange={(e) => editCost(cost.id, { currency: e.target.value })}
         >
-          {CURRENCIES.map((c) => (
+          {getAvailableCurrencies(region).map((c) => (
             <option key={c} value={c}>{c}</option>
           ))}
         </select>
