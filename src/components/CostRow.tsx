@@ -74,7 +74,7 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
       if (couplePopoverRef.current && !couplePopoverRef.current.contains(e.target as Node)) {
         // If closing couple popover and no couples selected, revert split type
         if (couplePopoverOpen && cost.splitType !== 'shared' && cost.assignedCoupleIds.length === 0) {
-          editCost(cost.id, { splitType: previousSplitType });
+          editCost(cost.id, { splitType: previousSplitType, assignedCoupleIds: previousAssignedCouples });
         }
         setCouplePopoverOpen(false);
       }
