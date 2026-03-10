@@ -211,6 +211,19 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
     setTempAssignedCouples([]);
   };
 
+  // Handle who-dots click to open split modal
+  const handleWhoDotsClick = () => {
+    if (cost.splitType === 'subset') {
+      setPendingSplitType('subset');
+      setTempAssignedCouples(cost.assignedCoupleIds.length > 0 ? cost.assignedCoupleIds : []);
+      setSplitModalOpen(true);
+    } else if (cost.splitType === 'individual') {
+      setPendingSplitType('individual');
+      setTempAssignedCouples(cost.assignedCoupleIds.length > 0 ? cost.assignedCoupleIds : []);
+      setSplitModalOpen(true);
+    }
+  };
+
   // Focus input when switching to edit mode
   useEffect(() => {
     if (editingField === 'name' && nameInputRef.current) {
@@ -404,7 +417,11 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
           {cost.splitType === 'shared' ? (
             <span className="who-label">All</span>
           ) : (
-            <div className="who-dots">
+            <div
+              className="who-dots"
+              onClick={handleWhoDotsClick}
+              style={{ cursor: (cost.splitType === 'subset' || cost.splitType === 'individual') ? 'pointer' : 'auto' }}
+            >
               {assignedDots?.map((c) => (
                 <span
                   key={c!.id}
