@@ -24,6 +24,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Improved responsive grid layout in edit components for better mobile UX
 - Enhanced body styling with border-radius for consistent rounded corners across mobile layouts
 - Page title consistency for better tab/browser identification
+- Refined mobile button styling — hide text labels on screens ≤479px for improved space efficiency
+- Improved trip pill constraints — added flex-shrink and max-width for better text overflow handling on mobile
+- Enhanced markup pill and button responsive breakpoints — optimized spacing and font sizing for ultra-small screens
+- Improved button text alignment (markup number input centered for better visual balance)
+- Refined New Trip button markup structure with `<span>` wrapper for better responsive control
 
 ---
 

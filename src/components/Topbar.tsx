@@ -78,7 +78,7 @@ export default function Topbar() {
           </button>
 
           <button className="btn-new-trip" onClick={() => setShowReset(true)}>
-            <RotateCcw size={12} /> New Trip
+            <RotateCcw size={12} /> <span>New Trip</span>
           </button>
         </div>
       </header>

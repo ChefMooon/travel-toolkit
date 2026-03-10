@@ -166,6 +166,8 @@ body::before {
   cursor: text;
   transition: border-color 0.15s;
   min-height: 44px;
+  flex-shrink: 1;
+  max-width: 100%;
 }
 .trip-pill:hover { border-color: var(--c3); }
 .trip-pill-icon { font-size: 15px; }
@@ -181,22 +183,28 @@ body::before {
   .trip-pill {
     padding: 4px 12px;
     font-size: 12px;
+    max-width: 62%;
   }
-  .trip-pill-text { min-width: 100px; font-size: 12px; }
+  .trip-pill-text { min-width: 70px; font-size: 12px; }
 }
 
 @media (max-width: 479px) {
   .trip-pill {
     padding: 3px 10px;
     min-width: auto;
+    max-width: 58%;
   }
-  .trip-pill-text { min-width: 80px; font-size: 11px; }
+  .trip-pill-text { min-width: 60px; font-size: 12px; }
   .trip-pill-edit { font-size: 9px; }
 }
 
 .topbar-right { display: flex; align-items: center; gap: 10px; }
 
 @media (max-width: 767px) {
+  .topbar-right { gap: 8px; }
+}
+
+@media (max-width: 479px) {
   .topbar-right { gap: 8px; }
 }
 
@@ -221,15 +229,25 @@ body::before {
 
 @media (max-width: 479px) {
   .markup-pill {
-    padding: 3px 8px;
+    padding: 3px 6px;
     font-size: 10px;
+  }
+  .markup-pill > span:first-child {
+    display: none;
   }
 }
 .markup-num {
   font-family: 'JetBrains Mono', monospace; font-size: 12px; color: var(--text);
   border: none; background: transparent; outline: none;
-  width: 40px; text-align: right;
+  width: 40px; text-align: center;
   font-weight: 600;
+}
+
+@media (max-width: 479px) {
+  .markup-num {
+    width: 28px;
+    font-size: 11px;
+  }
 }
 
 .theme-toggle {
@@ -270,6 +288,16 @@ body::before {
   transition: all 0.15s;
 }
 .btn-new-trip:hover { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
+
+@media (max-width: 479px) {
+  .btn-new-trip {
+    padding: 4px 10px;
+    gap: 0;
+  }
+  .btn-new-trip > span {
+    display: none;
+  }
+}
 
 /* ══════════════════════════════════════════ LAYOUT */
 .main {
