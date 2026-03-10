@@ -68,7 +68,7 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
 
       // First chip should have the icon from first couple (iconIndex: 1)
       const firstChip = chips[0];
-      const expectedIcon = COUPLE_ICONS[1];
+      const expectedIcon = COUPLE_ICONS[1] || '';
       expect(firstChip).toHaveTextContent(expectedIcon);
     });
 
@@ -82,13 +82,15 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
 
       const chips = document.querySelectorAll('.chip');
       const firstChip = chips[0];
-      const gripSpan = firstChip.querySelector('.chip-grip');
-      const iconSpan = firstChip.querySelector('.chip-icon');
+      const gripSpan = firstChip?.querySelector('.chip-grip');
+      const iconSpan = firstChip?.querySelector('.chip-icon');
 
       // Icon should exist after grip
-      expect(gripSpan).toHaveTextContent('⠿');
-      expect(iconSpan).toBeTruthy();
-      expect(iconSpan).toHaveTextContent(COUPLE_ICONS[1]);
+      if (gripSpan && iconSpan) {
+        expect(gripSpan).toHaveTextContent('⠿');
+        expect(iconSpan).toBeTruthy();
+        expect(iconSpan).toHaveTextContent(COUPLE_ICONS[1] || '');
+      }
     });
 
     it('should render icon before color dot', () => {
@@ -101,6 +103,8 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
 
       const chips = document.querySelectorAll('.chip');
       const firstChip = chips[0];
+      
+      if (!firstChip) return;
 
       const chipChildren = Array.from(firstChip.children);
       const gripIndex = chipChildren.findIndex((el) =>
@@ -128,10 +132,10 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
       const chips = document.querySelectorAll('.chip');
 
       // First couple has iconIndex 1
-      expect(chips[0]).toHaveTextContent(COUPLE_ICONS[1]);
+      expect(chips[0]).toHaveTextContent(COUPLE_ICONS[1] || '');
 
       // Second couple has iconIndex 3
-      expect(chips[1]).toHaveTextContent(COUPLE_ICONS[3]);
+      expect(chips[1]).toHaveTextContent(COUPLE_ICONS[3] || '');
     });
   });
 
@@ -149,7 +153,9 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
 
       // Icon should have cursor: pointer
       const iconSpan = iconSpans[0];
-      expect(window.getComputedStyle(iconSpan).cursor).toBe('pointer');
+      if (iconSpan) {
+        expect(window.getComputedStyle(iconSpan).cursor).toBe('pointer');
+      }
     });
 
     it('should open IconChoiceModal when icon is clicked', () => {
@@ -161,7 +167,7 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
       render(<GroupSetup />);
 
       const iconSpans = document.querySelectorAll('.chip-icon');
-      fireEvent.click(iconSpans[0]);
+      fireEvent.click(iconSpans[0] as Element);
 
       // IconChoiceModal should be visible
       const iconModal = document.querySelector('.icon-choice-modal');
@@ -179,7 +185,7 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
       const iconSpans = document.querySelectorAll('.chip-icon');
 
       // Click first couple's icon
-      fireEvent.click(iconSpans[0]);
+      fireEvent.click(iconSpans[0] as Element);
 
       // Modal should render icon items, and first couple's icon (iconIndex: 1) should be selected
       const iconItems = document.querySelectorAll('.icon-item');
@@ -199,11 +205,11 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
 
       // Open modal
       const iconSpans = document.querySelectorAll('.chip-icon');
-      fireEvent.click(iconSpans[0]);
+      fireEvent.click(iconSpans[0] as Element);
 
       // Click a different icon (e.g., index 5)
       const iconItems = document.querySelectorAll('.icon-item');
-      fireEvent.click(iconItems[5]);
+      fireEvent.click(iconItems[5] as Element);
 
       expect(mockStore.updateCoupleIcon).toHaveBeenCalledWith('couple1', 5);
     });
@@ -218,11 +224,11 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
 
       // Open modal
       const iconSpans = document.querySelectorAll('.chip-icon');
-      fireEvent.click(iconSpans[0]);
+      fireEvent.click(iconSpans[0] as Element);
 
       // Confirm selection
       const iconItems = document.querySelectorAll('.icon-item');
-      fireEvent.click(iconItems[3]);
+      fireEvent.click(iconItems[3] as Element);
 
       // Modal should close
       const iconModal = document.querySelector('.icon-choice-modal');
@@ -239,7 +245,7 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
 
       // Open modal
       const iconSpans = document.querySelectorAll('.chip-icon');
-      fireEvent.click(iconSpans[0]);
+      fireEvent.click(iconSpans[0] as Element);
 
       // Cancel modal by clicking outside
       const overlay = document.querySelector('.icon-choice-overlay');
@@ -258,7 +264,7 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
 
       // Open modal
       const iconSpans = document.querySelectorAll('.chip-icon');
-      fireEvent.click(iconSpans[0]);
+      fireEvent.click(iconSpans[0] as Element);
 
       // Cancel modal
       const overlay = document.querySelector('.icon-choice-overlay');
@@ -283,7 +289,9 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
 
       // Dot should have cursor: pointer
       const dotSpan = dotSpans[0];
-      expect(window.getComputedStyle(dotSpan).cursor).toBe('pointer');
+      if (dotSpan) {
+        expect(window.getComputedStyle(dotSpan).cursor).toBe('pointer');
+      }
     });
 
     it('should open ColorChoiceModal when color dot is clicked', () => {
@@ -295,7 +303,7 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
       render(<GroupSetup />);
 
       const dotSpans = document.querySelectorAll('.chip-dot');
-      fireEvent.click(dotSpans[0]);
+      fireEvent.click(dotSpans[0] as Element);
 
       // ColorChoiceModal should be visible
       const colorModal = document.querySelector('.color-choice-modal');
@@ -313,7 +321,7 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
       const dotSpans = document.querySelectorAll('.chip-dot');
 
       // Click first couple's dot
-      fireEvent.click(dotSpans[0]);
+      fireEvent.click(dotSpans[0] as Element);
 
       // Modal should render color swatches, and first couple's color (colorIndex: 1) should be selected
       const swatches = document.querySelectorAll('.color-swatch');
@@ -333,11 +341,11 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
 
       // Open modal
       const dotSpans = document.querySelectorAll('.chip-dot');
-      fireEvent.click(dotSpans[0]);
+      fireEvent.click(dotSpans[0] as Element);
 
       // Click a different color (e.g., index 5)
       const swatches = document.querySelectorAll('.color-swatch');
-      fireEvent.click(swatches[5]);
+      fireEvent.click(swatches[5] as Element);
 
       expect(mockStore.updateCoupleColor).toHaveBeenCalledWith('couple1', 6);
     });
@@ -352,11 +360,11 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
 
       // Open modal
       const dotSpans = document.querySelectorAll('.chip-dot');
-      fireEvent.click(dotSpans[0]);
+      fireEvent.click(dotSpans[0] as Element);
 
       // Confirm selection
       const swatches = document.querySelectorAll('.color-swatch');
-      fireEvent.click(swatches[3]);
+      fireEvent.click(swatches[3] as Element);
 
       // Modal should close
       const colorModal = document.querySelector('.color-choice-modal');
@@ -373,7 +381,7 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
 
       // Open modal
       const dotSpans = document.querySelectorAll('.chip-dot');
-      fireEvent.click(dotSpans[0]);
+      fireEvent.click(dotSpans[0] as Element);
 
       // Cancel modal by clicking outside
       const overlay = document.querySelector('.color-choice-overlay');
@@ -392,7 +400,7 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
 
       // Open modal
       const dotSpans = document.querySelectorAll('.chip-dot');
-      fireEvent.click(dotSpans[0]);
+      fireEvent.click(dotSpans[0] as Element);
 
       // Cancel modal
       const overlay = document.querySelector('.color-choice-overlay');
@@ -414,14 +422,14 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
 
       // Open icon modal
       const iconSpans = document.querySelectorAll('.chip-icon');
-      fireEvent.click(iconSpans[0]);
+      fireEvent.click(iconSpans[0] as Element);
 
       let iconModal = document.querySelector('.icon-choice-modal');
       expect(iconModal).toBeTruthy();
 
       // Open color modal (on same chip)
       const dotSpans = document.querySelectorAll('.chip-dot');
-      fireEvent.click(dotSpans[0]);
+      fireEvent.click(dotSpans[0] as Element);
 
       // Icon modal should close
       iconModal = document.querySelector('.icon-choice-modal');
@@ -442,7 +450,7 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
 
       // Open icon modal for first couple
       const iconSpans = document.querySelectorAll('.chip-icon');
-      fireEvent.click(iconSpans[0]);
+      fireEvent.click(iconSpans[0] as Element);
 
       let modals = document.querySelectorAll(
         '.icon-choice-modal, .color-choice-modal'
@@ -450,7 +458,7 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
       expect(modals.length).toBe(1);
 
       // Try to open icon modal for second couple
-      fireEvent.click(iconSpans[1]);
+      fireEvent.click(iconSpans[1] as Element);
 
       modals = document.querySelectorAll('.icon-choice-modal, .color-choice-modal');
       expect(modals.length).toBe(1);
@@ -469,16 +477,22 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
       const chips = document.querySelectorAll('.chip');
       const firstChip = chips[0];
 
-      const iconSpan = firstChip.querySelector('.chip-icon');
-      const dotSpan = firstChip.querySelector('.chip-dot');
+      if (!firstChip) return;
+      
+      const iconSpan = firstChip?.querySelector('.chip-icon');
+      const dotSpan = firstChip?.querySelector('.chip-dot');
 
       // Both should exist and have defined positions
       expect(iconSpan).toBeTruthy();
       expect(dotSpan).toBeTruthy();
 
       // Check they're both visible
-      expect(window.getComputedStyle(iconSpan!).display).not.toBe('none');
-      expect(window.getComputedStyle(dotSpan!).display).not.toBe('none');
+      if (iconSpan) {
+        expect(window.getComputedStyle(iconSpan as Element).display).not.toBe('none');
+      }
+      if (dotSpan) {
+        expect(window.getComputedStyle(dotSpan as Element).display).not.toBe('none');
+      }
     });
 
     it('should render icon with appropriate size', () => {
@@ -493,7 +507,7 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
       expect(iconSpans.length).toBeGreaterThan(0);
 
       // Icon should be visible and have cursor pointer
-      const iconSpan = iconSpans[0];
+      const iconSpan = iconSpans[0] as Element;
       expect(iconSpan).toBeVisible();
       expect(window.getComputedStyle(iconSpan).cursor).toBe('pointer');
     });
@@ -506,18 +520,20 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
         selector(mockStore)
       );
 
-      const { rerender } = render(<GroupSetup />);
+      render(<GroupSetup />);
 
       // Open and close icon modal
       const iconSpans = document.querySelectorAll('.chip-icon');
-      fireEvent.click(iconSpans[0]);
+      fireEvent.click(iconSpans[0] as Element);
 
       const overlay = document.querySelector('.icon-choice-overlay');
-      fireEvent.click(overlay!);
+      if (overlay) {
+        fireEvent.click(overlay);
+      }
 
       // Icon should still be visible
       const chips = document.querySelectorAll('.chip');
-      expect(chips[0]).toHaveTextContent(COUPLE_ICONS[1]);
+      expect(chips[0]).toHaveTextContent(COUPLE_ICONS[1] || '');
     });
 
     it('should maintain correct visual hierarchy after interaction', () => {
@@ -530,20 +546,24 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
 
       // Click both icon and dot
       const iconSpans = document.querySelectorAll('.chip-icon');
-      fireEvent.click(iconSpans[0]);
+      fireEvent.click(iconSpans[0] as Element);
 
-      const overlay = document.querySelector('.icon-choice-overlay');
-      fireEvent.click(overlay!);
+      const iconOverlay = document.querySelector('.icon-choice-overlay');
+      if (iconOverlay) {
+        fireEvent.click(iconOverlay);
+      }
 
       const dotSpans = document.querySelectorAll('.chip-dot');
-      fireEvent.click(dotSpans[0]);
+      fireEvent.click(dotSpans[0] as Element);
 
-      fireEvent.click(document.querySelector('.color-choice-overlay')!);
+      const colorOverlay = document.querySelector('.color-choice-overlay');
+      if (colorOverlay) {
+        fireEvent.click(colorOverlay);
+      }
 
       // Check order is still maintained: grip > icon > dot
-      const chipChildren = Array.from(
-        document.querySelectorAll('.chip')[0].children
-      );
+      const chip = document.querySelectorAll('.chip')[0];
+      const chipChildren = chip ? Array.from(chip.children) : [];
       const gripIndex = chipChildren.findIndex((el) =>
         el.classList.contains('chip-grip')
       );

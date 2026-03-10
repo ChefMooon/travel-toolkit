@@ -132,7 +132,7 @@ describe('IconChoiceModal', () => {
   });
 
   it('should render portal to document body', () => {
-    const { container } = render(
+    render(
       <IconChoiceModal
         iconIndex={0}
         onConfirm={mockOnConfirm}
@@ -146,7 +146,7 @@ describe('IconChoiceModal', () => {
   });
 
   it('should only trigger onCancel once when clicking outside', () => {
-    const { container } = render(
+    render(
       <IconChoiceModal
         iconIndex={0}
         onConfirm={mockOnConfirm}

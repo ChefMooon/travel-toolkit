@@ -18,18 +18,21 @@ const mockCouples: Couple[] = [
     id: 'couple1',
     name: 'Alice & Bob',
     colorIndex: 1,
+    iconIndex: 0,
     sortOrder: 0,
   },
   {
     id: 'couple2',
     name: 'Charlie & Diana',
     colorIndex: 2,
+    iconIndex: 1,
     sortOrder: 1,
   },
   {
     id: 'couple3',
     name: 'Eve & Frank',
     colorIndex: 3,
+    iconIndex: 2,
     sortOrder: 2,
   },
 ];
