@@ -1054,14 +1054,16 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
   color: var(--text);
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
-  min-width: 120px;
+  width: 72px;
+  max-width: 100%;
 }
 .inline-edit-input:focus {
   box-shadow: 0 0 0 2px rgba(123,135,190,0.2);
 }
 .inline-edit-input.mono {
   font-family: 'JetBrains Mono', monospace;
-  min-width: 80px;
+  width: 80px;
+  max-width: 100%;
 }
 
 @media (max-width: 1024px) {
@@ -1297,8 +1299,8 @@ tr.edit-row td {
 
 .edit-grid {
   display: grid;
-  grid-template-columns: 2fr 72px 100px auto auto;
-  gap: 9px; align-items: end; margin-bottom: 11px;
+  grid-template-columns: 1.5fr 60px 100px auto auto;
+  gap: 5px; align-items: end; margin-bottom: 11px;
 }
 
 @media (max-width: 767px) {
