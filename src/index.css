@@ -109,46 +109,39 @@ body::before {
 }
 
 .brand-logo {
-  width: 34px; height: 34px;
+  width: 40px; height: 40px;
   background: var(--accent);
-  border-radius: 10px;
+  border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
-  font-family: 'Fraunces', serif;
-  font-style: italic; font-weight: 700; font-size: 17px;
-  color: white;
   box-shadow: 0 2px 0 rgba(140,60,65,0.3);
   transform: rotate(-2deg);
-  transition: transform 0.2s;
+  transition: transform 0.2s, background 0.4s;
   flex-shrink: 0;
+  padding: 4px;
+  position: relative;
 }
 .brand-logo:hover { transform: rotate(1deg) scale(1.06); }
 
+.logo-svg {
+  width: 100%; height: 100%;
+  display: block;
+}
+
+.logo-path {
+  fill: white !important;
+  transition: fill 0.4s ease;
+}
+
 @media (max-width: 479px) {
   .brand-logo {
-    width: 28px;
-    height: 28px;
-    font-size: 14px;
+    width: 34px;
+    height: 34px;
+    padding: 3px;
   }
 }
 
 .brand-wordmark {
-  font-family: 'Fraunces', serif;
-  font-style: italic; font-weight: 700; font-size: 21px;
-  color: var(--text);
-  letter-spacing: -0.01em;
-}
-.brand-wordmark em { font-style: normal; color: var(--accent); }
-
-@media (max-width: 767px) {
-  .brand-wordmark {
-    font-size: 18px;
-  }
-}
-
-@media (max-width: 479px) {
-  .brand-wordmark {
-    font-size: 16px;
-  }
+  display: none;
 }
 
 .topbar-center { display: flex; align-items: center; gap: 8px; }

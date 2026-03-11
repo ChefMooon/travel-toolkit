@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { useTripStore } from '@/store/tripStore';
 import { Sun, Moon, RotateCcw } from 'lucide-react';
 import Modal from './Modal';
+import Logo from './Logo';
 
 export default function Topbar() {
   const tripName = useTripStore((s) => s.tripName);
@@ -34,8 +35,7 @@ export default function Topbar() {
     <>
       <header className="topbar">
         <div className="brand">
-          <div className="brand-logo">M</div>
-          <span className="brand-wordmark">M<span style={{ color: '#ec4899' }}>K</span><span style={{ color: '#06b6d4' }}>T</span></span>
+          <Logo />
         </div>
 
         <div className="topbar-center">
