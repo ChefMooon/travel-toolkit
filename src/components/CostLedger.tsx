@@ -137,16 +137,16 @@ export default function CostLedger() {
           <table className="ledger">
             <thead>
               <tr>
-                <th></th>
-                <th></th>
+                <th style={{ width: 26 }}></th>
+                <th style={{ width: 26 }}></th>
                 <th>Name</th>
-                <th>Cur.</th>
-                <th>Amount</th>
-                <th>Markup</th>
-                <th>Split</th>
-                <th>Who</th>
-                <th>Total</th>
-                <th></th>
+                <th style={{ width: 60 }}>Cur.</th>
+                <th style={{ width: 92 }}>Amount</th>
+                <th style={{ width: 96 }}>Markup</th>
+                <th style={{ width: 92 }}>Split</th>
+                <th style={{ width: 60 }}>Who</th>
+                <th style={{ width: 96 }}>Total</th>
+                <th style={{ width: 58 }}></th>
               </tr>
             </thead>
             <tbody>

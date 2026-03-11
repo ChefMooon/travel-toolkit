@@ -71,14 +71,14 @@ export default function Topbar() {
             )}
           </div>
 
+          <button className="btn-new-trip" onClick={() => setShowReset(true)}>
+            <RotateCcw size={12} /> <span>New Trip</span>
+          </button>
+
           <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
             <div className="toggle-knob">
               <span>{theme === 'dark' ? <Moon size={12} /> : <Sun size={12} />}</span>
             </div>
-          </button>
-
-          <button className="btn-new-trip" onClick={() => setShowReset(true)}>
-            <RotateCcw size={12} /> <span>New Trip</span>
           </button>
         </div>
       </header>
