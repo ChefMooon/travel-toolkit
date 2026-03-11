@@ -1,9 +1,7 @@
 import { useEffect, useRef } from 'react';
-import { useTripStore } from '@/store/tripStore';
 
 export default function Logo() {
   const svgRef = useRef<SVGSVGElement>(null);
-  const theme = useTripStore((s) => s.theme);
 
   useEffect(() => {
     const fetchAndRenderSvg = async () => {
@@ -12,7 +10,7 @@ export default function Logo() {
         const svgText = await response.text();
         const parser = new DOMParser();
         const svgDocument = parser.parseFromString(svgText, 'image/svg+xml');
-        const svgElement = svgDocument.documentElement as SVGSVGElement;
+        const svgElement = (svgDocument.documentElement as unknown) as SVGSVGElement;
 
         // Clone the paths and apply theme-aware styling
         const paths = svgElement.querySelectorAll('path');
