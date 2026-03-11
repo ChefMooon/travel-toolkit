@@ -263,8 +263,8 @@ body::before {
   }
 }
 
-/* Tablet & Up: 768px - 1023px */
-@media (min-width: 768px) and (max-width: 1023px) {
+/* Tablet & Up: 768px - 1279px */
+@media (min-width: 768px) and (max-width: 1279px) {
   .main {
     grid-template-columns: 1fr;
     gap: 20px;
@@ -272,8 +272,8 @@ body::before {
   }
 }
 
-/* Desktop Large: 1024px+ */
-@media (min-width: 1024px) {
+/* Desktop Large: 1280px+ */
+@media (min-width: 1280px) {
   .main {
     grid-template-columns: 1fr 382px;
   }
