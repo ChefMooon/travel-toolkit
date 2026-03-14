@@ -149,17 +149,18 @@ body::before {
   border-radius: 22px;
   padding: 5px 12px;
   font-size: 12px; font-weight: 700; color: var(--text-2);
-  transition: background 0.4s, border-color 0.4s;
+  transition: background 0.4s, border-color 0.15s;
   cursor: pointer;
   min-height: 36px;
   white-space: nowrap;
 }
+.markup-pill:hover { border-color: var(--c3); }
 
 .markup-num {
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px; font-weight: 600; color: var(--text);
   border: none; background: transparent; outline: none;
-  width: 40px; text-align: center;
+  width: 50px; text-align: center;
 }
 
 .theme-toggle {
@@ -231,8 +232,8 @@ body::before {
   /* font-size: 16px prevents iOS Safari from auto-zooming on input focus */
   .trip-pill-text { font-size: 16px; }
   .markup-pill   { padding: 5px 10px; font-size: 12px; }
-  input.markup-num { font-size: 16px; width: 46px; }
-  .markup-num    { width: 34px; font-size: 12px; }
+  input.markup-num { font-size: 16px; width: 62px; }
+  .markup-num    { width: 44px; font-size: 12px; }
   .btn-new-trip  { padding: 5px 11px; font-size: 12px; }
 }
 
