@@ -14,6 +14,7 @@ export default function Topbar() {
   const resetTrip = useTripStore((s) => s.resetTrip);
 
   const [showReset, setShowReset] = useState(false);
+  const [tripNameFocused, setTripNameFocused] = useState(false);
   const [editingMarkup, setEditingMarkup] = useState(false);
   const [markupInput, setMarkupInput] = useState(String(globalMarkup));
 
@@ -44,9 +45,20 @@ export default function Topbar() {
               className="trip-pill-text"
               value={tripName}
               onChange={(e) => setTripName(e.target.value)}
+              onFocus={() => setTripNameFocused(true)}
+              onBlur={() => setTripNameFocused(false)}
               aria-label="Trip name"
             />
-            <span className="trip-pill-edit">✎</span>
+            {tripNameFocused && tripName ? (
+              <button
+                className="trip-pill-clear"
+                onMouseDown={(e) => { e.preventDefault(); setTripName(''); }}
+                tabIndex={-1}
+                aria-label="Clear trip name"
+              >×</button>
+            ) : (
+              <span className="trip-pill-edit">✎</span>
+            )}
           </div>
         </div>
 

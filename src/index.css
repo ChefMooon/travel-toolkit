@@ -138,6 +138,14 @@ body::before {
   width: 100%;
 }
 .trip-pill-edit { font-size: 10px; color: var(--text-3); flex-shrink: 0; }
+.trip-pill-clear {
+  font-size: 14px; line-height: 1;
+  color: var(--text-3);
+  background: none; border: none; outline: none;
+  cursor: pointer; padding: 0; flex-shrink: 0;
+  transition: color 0.15s;
+}
+.trip-pill-clear:hover { color: var(--text); }
 
 /* — Controls (right) — */
 .topbar-right { display: flex; align-items: center; gap: 10px; }
