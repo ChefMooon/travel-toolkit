@@ -35,6 +35,9 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
   const nameInputRef = useRef<HTMLInputElement>(null);
   const amountInputRef = useRef<HTMLInputElement>(null);
   const splitPopoverRef = useRef<HTMLDivElement>(null);
+  const splitBtnRef = useRef<HTMLButtonElement>(null);
+  const splitPortalRef = useRef<HTMLDivElement>(null);
+  const [splitPopoverPos, setSplitPopoverPos] = useState<{ top: number; left: number } | null>(null);
   const couplePopoverRef = useRef<HTMLDivElement>(null);
   const splitModalRef = useRef<HTMLDivElement>(null);
 
@@ -69,7 +72,10 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
   // Close popovers on outside click
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
-      if (splitPopoverRef.current && !splitPopoverRef.current.contains(e.target as Node)) {
+      if (
+        splitPopoverRef.current && !splitPopoverRef.current.contains(e.target as Node) &&
+        (!splitPortalRef.current || !splitPortalRef.current.contains(e.target as Node))
+      ) {
         setSplitPopoverOpen(false);
       }
       if (couplePopoverRef.current && !couplePopoverRef.current.contains(e.target as Node)) {
@@ -380,37 +386,49 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
           )}
           <div className="split-popover-container" ref={splitPopoverRef}>
             <button
+              ref={splitBtnRef}
               className={`split split-${cost.splitType}`}
-              onClick={() => setSplitPopoverOpen(!splitPopoverOpen)}
+              onClick={() => {
+                if (!splitPopoverOpen && splitBtnRef.current) {
+                  const rect = splitBtnRef.current.getBoundingClientRect();
+                  setSplitPopoverPos({ top: rect.bottom + 4, left: rect.left });
+                }
+                setSplitPopoverOpen(!splitPopoverOpen);
+              }}
               title="Change split type"
             >
               {cost.splitType === 'shared' && '◆ Shared'}
               {cost.splitType === 'subset' && '◑ Subset'}
               {cost.splitType === 'individual' && '◉ Solo'}
             </button>
-            {splitPopoverOpen && (
-              <div className="popover split-popover">
-                <button
-                  className={`popover-item ${cost.splitType === 'shared' ? 'selected' : ''}`}
-                  onClick={() => handleSplitChange('shared')}
-                >
-                  ◆ Shared
-                </button>
-                <button
-                  className={`popover-item ${cost.splitType === 'subset' ? 'selected' : ''}`}
-                  onClick={() => handleSplitChange('subset')}
-                >
-                  ◑ Subset
-                </button>
-                <button
-                  className={`popover-item ${cost.splitType === 'individual' ? 'selected' : ''}`}
-                  onClick={() => handleSplitChange('individual')}
-                >
-                  ◉ Solo
-                </button>
-              </div>
-            )}
           </div>
+          {splitPopoverOpen && splitPopoverPos && createPortal(
+            <div
+              ref={splitPortalRef}
+              className="popover split-popover"
+              style={{ position: 'fixed', top: splitPopoverPos.top, left: splitPopoverPos.left }}
+            >
+              <button
+                className={`popover-item ${cost.splitType === 'shared' ? 'selected' : ''}`}
+                onClick={() => handleSplitChange('shared')}
+              >
+                ◆ Shared
+              </button>
+              <button
+                className={`popover-item ${cost.splitType === 'subset' ? 'selected' : ''}`}
+                onClick={() => handleSplitChange('subset')}
+              >
+                ◑ Subset
+              </button>
+              <button
+                className={`popover-item ${cost.splitType === 'individual' ? 'selected' : ''}`}
+                onClick={() => handleSplitChange('individual')}
+              >
+                ◉ Solo
+              </button>
+            </div>,
+            document.body
+          )}
         </div>
       </td>
       <td>

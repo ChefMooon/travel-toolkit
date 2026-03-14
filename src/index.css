@@ -48,7 +48,7 @@
 }
 
 /* ══════════════════════════════════════════ BASE */
-html {
+html, body {
   overflow-x: hidden;
 }
 
@@ -228,8 +228,10 @@ body::before {
   }
   .brand-logo    { width: 36px; height: 36px; padding: 3px; }
   .trip-pill     { padding: 5px 12px; min-height: 36px; }
-  .trip-pill-text { font-size: 12px; }
+  /* font-size: 16px prevents iOS Safari from auto-zooming on input focus */
+  .trip-pill-text { font-size: 16px; }
   .markup-pill   { padding: 5px 10px; font-size: 12px; }
+  input.markup-num { font-size: 16px; width: 46px; }
   .markup-num    { width: 34px; font-size: 12px; }
   .btn-new-trip  { padding: 5px 11px; font-size: 12px; }
 }
@@ -250,7 +252,7 @@ body::before {
   .main {
     grid-template-columns: 1fr;
     gap: 12px;
-    padding: 14px;
+    padding: 14px 14px 74px;
   }
 }
 
@@ -259,8 +261,18 @@ body::before {
   .main {
     grid-template-columns: 1fr;
     gap: 16px;
-    padding: 16px 16px;
+    padding: 16px 16px 74px;
   }
+}
+
+/* Mobile tab navigation: show only the active section (≤767px) */
+@media (max-width: 767px) {
+  .main[data-mobile-tab="party"]   [data-section="costs"],
+  .main[data-mobile-tab="party"]   [data-section="summary"],
+  .main[data-mobile-tab="costs"]   [data-section="party"],
+  .main[data-mobile-tab="costs"]   [data-section="summary"],
+  .main[data-mobile-tab="summary"] [data-section="party"],
+  .main[data-mobile-tab="summary"] [data-section="costs"]  { display: none; }
 }
 
 /* Tablet & Up: 768px - 1279px */
@@ -276,7 +288,11 @@ body::before {
 @media (min-width: 1280px) {
   .main {
     grid-template-columns: 1fr 382px;
+    grid-template-rows: auto 1fr;
   }
+  .main [data-section="party"]   { grid-column: 1; grid-row: 1; }
+  .main [data-section="costs"]   { grid-column: 1; grid-row: 2; }
+  .main [data-section="summary"] { grid-column: 2; grid-row: 1 / 3; }
 }
 
 /* ══════════════════════════════════════════ CARD */
@@ -285,7 +301,7 @@ body::before {
   border: 1.5px solid var(--border);
   border-radius: 16px;
   box-shadow: var(--shadow);
-  overflow: visible;
+  overflow: hidden;
   transition: background 0.4s, border-color 0.4s;
 }
 .card + .card { margin-top: 16px; }
@@ -663,6 +679,11 @@ body::before {
   }
 }
 
+/* Prevent iOS Safari auto-zoom on input focus (requires font-size ≥ 16px) */
+@media (max-width: 767px) {
+  .group-name-input { font-size: 16px; }
+}
+
 .group-name-input {
   border: none; background: transparent; outline: none;
   font-family: 'Nunito', sans-serif;
@@ -780,10 +801,10 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
 }
 
 /* ── MOBILE CARD LAYOUT (≤700px) ──
-   Transforms each table row into a 3-row card with 2-column structure:
-   Row 1: [name ·················] [edit/delete buttons]
-   Row 2: [currency] [amount] [markup]
-   Row 3: [split] [who ··········] [total]
+   Transforms each table row into a 3-row card:
+   Row 1: [name ·····················] [edit] [delete]
+   Row 2: [currency] [amount] [markup < > ↺]
+   Row 3: [split · who ···············] [total]
 ─────────────────────────────────────────────────────────────── */
 @media (max-width: 700px) {
   table.ledger,
@@ -793,11 +814,10 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
 
   table.ledger tbody tr {
     display: grid;
-    grid-template-columns: auto auto auto auto auto auto;
+    grid-template-columns: auto auto 1fr auto;
     grid-template-rows: auto auto auto;
-    gap: 6px;
-    column-gap: 12px;
-    padding: 12px;
+    gap: 6px 8px;
+    padding: 11px 12px;
     border-bottom: 1px solid var(--border);
     background: var(--surface);
     transition: background 0.1s;
@@ -819,17 +839,17 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
   table.ledger tbody td:nth-child(1) { display: none; }
   table.ledger tbody td:nth-child(2) { display: none; }
 
-  /* Row 1, Left: Name (columns 1-4) */
+  /* Row 1: Name (cols 1–3) */
   table.ledger tbody td:nth-child(3) {
-    grid-column: 1 / 5;
+    grid-column: 1 / 4;
     grid-row: 1;
     min-width: 0;
     overflow: hidden;
   }
 
-  /* Row 1, Right: Actions (columns 5-6) */
+  /* Row 1, Right: Actions (col 4) */
   table.ledger tbody td:nth-child(10) {
-    grid-column: 5 / 7;
+    grid-column: 4;
     grid-row: 1;
     justify-content: flex-end;
   }
@@ -846,27 +866,27 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
     grid-row: 2;
   }
 
-  /* Row 2, Col 3: Markup */
+  /* Row 2, Cols 3–4: Markup (with reset button, takes remaining width) */
   table.ledger tbody td:nth-child(6) {
-    grid-column: 3;
+    grid-column: 3 / 5;
     grid-row: 2;
   }
 
-  /* Row 3, Col 1: Split */
+  /* Row 3, Col 1: Split badge */
   table.ledger tbody td:nth-child(7) {
     grid-column: 1;
     grid-row: 3;
   }
 
-  /* Row 3, Col 2: Who */
+  /* Row 3, Cols 2–3: Who (flex, fills space) */
   table.ledger tbody td:nth-child(8) {
-    grid-column: 2;
+    grid-column: 2 / 4;
     grid-row: 3;
   }
 
-  /* Row 3, Right: Total (columns 5-6) */
+  /* Row 3, Col 4: Total (right-aligned) */
   table.ledger tbody td:nth-child(9) {
-    grid-column: 5 / 7;
+    grid-column: 4;
     grid-row: 3;
     justify-content: flex-end;
   }
@@ -882,13 +902,19 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
 
   /* ── COMPONENT SIZE OVERRIDES ── */
 
-  /* Name: truncate long strings */
+  /* Name: bold, truncate on overflow */
   .cost-name {
     display: block;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 100%;
+    font-size: 13px;
+  }
+
+  /* Name inline-edit: fill the full cell (cols 1–3) */
+  table.ledger tbody td:nth-child(3) .inline-edit-input {
+    width: 100%;
   }
 
   /* Currency select — compact */
@@ -898,28 +924,24 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
     padding: 3px 18px 3px 5px;
   }
 
-  /* Amount display */
-  .amt { font-size: 11px; }
+  /* Amount display — fixed width so col 2 never resizes with the value */
+  .amt { font-size: 11px; width: 72px; display: inline-block; text-align: right; }
 
-  /* Total — pill/badge design with label */
+  /* Total — badge on row 3 */
   .total-num {
     display: inline-flex;
     align-items: center;
-    gap: 2px;
     background: var(--c3-soft);
     color: var(--c3);
-    padding: 3px 10px;
+    padding: 3px 9px;
     border-radius: 12px;
     border: 1.5px solid var(--c3-border);
-    font-size: 11px;
-    font-weight: 700;
-  }
-  .total-num::before {
-    content: 'Total: ';
-    opacity: 0.7;
+    font-size: 12px;
+    font-weight: 800;
+    white-space: nowrap;
   }
 
-  /* Markup editor — reduce footprint */
+  /* Markup editor — compact but show reset button */
   .markup-input {
     width: 34px;
     font-size: 11px;
@@ -929,7 +951,6 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
     width: 17px;
     height: 17px;
   }
-  .reset-markup-btn { display: none; }
 
   /* Split badge — compact */
   .split {
@@ -1540,10 +1561,56 @@ tr.add-row td { padding: 0; border: none; }
   gap: 6px;
 }
 
+/* ══════════════════════════════════════════ MOBILE NAV */
+.mobile-nav {
+  display: none; /* hidden on tablet/desktop */
+}
+
+@media (max-width: 767px) {
+  .mobile-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: 58px;
+    background: var(--surface);
+    border-top: 1.5px solid var(--border);
+    z-index: 300;
+    box-shadow: 0 -2px 12px rgba(0,0,0,0.07);
+    transition: background 0.4s, border-color 0.4s;
+  }
+
+  .mobile-nav-tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border: none;
+    background: none;
+    color: var(--text-3);
+    font-family: 'Nunito', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: color 0.15s;
+    padding: 6px 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-nav-tab.active {
+    color: var(--accent);
+  }
+  .mobile-nav-tab:active {
+    opacity: 0.7;
+  }
+}
+
 /* ══════════════════════════════════════════ ANIMATIONS */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
-.left { animation: fadeUp .42s ease both; }
-.right { animation: fadeUp .42s ease .13s both; }
+[data-section="party"]   { animation: fadeUp .42s ease both; }
+[data-section="costs"]   { animation: fadeUp .42s ease .07s both; }
+[data-section="summary"] { animation: fadeUp .42s ease .13s both; }
 
 /* ══════════════════════════════════════════ EMPTY STATE */
 .empty-state {
