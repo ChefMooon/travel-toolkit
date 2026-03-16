@@ -2,18 +2,16 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useTripStore } from '@/store/tripStore';
 import type { Couple } from '@/store/types';
 import { Plus, X } from 'lucide-react';
-import { COUPLE_ICONS } from '@/store/types';
+import { COUPLE_ICONS, getColorThemeValue } from '@/store/types';
 import Modal from './Modal';
 import IconChoiceModal from './IconChoiceModal';
 import ColorChoiceModal from './ColorChoiceModal';
 import RegionSelector from './RegionSelector';
 
-const colorClass = (i: number) => `chip-c${i}`;
-const childColorClass = (i: number) => `chip-child-c${i}`;
-
 export default function GroupSetup() {
   const couples = useTripStore((s) => s.couples);
   const nonPayingTravellers = useTripStore((s) => s.nonPayingTravellers);
+  const theme = useTripStore((s) => s.theme);
   const addCouple = useTripStore((s) => s.addCouple);
   const removeCouple = useTripStore((s) => s.removeCouple);
   const renameCouple = useTripStore((s) => s.renameCouple);
@@ -113,7 +111,7 @@ export default function GroupSetup() {
                       key={c.id}
                       className="child-picker-item"
                       onClick={() => handleAddChild(c.id)}
-                      style={{ color: `var(--c${c.colorIndex})` }}
+                      style={{ color: getColorThemeValue(c.colorIndex, theme) }}
                     >
                       ● {c.name}
                     </button>
@@ -134,6 +132,7 @@ export default function GroupSetup() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {couples.map((couple) => {
                 const children = nonPayingTravellers.filter((t) => t.coupleId === couple.id);
+                const coupleColor = getColorThemeValue(couple.colorIndex, theme);
                 return (
                   <div
                     className="group-group"
@@ -149,7 +148,14 @@ export default function GroupSetup() {
                     }}
                   >
                     <div className="group-group-row">
-                      <div className={`chip ${colorClass(couple.colorIndex)}`}>
+                      <div
+                        className="chip"
+                        style={{
+                          background: `color-mix(in srgb, ${coupleColor} 18%, transparent)`,
+                          borderColor: `color-mix(in srgb, ${coupleColor} 30%, white)`,
+                          color: coupleColor,
+                        }}
+                      >
                         <span className="chip-grip">⠿</span>
                         <div
                           className="icon-interactive"
@@ -177,13 +183,16 @@ export default function GroupSetup() {
                           style={{
                             position: 'relative',
                             zIndex: 10,
-                            '--group-color': `var(--c${couple.colorIndex})`
+                            '--group-color': coupleColor
                           } as React.CSSProperties}
                           role="button"
                           tabIndex={0}
                           aria-label={`Change color for ${couple.name}`}
                         >
-                          <span className="chip-dot"></span>
+                          <span
+                            className="chip-dot"
+                            style={{ backgroundColor: coupleColor }}
+                          ></span>
                         </div>
                         <input
                           className="group-name-input"
@@ -207,7 +216,12 @@ export default function GroupSetup() {
                         {children.map((child) => (
                           <div
                             key={child.id}
-                            className={`chip chip-child ${childColorClass(couple.colorIndex)}`}
+                            className="chip chip-child"
+                            style={{
+                              background: `color-mix(in srgb, ${coupleColor} 18%, transparent)`,
+                              borderColor: `color-mix(in srgb, ${coupleColor} 30%, white)`,
+                              color: coupleColor,
+                            }}
                           >
                             👶 {child.label}
                             <button

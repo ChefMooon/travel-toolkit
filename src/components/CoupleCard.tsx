@@ -26,6 +26,14 @@ export default function CoupleCard({ summary }: CoupleCardProps) {
     () => getColorThemeValue(summary.colorIndex, theme),
     [summary.colorIndex, theme]
   );
+  const cardBorderColor = useMemo(
+    () => `color-mix(in srgb, ${colorDotColor} 30%, white)`,
+    [colorDotColor]
+  );
+  const cardSoftBackground = useMemo(
+    () => `color-mix(in srgb, ${colorDotColor} 18%, transparent)`,
+    [colorDotColor]
+  );
 
   const handleIconConfirm = (iconIndex: number) => {
     updateCoupleIcon(summary.coupleId, iconIndex);
@@ -39,8 +47,12 @@ export default function CoupleCard({ summary }: CoupleCardProps) {
 
   return (
     <>
-      <div className={`s-card s-card-c${ci}`} data-testid="s-card">
-        <div className="s-head">
+      <div
+        className={`s-card s-card-c${ci}`}
+        data-testid="s-card"
+        style={{ borderColor: cardBorderColor }}
+      >
+        <div className="s-head" style={{ background: colorDotColor }}>
           <div
             className="icon-with-tint"
             onClick={() => setIconModalOpen(true)}
@@ -128,9 +140,9 @@ export default function CoupleCard({ summary }: CoupleCardProps) {
             );
           })}
         </div>
-        <div className="s-grand">
+        <div className="s-grand" style={{ background: cardSoftBackground }}>
           <span className="s-grand-lbl">Grand Total</span>
-          <span className="s-grand-num">
+          <span className="s-grand-num" style={{ color: colorDotColor }}>
             {summary.grandTotalUSD !== null ? `$${summary.grandTotalUSD.toFixed(2)}` : '—'}
           </span>
         </div>

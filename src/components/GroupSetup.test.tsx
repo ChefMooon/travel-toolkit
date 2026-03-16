@@ -111,10 +111,10 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
         el.classList.contains('chip-grip')
       );
       const iconIndex = chipChildren.findIndex((el) =>
-        el.classList.contains('chip-icon')
+        el.classList.contains('icon-interactive')
       );
       const dotIndex = chipChildren.findIndex((el) =>
-        el.classList.contains('chip-dot')
+        el.classList.contains('color-dot-interactive')
       );
 
       expect(gripIndex).toBeLessThan(iconIndex);
@@ -148,13 +148,14 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
 
       render(<GroupSetup />);
 
-      const iconSpans = document.querySelectorAll('.chip-icon');
-      expect(iconSpans.length).toBeGreaterThan(0);
+      const iconButtons = document.querySelectorAll('.icon-interactive');
+      expect(iconButtons.length).toBeGreaterThan(0);
 
-      // Icon should have cursor: pointer
-      const iconSpan = iconSpans[0];
-      if (iconSpan) {
-        expect(window.getComputedStyle(iconSpan).cursor).toBe('pointer');
+      // Icon should be keyboard-accessible button-like control
+      const iconButton = iconButtons[0];
+      if (iconButton) {
+        expect(iconButton).toHaveAttribute('role', 'button');
+        expect(iconButton).toHaveAttribute('tabIndex', '0');
       }
     });
 
@@ -284,13 +285,14 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
 
       render(<GroupSetup />);
 
-      const dotSpans = document.querySelectorAll('.chip-dot');
-      expect(dotSpans.length).toBeGreaterThan(0);
+      const dotButtons = document.querySelectorAll('.color-dot-interactive');
+      expect(dotButtons.length).toBeGreaterThan(0);
 
-      // Dot should have cursor: pointer
-      const dotSpan = dotSpans[0];
-      if (dotSpan) {
-        expect(window.getComputedStyle(dotSpan).cursor).toBe('pointer');
+      // Dot should be keyboard-accessible button-like control
+      const dotButton = dotButtons[0];
+      if (dotButton) {
+        expect(dotButton).toHaveAttribute('role', 'button');
+        expect(dotButton).toHaveAttribute('tabIndex', '0');
       }
     });
 
@@ -503,13 +505,14 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
 
       render(<GroupSetup />);
 
-      const iconSpans = document.querySelectorAll('.chip-icon');
-      expect(iconSpans.length).toBeGreaterThan(0);
+      const iconButtons = document.querySelectorAll('.icon-interactive');
+      expect(iconButtons.length).toBeGreaterThan(0);
 
-      // Icon should be visible and have cursor pointer
-      const iconSpan = iconSpans[0] as Element;
-      expect(iconSpan).toBeVisible();
-      expect(window.getComputedStyle(iconSpan).cursor).toBe('pointer');
+      // Icon should be visible and keyboard-accessible
+      const iconButton = iconButtons[0] as Element;
+      expect(iconButton).toBeVisible();
+      expect(iconButton).toHaveAttribute('role', 'button');
+      expect(iconButton).toHaveAttribute('tabIndex', '0');
     });
   });
 
@@ -568,10 +571,10 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
         el.classList.contains('chip-grip')
       );
       const iconIndex = chipChildren.findIndex((el) =>
-        el.classList.contains('chip-icon')
+        el.classList.contains('icon-interactive')
       );
       const dotIndex = chipChildren.findIndex((el) =>
-        el.classList.contains('chip-dot')
+        el.classList.contains('color-dot-interactive')
       );
 
       expect(gripIndex).toBeLessThan(iconIndex);
