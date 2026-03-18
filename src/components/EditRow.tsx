@@ -3,6 +3,7 @@ import { useTripStore } from '@/store/tripStore';
 import { useToastStore } from '@/store/toastStore';
 import { getAvailableCurrencies } from '@/store/types';
 import type { SplitType } from '@/store/types';
+import SplitAssignmentModal from './SplitAssignmentModal';
 
 interface EditRowProps {
   initial?: {
@@ -29,6 +30,7 @@ export default function EditRow({ initial, onSave, onCancel }: EditRowProps) {
   const couples = useTripStore((s) => s.couples);
   const globalMarkup = useTripStore((s) => s.globalMarkup);
   const region = useTripStore((s) => s.region);
+  const addCouple = useTripStore((s) => s.addCouple);
   const pushToast = useToastStore((s) => s.pushToast);
 
   const [name, setName] = useState(initial?.name ?? '');
@@ -44,6 +46,9 @@ export default function EditRow({ initial, onSave, onCancel }: EditRowProps) {
   const [assignedCoupleIds, setAssignedCoupleIds] = useState<string[]>(
     initial?.assignedCoupleIds ?? []
   );
+  const [splitModalOpen, setSplitModalOpen] = useState(false);
+  const [pendingSplitType, setPendingSplitType] = useState<Extract<SplitType, 'subset' | 'individual'> | null>(null);
+  const [tempAssignedCouples, setTempAssignedCouples] = useState<string[]>([]);
 
   const handleSave = useCallback(() => {
     const parsedValue = parseFloat(value);
@@ -96,14 +101,80 @@ export default function EditRow({ initial, onSave, onCancel }: EditRowProps) {
     });
   }, [name, currency, value, useGlobalMarkup, markupOverride, splitType, assignedCoupleIds, onSave, pushToast]);
 
-  const toggleCouple = (id: string) => {
-    if (splitType === 'individual') {
-      setAssignedCoupleIds([id]);
-    } else {
-      setAssignedCoupleIds((prev) =>
-        prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
+  const openSplitModalFor = (nextSplitType: SplitType) => {
+    if (nextSplitType === 'shared') {
+      setSplitType('shared');
+      setAssignedCoupleIds([]);
+      setPendingSplitType(null);
+      setTempAssignedCouples([]);
+      setSplitModalOpen(false);
+      return;
+    }
+
+    if (nextSplitType === 'subset') {
+      setSplitType('subset');
+      setPendingSplitType('subset');
+      setTempAssignedCouples([...assignedCoupleIds]);
+      setSplitModalOpen(true);
+      return;
+    }
+
+    setSplitType('individual');
+    setPendingSplitType('individual');
+    setTempAssignedCouples(assignedCoupleIds.length > 0 ? [assignedCoupleIds[0]!] : []);
+    setSplitModalOpen(true);
+  };
+
+  const handleToggleCoupleInModal = (coupleId: string) => {
+    if (pendingSplitType === 'individual') {
+      setAssignedCoupleIds([coupleId]);
+      setSplitType('individual');
+      setSplitModalOpen(false);
+      setPendingSplitType(null);
+      setTempAssignedCouples([]);
+      return;
+    }
+
+    if (pendingSplitType === 'subset') {
+      setTempAssignedCouples((prev) =>
+        prev.includes(coupleId)
+          ? prev.filter((c) => c !== coupleId)
+          : [...prev, coupleId]
       );
     }
+  };
+
+  const handleConfirmSubsetModal = () => {
+    if (pendingSplitType !== 'subset' || tempAssignedCouples.length === 0) return;
+
+    setSplitType('subset');
+    setAssignedCoupleIds(tempAssignedCouples);
+    setSplitModalOpen(false);
+    setPendingSplitType(null);
+    setTempAssignedCouples([]);
+  };
+
+  const handleCloseSplitModal = () => {
+    setSplitModalOpen(false);
+    setPendingSplitType(null);
+    setTempAssignedCouples([]);
+  };
+
+  const handleCreateGroupInModal = () => {
+    const newCoupleId = addCouple();
+    if (!newCoupleId || !pendingSplitType) return;
+
+    if (pendingSplitType === 'individual') {
+      setSplitType('individual');
+      setAssignedCoupleIds([newCoupleId]);
+      setSplitModalOpen(false);
+      setPendingSplitType(null);
+      setTempAssignedCouples([]);
+      return;
+    }
+
+    setSplitType('subset');
+    setTempAssignedCouples((prev) => (prev.includes(newCoupleId) ? prev : [...prev, newCoupleId]));
   };
 
   return (
@@ -150,21 +221,21 @@ export default function EditRow({ initial, onSave, onCancel }: EditRowProps) {
             <div className="seg">
               <button
                 className={`seg-btn${splitType === 'shared' ? ' on' : ''}`}
-                onClick={() => setSplitType('shared')}
+                onClick={() => openSplitModalFor('shared')}
                 type="button"
               >
                 All
               </button>
               <button
                 className={`seg-btn${splitType === 'subset' ? ' on' : ''}`}
-                onClick={() => setSplitType('subset')}
+                onClick={() => openSplitModalFor('subset')}
                 type="button"
               >
                 Subset
               </button>
               <button
                 className={`seg-btn${splitType === 'individual' ? ' on' : ''}`}
-                onClick={() => setSplitType('individual')}
+                onClick={() => openSplitModalFor('individual')}
                 type="button"
               >
                 Solo
@@ -220,29 +291,37 @@ export default function EditRow({ initial, onSave, onCancel }: EditRowProps) {
           )}
         </div>
 
-        {(splitType === 'subset' || splitType === 'individual') && couples.length > 0 && (
+        {(splitType === 'subset' || splitType === 'individual') && (
           <div className="subset-picks" style={{ marginTop: 10 }}>
             <span style={{
               fontSize: 10, fontWeight: 800, textTransform: 'uppercase',
               letterSpacing: '0.07em', color: 'var(--text-3)',
             }}>
-              {splitType === 'individual' ? 'Assign to:' : 'Include:'}
+              {splitType === 'individual' ? 'Assigned group:' : 'Included groups:'}
             </span>
-            {couples.map((c) => (
-              <label key={c.id}>
-                <input
-                  type={splitType === 'individual' ? 'radio' : 'checkbox'}
-                  name="couple-assign"
-                  checked={assignedCoupleIds.includes(c.id)}
-                  onChange={() => toggleCouple(c.id)}
-                />
-                <span style={{ color: `var(--c${c.colorIndex})`, fontWeight: 700 }}>
-                  ● {c.name}
-                </span>
-              </label>
-            ))}
+            <button
+              type="button"
+              className="split-select-inline-btn"
+              onClick={() => openSplitModalFor(splitType)}
+            >
+              {assignedCoupleIds.length > 0
+                ? `${assignedCoupleIds.length} selected`
+                : 'Select groups'}
+            </button>
           </div>
         )}
+
+        <SplitAssignmentModal
+          open={splitModalOpen}
+          mode={pendingSplitType}
+          couples={couples}
+          selectedCoupleIds={tempAssignedCouples}
+          modalName={initial?.id ? `solo-couple-edit-${initial.id}` : 'solo-couple-new'}
+          onToggleCouple={handleToggleCoupleInModal}
+          onConfirmSubset={handleConfirmSubsetModal}
+          onClose={handleCloseSplitModal}
+          onCreateGroup={handleCreateGroupInModal}
+        />
       </td>
     </tr>
   );

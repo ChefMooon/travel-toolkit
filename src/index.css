@@ -1838,6 +1838,44 @@ tr.add-row td { padding: 0; border: none; }
   overflow-y: auto;
 }
 
+.split-modal-create-row {
+  display: flex;
+  margin-bottom: 12px;
+}
+
+.split-modal-create-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-2);
+  background: var(--bg-2);
+  color: var(--text-2);
+  font-family: 'Nunito', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.split-modal-create-btn:hover {
+  background: var(--bg-3);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.split-modal-empty {
+  font-size: 12px;
+  color: var(--text-3);
+  font-weight: 700;
+  background: var(--bg-2);
+  border: 1px dashed var(--border-2);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
 .split-modal-couple {
   display: flex;
   align-items: center;
@@ -1904,6 +1942,28 @@ tr.add-row td { padding: 0; border: none; }
 .split-modal-btn.confirm:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.split-select-inline-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  padding: 6px 10px;
+  border-radius: 9px;
+  border: 1.5px solid var(--border-2);
+  background: var(--bg-2);
+  color: var(--text-2);
+  font-family: 'Nunito', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.split-select-inline-btn:hover {
+  background: var(--bg-3);
+  color: var(--text);
 }
 
 

@@ -1,12 +1,13 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { useTripStore } from '@/store/tripStore';
 import { getEffectiveMarkup, getCostWithMarkup, formatCurrency, validateCost } from '@/lib/calculations';
-import { Pencil, Trash2, GripVertical, ChevronLeft, ChevronRight, X, AlertCircle } from 'lucide-react';
+import { createPortal } from 'react-dom';
+import { Pencil, Trash2, GripVertical, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
 import type { CostEntry, SplitType } from '@/store/types';
 import { getAvailableCurrencies } from '@/store/types';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import SplitAssignmentModal from './SplitAssignmentModal';
 
 interface CostRowProps {
   cost: CostEntry;
@@ -21,6 +22,7 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
   const region = useTripStore((s) => s.region);
   const couples = useTripStore((s) => s.couples);
   const editCost = useTripStore((s) => s.editCost);
+  const addCouple = useTripStore((s) => s.addCouple);
 
   const [editingField, setEditingField] = useState<'name' | 'amount' | null>(null);
   const [editName, setEditName] = useState(cost.name);
@@ -39,7 +41,6 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
   const splitPortalRef = useRef<HTMLDivElement>(null);
   const [splitPopoverPos, setSplitPopoverPos] = useState<{ top: number; left: number } | null>(null);
   const couplePopoverRef = useRef<HTMLDivElement>(null);
-  const splitModalRef = useRef<HTMLDivElement>(null);
 
   const {
     attributes,
@@ -85,17 +86,12 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
         }
         setCouplePopoverOpen(false);
       }
-      if (splitModalRef.current && !splitModalRef.current.contains(e.target as Node)) {
-        // Close modal and revert to previous state
-        setPendingSplitType(null);
-        setSplitModalOpen(false);
-      }
     };
-    if (splitPopoverOpen || couplePopoverOpen || splitModalOpen) {
+    if (splitPopoverOpen || couplePopoverOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [splitPopoverOpen, couplePopoverOpen, splitModalOpen, cost.splitType, cost.assignedCoupleIds, previousSplitType, cost.id, editCost]);
+  }, [splitPopoverOpen, couplePopoverOpen, cost.splitType, cost.assignedCoupleIds, previousSplitType, cost.id, editCost, previousAssignedCouples]);
 
   // Handle name edit
   const handleNameEdit = () => {
@@ -216,6 +212,23 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
     setSplitModalOpen(false);
     setPendingSplitType(null);
     setTempAssignedCouples([]);
+  };
+
+  const handleCreateGroupInModal = () => {
+    const newCoupleId = addCouple();
+    if (!newCoupleId || !pendingSplitType) return;
+
+    if (pendingSplitType === 'individual') {
+      editCost(cost.id, {
+        splitType: 'individual',
+        assignedCoupleIds: [newCoupleId],
+      });
+      setSplitModalOpen(false);
+      setPendingSplitType(null);
+      return;
+    }
+
+    setTempAssignedCouples((prev) => (prev.includes(newCoupleId) ? prev : [...prev, newCoupleId]));
   };
 
   // Handle who-dots click to open split modal
@@ -468,58 +481,17 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
       </td>
     </tr>
 
-      {/* Split Selection Modal */}
-      {splitModalOpen && pendingSplitType && createPortal(
-        <div className="modal-overlay" onClick={handleCancelSplitModal}>
-          <div className="split-modal" ref={splitModalRef} onClick={(e) => e.stopPropagation()}>
-            <div className="split-modal-header">
-              <span className="split-modal-title">
-                {pendingSplitType === 'subset' ? '◑ Select Groups' : '◉ Select Group'}
-              </span>
-              <button
-                className="split-modal-close"
-                onClick={handleCancelSplitModal}
-                aria-label="Close"
-              >
-                <X size={16} />
-              </button>
-            </div>
-            <div className="split-modal-couples">
-              {couples.map((couple) => (
-                <label key={couple.id} className="split-modal-couple">
-                  <input
-                    type={pendingSplitType === 'individual' ? 'radio' : 'checkbox'}
-                    name={pendingSplitType === 'individual' ? `solo-couple-${cost.id}` : undefined}
-                    checked={tempAssignedCouples.includes(couple.id)}
-                    onChange={() => handleToggleCoupleInModal(couple.id)}
-                  />
-                  <span style={{ color: `var(--c${couple.colorIndex})`, fontWeight: 700 }}>
-                    ● {couple.name}
-                  </span>
-                </label>
-              ))}
-            </div>
-            {pendingSplitType === 'subset' && (
-              <div className="split-modal-actions">
-                <button
-                  className="split-modal-btn cancel"
-                  onClick={handleCancelSplitModal}
-                >
-                  Close
-                </button>
-                <button
-                  className="split-modal-btn confirm"
-                  onClick={handleConfirmSplitModal}
-                  disabled={tempAssignedCouples.length === 0}
-                >
-                  Confirm
-                </button>
-              </div>
-            )}
-          </div>
-        </div>,
-        document.body
-      )}
+      <SplitAssignmentModal
+        open={splitModalOpen}
+        mode={pendingSplitType}
+        couples={couples}
+        selectedCoupleIds={tempAssignedCouples}
+        modalName={`solo-couple-${cost.id}`}
+        onToggleCouple={handleToggleCoupleInModal}
+        onConfirmSubset={handleConfirmSplitModal}
+        onClose={handleCancelSplitModal}
+        onCreateGroup={handleCreateGroupInModal}
+      />
     </>
   );
 }

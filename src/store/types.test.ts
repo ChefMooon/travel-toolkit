@@ -120,6 +120,16 @@ describe('Phase 2: Couple Icon & Color Updates', () => {
 
   // Test 2: Couple initialization assigns default iconIndex value
   describe('addCouple action', () => {
+    it('should return created group id for immediate assignment flows', () => {
+      const store = useTripStore.getState();
+      const newId = store.addCouple();
+      const created = useTripStore.getState().couples.find((c) => c.id === newId);
+
+      expect(typeof newId).toBe('string');
+      expect(newId.length).toBeGreaterThan(0);
+      expect(created).toBeDefined();
+    });
+
     it('should initialize couple with default iconIndex = 1', () => {
       const store = useTripStore.getState();
       store.addCouple();

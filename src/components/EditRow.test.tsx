@@ -27,10 +27,12 @@ const mockStoreState: {
   couples: Couple[];
   globalMarkup: number;
   region: Region;
+  addCouple: ReturnType<typeof vi.fn>;
 } = {
   couples: mockCouples,
   globalMarkup: 66,
   region: 'Europe',
+  addCouple: vi.fn(() => 'c4'),
 };
 
 const mockToastState = {
@@ -59,6 +61,7 @@ describe('EditRow', () => {
     mockStoreState.couples = mockCouples;
     mockStoreState.globalMarkup = 66;
     mockStoreState.region = 'Europe';
+    mockStoreState.addCouple = vi.fn(() => 'c4');
 
     (useTripStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(
       (selector: (state: typeof mockStoreState) => unknown) => selector(mockStoreState)
@@ -217,5 +220,28 @@ describe('EditRow', () => {
     const { onCancel } = renderEditRow();
     fireEvent.click(screen.getByRole('button', { name: '✕' }));
     expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it('FE-EDT-009 creates and assigns a new group from solo split modal', () => {
+    const { onSave } = renderEditRow();
+
+    fireEvent.change(screen.getByPlaceholderText('e.g. Hotel Night 1'), {
+      target: { value: 'Taxi' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('0.00'), {
+      target: { value: '25' },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Solo' }));
+    fireEvent.click(screen.getByRole('button', { name: /Create Group/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(mockStoreState.addCouple).toHaveBeenCalledTimes(1);
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        splitType: 'individual',
+        assignedCoupleIds: ['c4'],
+      })
+    );
   });
 });

@@ -23,7 +23,7 @@ interface TripStore {
   setRegion: (region: Region) => void;
 
   // Couple actions
-  addCouple: () => void;
+  addCouple: (name?: string) => string;
   removeCouple: (id: string) => void;
   renameCouple: (id: string, name: string) => void;
   reorderCouples: (orderedIds: string[]) => void;
@@ -80,18 +80,21 @@ export const useTripStore = create<TripStore>()(
       },
       setRegion: (region) => set({ region }),
 
-      addCouple: () =>
+      addCouple: (name) => {
+        const id = generateId();
         set((state) => {
           const num = state.couples.length + 1;
           const newCouple: Couple = {
-            id: generateId(),
-            name: `Group ${num}`,
+            id,
+            name: name?.trim() ? name.trim() : `Group ${num}`,
             colorIndex: nextColorIndex(state.couples),
             iconIndex: 1,
             sortOrder: state.couples.length,
           };
           return { couples: [...state.couples, newCouple] };
-        }),
+        });
+        return id;
+      },
 
       removeCouple: (id) =>
         set((state) => ({

@@ -74,10 +74,12 @@ const mockStoreState = {
   globalMarkup: 0,
   couples: mockCouples,
   editCost: vi.fn(),
+  addCouple: vi.fn(() => 'couple4'),
 };
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockStoreState.addCouple = vi.fn(() => 'couple4');
   (useTripStore as any).mockImplementation((selector: any) => {
     return selector(mockStoreState);
   });
@@ -220,6 +222,37 @@ describe('CostRow - Who Field Clickability', () => {
       const title = await screen.findByText('◑ Select Groups');
       expect(title).toBeInTheDocument();
     });
+
+    it('creates a new group in subset modal and applies it on confirm', async () => {
+      const { container } = render(
+        <table>
+          <tbody>
+            <CostRow
+              cost={mockCostSubset}
+              isSelected={false}
+              onToggleSelect={vi.fn()}
+              onEdit={vi.fn()}
+              onDelete={vi.fn()}
+            />
+          </tbody>
+        </table>
+      );
+
+      fireEvent.click(container.querySelector('.who-dots')!);
+      await screen.findByText('◑ Select Groups');
+
+      fireEvent.click(screen.getByRole('button', { name: /Create Group/i }));
+
+      expect(mockStoreState.addCouple).toHaveBeenCalledTimes(1);
+      expect(mockStoreState.editCost).not.toHaveBeenCalled();
+
+      fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+
+      expect(mockStoreState.editCost).toHaveBeenCalledWith('cost1', {
+        splitType: 'subset',
+        assignedCoupleIds: expect.arrayContaining(['couple1', 'couple2', 'couple4']),
+      });
+    });
   });
 
   describe('Individual split type', () => {
@@ -309,6 +342,33 @@ describe('CostRow - Who Field Clickability', () => {
       // The current selected couple should be pre-selected as a radio button
       const modal = screen.getByText('◉ Select Group').closest('.split-modal-header')?.parentElement;
       expect(modal).toBeInTheDocument();
+    });
+
+    it('creates a new group in solo modal and auto-applies immediately', async () => {
+      const { container } = render(
+        <table>
+          <tbody>
+            <CostRow
+              cost={mockCostIndividual}
+              isSelected={false}
+              onToggleSelect={vi.fn()}
+              onEdit={vi.fn()}
+              onDelete={vi.fn()}
+            />
+          </tbody>
+        </table>
+      );
+
+      fireEvent.click(container.querySelector('.who-dots')!);
+      await screen.findByText('◉ Select Group');
+
+      fireEvent.click(screen.getByRole('button', { name: /Create Group/i }));
+
+      expect(mockStoreState.addCouple).toHaveBeenCalledTimes(1);
+      expect(mockStoreState.editCost).toHaveBeenCalledWith('cost2', {
+        splitType: 'individual',
+        assignedCoupleIds: ['couple4'],
+      });
     });
   });
 

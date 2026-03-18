@@ -93,6 +93,20 @@ vi.mock('@/components/EditRow', () => ({
         >
           Save Edit Row
         </button>
+        <button
+          onClick={() =>
+            onSave({
+              name: 'Grouped Cost',
+              currency: 'USD',
+              value: 130,
+              markupOverride: null,
+              splitType: 'subset',
+              assignedCoupleIds: ['new-group-id'],
+            })
+          }
+        >
+          Save Edit Row With Group
+        </button>
         <button onClick={onCancel}>Cancel Edit Row</button>
       </td>
     </tr>
@@ -283,6 +297,38 @@ describe('CostLedger', () => {
       type: 'error',
       title: 'Could not save',
       message: 'Save failed.',
+    });
+  });
+
+  it('FE-LED-008 propagates grouped payload when adding a new cost', () => {
+    render(<CostLedger />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Add Cost Entry/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save Edit Row With Group' }));
+
+    expect(mockStoreState.addCost).toHaveBeenCalledWith({
+      name: 'Grouped Cost',
+      currency: 'USD',
+      value: 130,
+      markupOverride: null,
+      splitType: 'subset',
+      assignedCoupleIds: ['new-group-id'],
+    });
+  });
+
+  it('FE-LED-009 propagates grouped payload when editing an existing cost', () => {
+    render(<CostLedger />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit cost-1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save Edit Row With Group' }));
+
+    expect(mockStoreState.editCost).toHaveBeenCalledWith('cost-1', {
+      name: 'Grouped Cost',
+      currency: 'USD',
+      value: 130,
+      markupOverride: null,
+      splitType: 'subset',
+      assignedCoupleIds: ['new-group-id'],
     });
   });
 });
