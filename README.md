@@ -76,6 +76,18 @@ docs/
   ARCHITECTURE.md   Architecture reference
 ```
 
+## Testing Docs
+
+- [Frontend Test Implementation Report](docs/plans/frontend-test-implementation-report.md)
+- [Frontend Test Coverage Matrix](docs/plans/frontend-test-matrix.md)
+- [Test Maintenance Guide](docs/plans/test-maintenance-guide.md)
+
+Run tests:
+
+```sh
+npm run test -- --run
+```
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
