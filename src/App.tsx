@@ -7,19 +7,41 @@ import CostSummary from '@/components/CostSummary';
 import MobileNav from '@/components/MobileNav';
 
 type MobileTab = 'party' | 'costs' | 'summary';
+type ViewportSize = 'mobile' | 'tablet' | 'desktop';
+
+function getViewportSize(width: number): ViewportSize {
+  if (width <= 479) return 'mobile';
+  if (width <= 767) return 'tablet';
+  return 'desktop';
+}
 
 export default function App() {
   const theme = useTripStore((s) => s.theme);
   const [mobileTab, setMobileTab] = useState<MobileTab>('costs');
+  const [viewportSize, setViewportSize] = useState<ViewportSize>(() => {
+    if (typeof window === 'undefined') return 'desktop';
+    return getViewportSize(window.innerWidth);
+  });
 
   useEffect(() => {
     document.documentElement.dataset['theme'] = theme;
   }, [theme]);
 
+  useEffect(() => {
+    const updateViewport = () => {
+      setViewportSize(getViewportSize(window.innerWidth));
+    };
+
+    window.addEventListener('resize', updateViewport);
+    return () => {
+      window.removeEventListener('resize', updateViewport);
+    };
+  }, []);
+
   return (
     <>
       <Topbar />
-      <main className="main" data-mobile-tab={mobileTab}>
+      <main className="main" data-mobile-tab={mobileTab} data-viewport={viewportSize}>
         <div data-section="party">
           <GroupSetup />
         </div>
@@ -30,7 +52,7 @@ export default function App() {
           <CostSummary />
         </div>
       </main>
-      <MobileNav activeTab={mobileTab} onChange={setMobileTab} />
+      {viewportSize !== 'desktop' ? <MobileNav activeTab={mobileTab} onChange={setMobileTab} /> : null}
     </>
   );
 }
