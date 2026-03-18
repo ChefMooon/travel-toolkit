@@ -468,6 +468,23 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
   });
 
   describe('Visual Alignment', () => {
+    it('should only make the grip icon draggable for reordering', () => {
+      const mockStore = createMockStore();
+      (useTripStore as any).mockImplementation((selector: any) =>
+        selector(mockStore)
+      );
+
+      render(<GroupSetup />);
+
+      const firstGroup = document.querySelector('.group-group');
+      const firstGrip = document.querySelector('.chip-grip');
+
+      expect(firstGroup).toBeTruthy();
+      expect(firstGrip).toBeTruthy();
+      expect(firstGroup).not.toHaveAttribute('draggable');
+      expect(firstGrip).toHaveAttribute('draggable', 'true');
+    });
+
     it('should have proper spacing between icon and dot', () => {
       const mockStore = createMockStore();
       (useTripStore as any).mockImplementation((selector: any) =>

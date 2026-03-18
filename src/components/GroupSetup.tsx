@@ -52,6 +52,10 @@ export default function GroupSetup() {
     setDraggedId(coupleId);
   };
 
+  const handleDragEnd = () => {
+    setDraggedId(null);
+  };
+
   const handleDragOver = (e: React.DragEvent) => {
     if (e.dataTransfer) {
       e.preventDefault();
@@ -137,13 +141,10 @@ export default function GroupSetup() {
                   <div
                     className="group-group"
                     key={couple.id}
-                    draggable
-                    onDragStart={() => handleDragStart(couple.id)}
                     onDragOver={handleDragOver}
                     onDrop={() => handleDrop(couple.id)}
                     style={{
                       opacity: draggedId === couple.id ? 0.5 : 1,
-                      cursor: 'grab',
                       transition: 'opacity 0.2s',
                     }}
                   >
@@ -156,7 +157,16 @@ export default function GroupSetup() {
                           color: coupleColor,
                         }}
                       >
-                        <span className="chip-grip">⠿</span>
+                        <span
+                          className="chip-grip"
+                          draggable
+                          onDragStart={() => handleDragStart(couple.id)}
+                          onDragEnd={handleDragEnd}
+                          title="Drag to reorder group"
+                          aria-label={`Drag to reorder ${couple.name}`}
+                        >
+                          ⠿
+                        </span>
                         <div
                           className="icon-interactive"
                           onClick={() => {

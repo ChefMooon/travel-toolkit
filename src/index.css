@@ -459,7 +459,7 @@ body::before {
     padding: 4px;
   }
   .icon-interactive:hover {
-    transform: translateY(-3px);
+    transform: scale(1.15);
     filter: brightness(1.1);
   }
   .icon-interactive:focus-visible {
@@ -517,7 +517,13 @@ body::before {
     height: 20px;
   }
   .color-dot-interactive:hover {
-    transform: translateY(-2px);
+    transform: scale(1.15);
+  }
+  .color-dot-interactive:hover .chip-dot {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--group-color, #999) 40%, transparent);
+  }
+  .color-dot-interactive:active {
+    transform: scale(1.05);
   }
   .color-dot-interactive:focus-visible {
     outline: 2px solid var(--focus);
@@ -570,7 +576,10 @@ body::before {
 @media (hover: hover) {
   .icon-with-tint:hover {
     background: color-mix(in srgb, var(--group-color, #999) 15%, transparent);
-    transform: scale(1.08);
+    transform: scale(1.15);
+  }
+  .icon-with-tint:active {
+    transform: scale(1.05);
   }
   .icon-with-tint:focus-visible {
     outline: 2px solid var(--focus);
@@ -607,6 +616,8 @@ body::before {
   font-size: 10px;
   cursor: grab;
   transition: opacity 0.15s ease;
+  padding-left: 8px;
+  padding-right: 4px;
 }
 
 @media (hover: hover) {
@@ -697,9 +708,13 @@ body::before {
   border: none; background: transparent; outline: none;
   font-family: 'Nunito', sans-serif;
   font-size: 12px; font-weight: 700;
-  color: inherit; width: 90px;
+  color: inherit;
+  min-width: 90px;
+  max-width: 170px;
+  field-sizing: content;
   cursor: text;
 }
+.group-name-input:hover { border-bottom: 1px dashed currentColor; }
 .group-name-input:focus { border-bottom: 1px dashed currentColor; }
 
 /* ══════════════════════════════════════════ LEDGER TABLE */
@@ -968,8 +983,26 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
   }
 }
 
-.drag-h { color: var(--text-3); cursor: grab; font-size: 15px; display: flex; align-items: center; }
+.drag-h {
+  color: var(--text-3);
+  cursor: grab;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  transition: all 0.15s ease;
+  padding-left: 4px;
+}
 .drag-h.dragging { cursor: grabbing; }
+
+@media (hover: hover) {
+  .drag-h:hover {
+    transform: scale(1.15);
+  }
+  .drag-h:active {
+    transform: scale(1.05);
+    cursor: grabbing;
+  }
+}
 
 .chk {
   width: 15px; height: 15px; border-radius: 4px;
