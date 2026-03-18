@@ -29,6 +29,15 @@ vi.mock('@/store/tripStore', () => ({
   useTripStore: vi.fn(),
 }));
 
+vi.mock('@/store/toastStore', () => ({
+  useToastStore: vi.fn(),
+  getSaveFailureCopy: vi.fn(() => ({
+    type: 'error',
+    title: 'Could not save',
+    message: 'Save failed.',
+  })),
+}));
+
 vi.mock('@/components/CostRow', () => ({
   default: ({
     cost,
@@ -127,6 +136,7 @@ vi.mock('@/components/Modal', () => ({
 }));
 
 import { useTripStore } from '@/store/tripStore';
+import { getSaveFailureCopy, useToastStore } from '@/store/toastStore';
 
 const mockCosts: CostEntry[] = [
   {
@@ -160,6 +170,10 @@ const mockStoreState = {
   bulkSetCurrency: vi.fn(),
 };
 
+const mockToastState = {
+  pushToast: vi.fn(),
+};
+
 describe('CostLedger', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -167,6 +181,10 @@ describe('CostLedger', () => {
 
     (useTripStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(
       (selector: (state: typeof mockStoreState) => unknown) => selector(mockStoreState)
+    );
+
+    (useToastStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(
+      (selector: (state: typeof mockToastState) => unknown) => selector(mockToastState)
     );
   });
 
@@ -230,5 +248,41 @@ describe('CostLedger', () => {
 
     expect(mockStoreState.bulkSetCurrency).toHaveBeenCalledWith(['cost-1'], 'JPY');
     expect(screen.getByText('Selected Count: 0')).toBeInTheDocument();
+  });
+
+  it('FE-LED-006 shows an error toast when adding a cost fails', () => {
+    mockStoreState.addCost.mockImplementation(() => {
+      throw new Error('Persist storage failed');
+    });
+
+    render(<CostLedger />);
+
+    fireEvent.click(screen.getByRole('button', { name: /Add Cost Entry/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save Edit Row' }));
+
+    expect(getSaveFailureCopy).toHaveBeenCalledWith(expect.any(Error), 'new');
+    expect(mockToastState.pushToast).toHaveBeenCalledWith({
+      type: 'error',
+      title: 'Could not save',
+      message: 'Save failed.',
+    });
+  });
+
+  it('FE-LED-007 shows an error toast when editing a cost fails', () => {
+    mockStoreState.editCost.mockImplementation(() => {
+      throw new Error('Persist storage failed');
+    });
+
+    render(<CostLedger />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit cost-1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save Edit Row' }));
+
+    expect(getSaveFailureCopy).toHaveBeenCalledWith(expect.any(Error), 'edit');
+    expect(mockToastState.pushToast).toHaveBeenCalledWith({
+      type: 'error',
+      title: 'Could not save',
+      message: 'Save failed.',
+    });
   });
 });

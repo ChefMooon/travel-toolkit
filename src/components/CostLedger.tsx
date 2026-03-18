@@ -21,6 +21,7 @@ import BulkActionBar from './BulkActionBar';
 import Modal from './Modal';
 import { Plus } from 'lucide-react';
 import type { SplitType } from '@/store/types';
+import { getSaveFailureCopy, useToastStore } from '@/store/toastStore';
 
 export default function CostLedger() {
   const rawCosts = useTripStore((s) => s.costs);
@@ -30,6 +31,7 @@ export default function CostLedger() {
   const deleteCost = useTripStore((s) => s.deleteCost);
   const reorderCosts = useTripStore((s) => s.reorderCosts);
   const bulkSetCurrency = useTripStore((s) => s.bulkSetCurrency);
+  const pushToast = useToastStore((s) => s.pushToast);
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -85,10 +87,15 @@ export default function CostLedger() {
       splitType: SplitType;
       assignedCoupleIds: string[];
     }) => {
-      addCost(data);
-      setIsAdding(false);
+      try {
+        addCost(data);
+        setIsAdding(false);
+      } catch (error) {
+        const toast = getSaveFailureCopy(error, 'new');
+        pushToast(toast);
+      }
     },
-    [addCost]
+    [addCost, pushToast]
   );
 
   const handleEditSave = useCallback(
@@ -101,11 +108,16 @@ export default function CostLedger() {
       assignedCoupleIds: string[];
     }) => {
       if (editingId) {
-        editCost(editingId, data);
-        setEditingId(null);
+        try {
+          editCost(editingId, data);
+          setEditingId(null);
+        } catch (error) {
+          const toast = getSaveFailureCopy(error, 'edit');
+          pushToast(toast);
+        }
       }
     },
-    [editingId, editCost]
+    [editingId, editCost, pushToast]
   );
 
   const costToDelete = costs.find((c) => c.id === deletingId);

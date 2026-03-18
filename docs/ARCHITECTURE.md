@@ -11,6 +11,7 @@ MKT is a single-page React application with no backend. All state lives in the b
 ```
 App
 ├── Topbar            Trip name, global markup, theme toggle, Start New Trip
+├── ToastViewport     Global non-blocking notifications (success/warning/error)
 ├── RegionSelector    Geographic region picker for currency filtering
 ├── GroupSetup        Add / rename / reorder couples and non-paying travellers
 ├── CostLedger        Cost entry list with drag-and-drop (dnd-kit)
@@ -21,7 +22,7 @@ App
     └── CoupleCard    Summary card for a single couple
 ```
 
-Supporting primitives: `Modal` — shared confirmation / alert overlay used by Topbar, GroupSetup, and CostLedger.
+Supporting primitives: `Modal` — shared confirmation / alert overlay used by Topbar, GroupSetup, and CostLedger. `ToastViewport` subscribes to `src/store/toastStore.ts` for ephemeral session notifications.
 
 ---
 
@@ -123,14 +124,29 @@ CAD and USD are globally available in all regions as fallbacks. When a user sele
 
 ---
 
+## Toast Notifications
+
+Global toasts are handled by `src/store/toastStore.ts` and rendered by `src/components/ToastViewport.tsx`.
+
+- Toast state is **ephemeral** and intentionally not persisted to `localStorage`.
+- Supported variants: `success`, `warning`, `error`.
+- Each toast includes a title, message, and auto-dismiss duration.
+- For save failures, `CostLedger` normalizes runtime/storage errors to user-friendly messages explaining why save failed.
+- `EditRow` emits warning toasts for validation failures (missing name, invalid amount, missing assignment for subset/solo).
+
+This design allows any component to emit a toast through a shared store while keeping trip data persistence isolated to `tripStore`.
+
+---
+
 ## Responsive Design
 
 The app uses a mobile-first responsive CSS approach:
 
 1. **Mobile Card Layout** — Cost ledger displays as a card-based layout on small screens (defined in `src/index.css`), with each cost rendered as a horizontal card.
 2. **Adaptive Grid** — Edit forms use responsive grid layout that adjusts field widths and spacing for different screen sizes.
-3. **Theme-aware Styling** — All components use CSS custom properties (`--bg-1`, `--text`, `--border`, etc.) to adapt colors for light and dark modes without component-level logic.
-4. **Touch-friendly** — Interactive elements use sufficient padding and border-radius for touch targets on mobile devices.
+3. **Toast Viewport Placement** — Toasts are fixed near the top of the viewport and repositioned by breakpoint to remain visible on mobile, tablet, and desktop without conflicting with sticky navigation.
+4. **Theme-aware Styling** — All components use CSS custom properties (`--bg-1`, `--text`, `--border`, etc.) to adapt colors for light and dark modes without component-level logic.
+5. **Touch-friendly** — Interactive elements use sufficient padding and border-radius for touch targets on mobile devices.
 
 ---
 

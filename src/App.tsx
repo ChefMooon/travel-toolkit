@@ -5,6 +5,7 @@ import GroupSetup from '@/components/GroupSetup';
 import CostLedger from '@/components/CostLedger';
 import CostSummary from '@/components/CostSummary';
 import MobileNav from '@/components/MobileNav';
+import ToastViewport from '@/components/ToastViewport';
 
 type MobileTab = 'party' | 'costs' | 'summary';
 type ViewportSize = 'mobile' | 'tablet' | 'desktop';
@@ -41,6 +42,7 @@ export default function App() {
   return (
     <>
       <Topbar />
+      <ToastViewport />
       <main className="main" data-mobile-tab={mobileTab} data-viewport={viewportSize}>
         <div data-section="party">
           <GroupSetup />

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useTripStore } from '@/store/tripStore';
+import { useToastStore } from '@/store/toastStore';
 import { getAvailableCurrencies } from '@/store/types';
 import type { SplitType } from '@/store/types';
 
@@ -28,6 +29,7 @@ export default function EditRow({ initial, onSave, onCancel }: EditRowProps) {
   const couples = useTripStore((s) => s.couples);
   const globalMarkup = useTripStore((s) => s.globalMarkup);
   const region = useTripStore((s) => s.region);
+  const pushToast = useToastStore((s) => s.pushToast);
 
   const [name, setName] = useState(initial?.name ?? '');
   const [currency, setCurrency] = useState(initial?.currency ?? 'USD');
@@ -45,7 +47,24 @@ export default function EditRow({ initial, onSave, onCancel }: EditRowProps) {
 
   const handleSave = useCallback(() => {
     const parsedValue = parseFloat(value);
-    if (!name.trim() || isNaN(parsedValue) || parsedValue < 0) return;
+
+    if (!name.trim()) {
+      pushToast({
+        type: 'warning',
+        title: 'Save blocked',
+        message: 'Add a name before saving this cost entry.',
+      });
+      return;
+    }
+
+    if (isNaN(parsedValue) || parsedValue < 0) {
+      pushToast({
+        type: 'warning',
+        title: 'Save blocked',
+        message: 'Enter a valid amount that is 0 or higher.',
+      });
+      return;
+    }
 
     const parsedMarkup = useGlobalMarkup ? null : parseFloat(markupOverride);
     const finalMarkup = useGlobalMarkup ? null : (isNaN(parsedMarkup!) ? null : parsedMarkup);
@@ -59,7 +78,11 @@ export default function EditRow({ initial, onSave, onCancel }: EditRowProps) {
 
     // Validate that individual and subset have at least 1 assignment
     if ((splitType === 'individual' || splitType === 'subset') && finalAssigned.length === 0) {
-      alert(`Cannot save: ${splitType === 'individual' ? 'Solo' : 'Subset'} cost must have at least 1 person assigned.`);
+      pushToast({
+        type: 'warning',
+        title: 'Save blocked',
+        message: `${splitType === 'individual' ? 'Solo' : 'Subset'} costs must include at least one group assignment.`,
+      });
       return;
     }
 
@@ -71,7 +94,7 @@ export default function EditRow({ initial, onSave, onCancel }: EditRowProps) {
       splitType,
       assignedCoupleIds: finalAssigned,
     });
-  }, [name, currency, value, useGlobalMarkup, markupOverride, splitType, assignedCoupleIds, onSave]);
+  }, [name, currency, value, useGlobalMarkup, markupOverride, splitType, assignedCoupleIds, onSave, pushToast]);
 
   const toggleCouple = (id: string) => {
     if (splitType === 'individual') {

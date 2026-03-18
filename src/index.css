@@ -1570,6 +1570,119 @@ tr.add-row td { padding: 0; border: none; }
   gap: 6px;
 }
 
+/* ══════════════════════════════════════════ TOASTS */
+.toast-viewport {
+  position: fixed;
+  top: 70px;
+  right: 16px;
+  left: 16px;
+  display: grid;
+  gap: 10px;
+  z-index: 700;
+  pointer-events: none;
+}
+
+.toast {
+  margin-left: auto;
+  width: min(100%, 480px);
+  border: 1.5px solid var(--border);
+  border-radius: 13px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  pointer-events: auto;
+  animation: toast-slide-in 0.2s ease-out;
+}
+
+.toast-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.toast-title {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.toast-message {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--text-2);
+}
+
+.toast-dismiss {
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.toast-dismiss:hover {
+  background: var(--bg-2);
+  border-color: var(--border);
+}
+
+.toast-success {
+  background: var(--c2-soft);
+  border-color: var(--c2-border);
+}
+
+.toast-warning {
+  background: var(--markup-equal);
+  border-color: var(--c4-border);
+}
+
+.toast-error {
+  background: var(--danger-soft);
+  border-color: var(--danger);
+}
+
+@keyframes toast-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (min-width: 768px) {
+  .toast-viewport {
+    top: 74px;
+    right: 20px;
+    left: auto;
+    width: 500px;
+  }
+}
+
+@media (max-width: 479px) {
+  .toast-viewport {
+    top: 102px;
+    right: 10px;
+    left: 10px;
+    gap: 8px;
+  }
+
+  .toast {
+    border-radius: 12px;
+    padding: 9px 10px;
+  }
+}
+
 /* ══════════════════════════════════════════ MOBILE NAV */
 .mobile-nav {
   display: none; /* hidden on tablet/desktop */

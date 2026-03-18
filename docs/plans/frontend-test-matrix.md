@@ -7,14 +7,15 @@ Provide a compact, scan-friendly view of frontend test coverage so future work c
 
 | Area | Component / Module | Test File | Test IDs | What Is Covered | Status | Next Gaps |
 |---|---|---|---|---|---|---|
-| UI | EditRow | `src/components/EditRow.test.tsx` | FE-EDT-001..008 | Save validation, split assignment rules, markup mode behavior, cancel flow, region currency options | Implemented | Keyboard-only interaction paths, field-level aria labels |
+| UI | EditRow | `src/components/EditRow.test.tsx` | FE-EDT-001..008 | Save validation, split assignment rules, markup mode behavior, cancel flow, region currency options, validation-warning toast emission | Implemented | Keyboard-only interaction paths, field-level aria labels |
 | UI | Topbar | `src/components/Topbar.test.tsx` | FE-TOP-001..007 | Trip name update/clear, markup editing/validation, theme toggle, reset modal flow | Implemented | Enter/Escape behavior on all controls, focus order assertions |
 | UI | BulkActionBar | `src/components/BulkActionBar.test.tsx` | FE-BULK-001..005 | Conditional render, currency change callback, apply/clear callbacks | Implemented | Disabled state behavior if added later |
 | UI | MobileNav | `src/components/MobileNav.test.tsx` | FE-NAV-001..003 | Tab render, active state class, onChange emissions | Implemented | Keyboard navigation and aria-current semantics |
 | UI | Modal | `src/components/Modal.test.tsx` | FE-MOD-001..006 | Render content, confirm/cancel callbacks, backdrop close, compact mode, `aria-modal` | Implemented | Focus trap, Escape handling parity across all modal usages |
 | UI | RegionSelector | `src/components/RegionSelector.test.tsx` | FE-REG-001..003 | Current value render, all options render, setRegion callback | Implemented | Persist/rehydrate behavior via integration test |
 | UI | CostSummary | `src/components/CostSummary.test.tsx` | FE-SUM-001..003 | Empty state, header counts, renders one CoupleCard per summary | Implemented | More assertions on currency count wording and edge formatting |
-| UI | CostLedger | `src/components/CostLedger.test.tsx` | FE-LED-001..005 | Sorted render, add/edit/delete orchestration, bulk apply + clear selection | Implemented | Real DnD reorder path, cancel paths in add/edit/delete |
+| UI | CostLedger | `src/components/CostLedger.test.tsx` | FE-LED-001..007 | Sorted render, add/edit/delete orchestration, bulk apply + clear selection, add/edit save-failure toast handling | Implemented | Real DnD reorder path, cancel paths in add/edit/delete |
+| UI | ToastViewport | `src/components/ToastViewport.test.tsx` | FE-TST-001..003 | Manual dismiss, auto-dismiss timing, aria-live behavior by toast type | Implemented | Visual layering assertions with modal/mobile nav in responsive integration test |
 | UI | CostRow | `src/components/CostRow.test.tsx` | Existing tests | Split-type rendering and split modal open behavior | Existing | Inline name/amount editing, markup +/- controls |
 | UI | CoupleCard | `src/components/CoupleCard.test.tsx` | Existing tests | Icon/color modal interactions and persistence behavior | Existing | Exchange-rate input and USD display paths |
 | UI | GroupSetup | `src/components/GroupSetup.test.tsx` | Existing tests | Icon/color selection and related modal behavior | Existing | Full CRUD for groups/children and reorder assertions |

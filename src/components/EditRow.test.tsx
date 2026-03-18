@@ -10,7 +10,12 @@ vi.mock('@/store/tripStore', () => ({
   useTripStore: vi.fn(),
 }));
 
+vi.mock('@/store/toastStore', () => ({
+  useToastStore: vi.fn(),
+}));
+
 import { useTripStore } from '@/store/tripStore';
+import { useToastStore } from '@/store/toastStore';
 
 const mockCouples: Couple[] = [
   { id: 'c1', name: 'Group 1', colorIndex: 1, iconIndex: 1, sortOrder: 0 },
@@ -26,6 +31,10 @@ const mockStoreState: {
   couples: mockCouples,
   globalMarkup: 66,
   region: 'Europe',
+};
+
+const mockToastState = {
+  pushToast: vi.fn(),
 };
 
 const renderEditRow = (props?: Partial<React.ComponentProps<typeof EditRow>>) => {
@@ -46,7 +55,6 @@ const renderEditRow = (props?: Partial<React.ComponentProps<typeof EditRow>>) =>
 describe('EditRow', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.stubGlobal('alert', vi.fn());
 
     mockStoreState.couples = mockCouples;
     mockStoreState.globalMarkup = 66;
@@ -54,6 +62,10 @@ describe('EditRow', () => {
 
     (useTripStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(
       (selector: (state: typeof mockStoreState) => unknown) => selector(mockStoreState)
+    );
+
+    (useToastStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(
+      (selector: (state: typeof mockToastState) => unknown) => selector(mockToastState)
     );
   });
 
@@ -91,6 +103,12 @@ describe('EditRow', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(onSave).not.toHaveBeenCalled();
+    expect(mockToastState.pushToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'warning',
+        title: 'Save blocked',
+      })
+    );
   });
 
   it('FE-EDT-003 requires assignment when split type is subset', () => {
@@ -106,7 +124,12 @@ describe('EditRow', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(onSave).not.toHaveBeenCalled();
-    expect(globalThis.alert).toHaveBeenCalledTimes(1);
+    expect(mockToastState.pushToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'warning',
+        title: 'Save blocked',
+      })
+    );
   });
 
   it('FE-EDT-004 keeps only first assigned group for individual split when multiple are preset', () => {
