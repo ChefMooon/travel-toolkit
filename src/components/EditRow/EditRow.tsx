@@ -3,7 +3,7 @@ import { useTripStore } from '@/store/tripStore';
 import { useToastStore } from '@/store/toastStore';
 import { getAvailableCurrencies } from '@/store/types';
 import type { SplitType } from '@/store/types';
-import SplitAssignmentModal from './SplitAssignmentModal';
+import SplitAssignmentModal from '../SplitAssignmentModal';
 
 interface EditRowProps {
   initial?: {

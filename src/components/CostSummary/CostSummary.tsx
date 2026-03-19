@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useTripStore } from '@/store/tripStore';
 import { buildSummary } from '@/lib/calculations';
-import CoupleCard from './CoupleCard';
+import CoupleCard from '../CoupleCard';
 
 export default function CostSummary() {
   const couples = useTripStore((s) => s.couples);

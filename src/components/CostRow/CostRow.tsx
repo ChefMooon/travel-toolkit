@@ -7,7 +7,7 @@ import type { CostEntry, SplitType } from '@/store/types';
 import { getAvailableCurrencies } from '@/store/types';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import SplitAssignmentModal from './SplitAssignmentModal';
+import SplitAssignmentModal from '../SplitAssignmentModal';
 
 interface CostRowProps {
   cost: CostEntry;

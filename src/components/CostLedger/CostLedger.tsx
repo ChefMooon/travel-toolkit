@@ -15,10 +15,10 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
-import CostRow from './CostRow';
-import EditRow from './EditRow';
-import BulkActionBar from './BulkActionBar';
-import Modal from './Modal';
+import CostRow from '../CostRow';
+import EditRow from '../EditRow';
+import BulkActionBar from '../BulkActionBar';
+import Modal from '../Modal';
 import { Plus } from 'lucide-react';
 import type { SplitType } from '@/store/types';
 import { getSaveFailureCopy, useToastStore } from '@/store/toastStore';

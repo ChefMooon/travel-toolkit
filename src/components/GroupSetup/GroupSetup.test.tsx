@@ -4,15 +4,15 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
 import GroupSetup from './GroupSetup';
-import type { Couple } from '../store/types';
-import { COUPLE_ICONS } from '../store/types';
+import type { Couple } from '../../store/types';
+import { COUPLE_ICONS } from '../../store/types';
 
 // Mock the tripStore
-vi.mock('../store/tripStore', () => ({
+vi.mock('../../store/tripStore', () => ({
   useTripStore: vi.fn(),
 }));
 
-import { useTripStore } from '../store/tripStore';
+import { useTripStore } from '../../store/tripStore';
 
 const mockCouples: Couple[] = [
   {

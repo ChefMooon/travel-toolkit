@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, waitFor, screen } from '@testing-library/react';
-import { useTripStore } from '../store/tripStore';
+import { useTripStore } from '../../store/tripStore';
 import CoupleCard from './CoupleCard';
-import type { CoupleSummary } from '../store/types';
+import type { CoupleSummary } from '../../store/types';
 
 // Mock the modals
-vi.mock('./IconChoiceModal', () => ({
+vi.mock('../IconChoiceModal', () => ({
   default: ({ onConfirm, onCancel }: any) => (
     <div data-testid="icon-modal">
       <button onClick={() => onConfirm(5)} data-testid="select-icon-6">
@@ -18,7 +18,7 @@ vi.mock('./IconChoiceModal', () => ({
   ),
 }));
 
-vi.mock('./ColorChoiceModal', () => ({
+vi.mock('../ColorChoiceModal', () => ({
   default: ({ onConfirm, onCancel }: any) => (
     <div data-testid="color-modal">
       <button onClick={() => onConfirm(3)} data-testid="select-color-3">

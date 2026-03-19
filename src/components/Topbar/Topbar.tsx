@@ -1,8 +1,8 @@
 import { useState, useCallback } from 'react';
 import { useTripStore } from '@/store/tripStore';
 import { Sun, Moon, RotateCcw } from 'lucide-react';
-import Modal from './Modal';
-import Logo from './Logo';
+import Modal from '../Modal';
+import Logo from '../Logo';
 
 export default function Topbar() {
   const tripName = useTripStore((s) => s.tripName);

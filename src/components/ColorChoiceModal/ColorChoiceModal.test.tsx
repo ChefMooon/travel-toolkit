@@ -4,7 +4,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { render, fireEvent } from '@testing-library/react';
 import ColorChoiceModal from './ColorChoiceModal';
-import { COUPLE_COLORS } from '../store/types';
+import { COUPLE_COLORS } from '../../store/types';
 
 describe('ColorChoiceModal', () => {
   const mockOnConfirm = vi.fn();

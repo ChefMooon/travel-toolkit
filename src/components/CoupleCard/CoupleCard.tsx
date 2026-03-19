@@ -2,8 +2,8 @@ import { useState, useMemo } from 'react';
 import { useTripStore } from '@/store/tripStore';
 import { formatCurrency } from '@/lib/calculations';
 import { CURRENCY_FLAGS, COUPLE_ICONS, getColorThemeValue } from '@/store/types';
-import IconChoiceModal from './IconChoiceModal';
-import ColorChoiceModal from './ColorChoiceModal';
+import IconChoiceModal from '../IconChoiceModal';
+import ColorChoiceModal from '../ColorChoiceModal';
 import type { CoupleSummary } from '@/store/types';
 
 interface CoupleCardProps {

@@ -3,10 +3,10 @@ import { useTripStore } from '@/store/tripStore';
 import type { Couple } from '@/store/types';
 import { Plus, X } from 'lucide-react';
 import { COUPLE_ICONS, getColorThemeValue } from '@/store/types';
-import Modal from './Modal';
-import IconChoiceModal from './IconChoiceModal';
-import ColorChoiceModal from './ColorChoiceModal';
-import RegionSelector from './RegionSelector';
+import Modal from '../Modal';
+import IconChoiceModal from '../IconChoiceModal';
+import ColorChoiceModal from '../ColorChoiceModal';
+import RegionSelector from '../RegionSelector';
 
 export default function GroupSetup() {
   const couples = useTripStore((s) => s.couples);
