@@ -1477,7 +1477,7 @@ tr.edit-row td {
   border: 2px solid white;
   border-top: 0;
   border-right: 0;
-  transform: rotate(-45deg) scale(0);
+  transform: translateY(-1px) rotate(-45deg) scale(0);
   transition: transform 0.12s ease-out;
 }
 
@@ -1497,7 +1497,7 @@ tr.edit-row td {
 }
 
 .markup-row label input[type="checkbox"]:checked::before {
-  transform: rotate(-45deg) scale(1);
+  transform: translateY(-1px) rotate(-45deg) scale(1);
 }
 
 .edit-acts { display: flex; gap: 7px; padding-top: 17px; }
