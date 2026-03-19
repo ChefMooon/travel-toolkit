@@ -7,7 +7,7 @@ Provide a compact, scan-friendly view of frontend test coverage so future work c
 
 | Area | Component / Module | Test File | Test IDs | What Is Covered | Status | Next Gaps |
 |---|---|---|---|---|---|---|
-| UI | EditRow | `src/components/EditRow.test.tsx` | FE-EDT-001..008 | Save validation, split assignment rules, markup mode behavior, cancel flow, region currency options, validation-warning toast emission | Implemented | Keyboard-only interaction paths, field-level aria labels |
+| UI | EditRow | `src/components/EditRow.test.tsx` | FE-EDT-001..013 | Save validation, split assignment rules, markup mode behavior, cancel flow, region currency options, validation-warning toast emission, auto-reset split type when no groups selected, color dots visualization | Implemented | Keyboard-only interaction paths, field-level aria labels |
 | UI | Topbar | `src/components/Topbar.test.tsx` | FE-TOP-001..007 | Trip name update/clear, markup editing/validation, theme toggle, reset modal flow | Implemented | Enter/Escape behavior on all controls, focus order assertions |
 | UI | BulkActionBar | `src/components/BulkActionBar.test.tsx` | FE-BULK-001..005 | Conditional render, currency change callback, apply/clear callbacks | Implemented | Disabled state behavior if added later |
 | UI | MobileNav | `src/components/MobileNav.test.tsx` | FE-NAV-001..003 | Tab render, active state class, onChange emissions | Implemented | Keyboard navigation and aria-current semantics |
@@ -23,9 +23,9 @@ Provide a compact, scan-friendly view of frontend test coverage so future work c
 | Logic | Calculations | `src/lib/calculations.test.ts` | CALC-* | Rounding, validation, split, summary, formatting invariants | Implemented | None for current ruleset; update when business rules change |
 
 ## Current Totals
-- Total frontend FE test IDs added in latest pass: 40
+- Total frontend FE test IDs added in latest pass: 44
 - Total component/frontend test files now present: 9 frontend files + 1 logic file + integration/store suites
-- Last full run: `npm run test -- --run` -> 16 files, 193 tests passed
+- Last full run: `npm run test -- --run` -> 16 files, 197 tests passed
 
 ## Priority Backlog
 1. Add responsive assertions (mobile/tablet/desktop behavior)

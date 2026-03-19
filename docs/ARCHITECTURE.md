@@ -75,6 +75,16 @@ Core logic lives in `src/lib/calculations.ts`. The main entry point for building
 
 Non-paying travellers are never included in the divisor regardless of split type.
 
+### Split Modal Behavior
+
+When a cost is set to `subset` or `individual` split type, users open `SplitAssignmentModal` to select one or more couples. The modal enforces these rules:
+
+- **`subset` mode**: Checkbox selection of multiple couples; requires at least one selection to confirm
+- **`individual` mode**: Radio selection of exactly one couple; auto-closes and applies when a selection is made
+- **Auto-reset on close**: If the modal is closed without any selections in `subset` or `individual` mode, the split type automatically resets to `shared` (with empty `assignedCoupleIds`)
+
+This auto-reset prevents invalid cost states (e.g., a cost marked as `subset` but with no assigned couples). It allows users to change their mind about a split type without being forced to select groups.
+
 ### Markup
 
 ```

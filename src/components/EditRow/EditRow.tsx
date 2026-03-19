@@ -156,6 +156,13 @@ export default function EditRow({ initial, onSave, onCancel }: EditRowProps) {
 
   const handleCloseSplitModal = () => {
     setSplitModalOpen(false);
+    
+    // Auto-reset to 'shared' if no groups selected in subset/solo mode
+    if ((splitType === 'subset' || splitType === 'individual') && assignedCoupleIds.length === 0) {
+      setSplitType('shared');
+      setAssignedCoupleIds([]);
+    }
+    
     setPendingSplitType(null);
     setTempAssignedCouples([]);
   };
@@ -301,12 +308,25 @@ export default function EditRow({ initial, onSave, onCancel }: EditRowProps) {
             </span>
             <button
               type="button"
-              className="split-select-inline-btn"
+              className={`split-select-inline-btn${assignedCoupleIds.length > 0 ? ' with-dots' : ''}`}
               onClick={() => openSplitModalFor(splitType)}
             >
-              {assignedCoupleIds.length > 0
-                ? `${assignedCoupleIds.length} selected`
-                : 'Select groups'}
+              {assignedCoupleIds.length > 0 ? (
+                <div className="who-dots" style={{ margin: 0 }}>
+                  {couples
+                    .filter((c) => assignedCoupleIds.includes(c.id))
+                    .map((c) => (
+                      <span
+                        key={c.id}
+                        className="who-dot"
+                        style={{ background: `var(--c${c.colorIndex})` }}
+                        title={c.name}
+                      />
+                    ))}
+                </div>
+              ) : (
+                'Select groups'
+              )}
             </button>
           </div>
         )}

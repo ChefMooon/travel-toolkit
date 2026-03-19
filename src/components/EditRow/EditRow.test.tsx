@@ -244,4 +244,116 @@ describe('EditRow', () => {
       })
     );
   });
+
+  it('FE-EDT-010 auto-resets to shared when closing subset modal with no selections', () => {
+    const { onSave } = renderEditRow();
+
+    fireEvent.change(screen.getByPlaceholderText('e.g. Hotel Night 1'), {
+      target: { value: 'Activity' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('0.00'), {
+      target: { value: '40' },
+    });
+
+    // Open subset modal
+    fireEvent.click(screen.getByRole('button', { name: 'Subset' }));
+
+    // Close modal without selecting any groups (click the X button or backdrop)
+    const closeButton = screen.getByLabelText('Close');
+    fireEvent.click(closeButton);
+
+    // Verify split type auto-resets to 'shared'
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        splitType: 'shared',
+        assignedCoupleIds: [],
+      })
+    );
+  });
+
+  it('FE-EDT-011 auto-resets to shared when closing individual modal with no selections', () => {
+    const { onSave } = renderEditRow();
+
+    fireEvent.change(screen.getByPlaceholderText('e.g. Hotel Night 1'), {
+      target: { value: 'Transportation' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('0.00'), {
+      target: { value: '35' },
+    });
+
+    // Open individual modal
+    fireEvent.click(screen.getByRole('button', { name: 'Solo' }));
+
+    // Close modal without selecting any groups
+    const closeButton = screen.getByLabelText('Close');
+    fireEvent.click(closeButton);
+
+    // Verify split type auto-resets to 'shared'
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        splitType: 'shared',
+        assignedCoupleIds: [],
+      })
+    );
+  });
+
+  it('FE-EDT-012 preserves subset assignment when selections are made before closing modal', () => {
+    const { onSave } = renderEditRow({
+      initial: {
+        id: 'cost-1',
+        name: 'Shared Activity',
+        currency: 'USD',
+        value: 60,
+        markupOverride: null,
+        splitType: 'subset',
+        assignedCoupleIds: ['c1', 'c2'],
+      },
+    });
+
+    // With pre-assigned couples, verify split type stays 'subset' on save
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        splitType: 'subset',
+        assignedCoupleIds: expect.arrayContaining(['c1', 'c2']),
+      })
+    );
+  });
+
+  it('FE-EDT-013 renders color dots instead of count when couples are selected', () => {
+    renderEditRow({
+      initial: {
+        id: 'cost-1',
+        name: 'Meal',
+        currency: 'EUR',
+        value: 50,
+        markupOverride: null,
+        splitType: 'subset',
+        assignedCoupleIds: ['c1', 'c2'],
+      },
+    });
+
+    // Find the select groups button
+    const selectButton = screen.getByRole('button', { name: '' }); // Button with no text content initially
+
+    // Verify the button has the with-dots class
+    expect(selectButton).toHaveClass('with-dots');
+
+    // Verify color dots are rendered
+    const dots = selectButton.querySelectorAll('.who-dot');
+    expect(dots).toHaveLength(2);
+
+    // Verify dots have correct background colors (based on couple colorIndex)
+    expect(dots[0]).toHaveStyle('background: var(--c1)');
+    expect(dots[1]).toHaveStyle('background: var(--c2)');
+
+    // Verify dots have correct titles (couple names)
+    expect(dots[0]).toHaveAttribute('title', 'Group 1');
+    expect(dots[1]).toHaveAttribute('title', 'Group 2');
+  });
 });

@@ -1991,12 +1991,22 @@ tr.add-row td { padding: 0; border: none; }
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
 .split-select-inline-btn:hover {
   background: var(--bg-3);
   color: var(--text);
+}
+
+.split-select-inline-btn.with-dots {
+  background: var(--bg-1);
+  border-color: var(--border);
+  padding: 4px 8px;
+}
+
+.split-select-inline-btn.with-dots:hover {
+  background: var(--bg-2);
 }
 
 
