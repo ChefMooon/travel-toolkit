@@ -264,38 +264,29 @@ export default function EditRow({ initial, onSave, onCancel }: EditRowProps) {
             />
             Use global markup ({globalMarkup}%)
           </label>
-          {!useGlobalMarkup && (
-            <>
-              <input
-                className="ef-inp mono"
-                type="number"
-                step="0.1"
-                min="0"
-                value={markupOverride}
-                onChange={(e) => setMarkupOverride(e.target.value)}
-                style={{ width: 70, padding: '3px 7px', fontSize: 12 }}
-                placeholder="0"
-              />
-              <button
-                type="button"
-                onClick={() => {
-                  setMarkupOverride(String(globalMarkup));
-                  setUseGlobalMarkup(true);
-                }}
-                style={{
-                  padding: '3px 7px',
-                  fontSize: 12,
-                  marginLeft: '5px',
-                  cursor: 'pointer',
-                  background: 'var(--btn-bg)',
-                  border: '1px solid var(--border)',
-                  borderRadius: '3px',
-                }}
-              >
-                Reset
-              </button>
-            </>
-          )}
+          <div className={`markup-controls${useGlobalMarkup ? ' is-hidden' : ''}`} aria-hidden={useGlobalMarkup}>
+            <input
+              className="ef-inp mono markup-override-inp"
+              type="number"
+              step="0.1"
+              min="0"
+              value={markupOverride}
+              onChange={(e) => setMarkupOverride(e.target.value)}
+              placeholder="0"
+              disabled={useGlobalMarkup}
+            />
+            <button
+              type="button"
+              className="markup-reset-btn"
+              onClick={() => {
+                setMarkupOverride(String(globalMarkup));
+                setUseGlobalMarkup(true);
+              }}
+              disabled={useGlobalMarkup}
+            >
+              Reset
+            </button>
+          </div>
         </div>
 
         {(splitType === 'subset' || splitType === 'individual') && (

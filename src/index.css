@@ -1415,7 +1415,90 @@ tr.edit-row td {
 .markup-row {
   display: flex; align-items: center; gap: 8px; margin-top: 6px;
 }
-.markup-row label { display: inline-flex; align-items: center; gap: 5px; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--text-2); }
+.markup-row label { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12px; font-weight: 600; color: var(--text-2); }
+
+.markup-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 128px;
+  padding-left: 2px;
+}
+
+.markup-controls.is-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.markup-override-inp {
+  width: 58px;
+  padding: 3px 6px;
+  font-size: 12px;
+}
+
+.markup-reset-btn {
+  padding: 0 10px;
+  font-size: 12px;
+  cursor: pointer;
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1.5px solid var(--border-2);
+  border-radius: 7px;
+  font-weight: 700;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.markup-reset-btn:disabled {
+  cursor: default;
+}
+
+.markup-row label input[type="checkbox"] {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  display: inline-grid;
+  place-content: center;
+  cursor: pointer;
+  transition: border-color 0.12s, background-color 0.12s, box-shadow 0.12s;
+}
+
+.markup-row label input[type="checkbox"]::before {
+  content: "";
+  width: 9px;
+  height: 5px;
+  border: 2px solid white;
+  border-top: 0;
+  border-right: 0;
+  transform: rotate(-45deg) scale(0);
+  transition: transform 0.12s ease-out;
+}
+
+.markup-row label input[type="checkbox"]:hover {
+  border-color: var(--c1);
+}
+
+.markup-row label input[type="checkbox"]:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--c1) 35%, transparent);
+  outline-offset: 2px;
+}
+
+.markup-row label input[type="checkbox"]:checked {
+  background: var(--c1);
+  border-color: var(--c1);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--c1) 40%, black);
+}
+
+.markup-row label input[type="checkbox"]:checked::before {
+  transform: rotate(-45deg) scale(1);
+}
 
 .edit-acts { display: flex; gap: 7px; padding-top: 17px; }
 .btn-save {
