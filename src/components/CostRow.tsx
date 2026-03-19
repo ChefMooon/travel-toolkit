@@ -32,7 +32,7 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
   const [previousSplitType, setPreviousSplitType] = useState<SplitType>(cost.splitType);
   const [previousAssignedCouples, setPreviousAssignedCouples] = useState<string[]>(cost.assignedCoupleIds);
   const [splitModalOpen, setSplitModalOpen] = useState(false);
-  const [pendingSplitType, setPendingSplitType] = useState<SplitType | null>(null);
+  const [pendingSplitType, setPendingSplitType] = useState<Extract<SplitType, 'subset' | 'individual'> | null>(null);
   const [tempAssignedCouples, setTempAssignedCouples] = useState<string[]>([]);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const amountInputRef = useRef<HTMLInputElement>(null);

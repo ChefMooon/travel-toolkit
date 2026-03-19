@@ -23,8 +23,9 @@ export default function Modal({ icon, title, body, confirmLabel, onConfirm, onCa
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
     );
 
-    if (focusable.length > 0) {
-      focusable[0].focus();
+    const first = focusable.item(0);
+    if (first) {
+      first.focus();
       return;
     }
 
@@ -55,10 +56,9 @@ export default function Modal({ icon, title, body, confirmLabel, onConfirm, onCa
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
       );
 
-      if (focusable.length === 0) return;
-
-      const first = focusable[0];
-      const last = focusable[focusable.length - 1];
+      const first = focusable.item(0);
+      const last = focusable.item(focusable.length - 1);
+      if (!first || !last) return;
       const active = document.activeElement;
 
       if (!e.shiftKey && active === last) {

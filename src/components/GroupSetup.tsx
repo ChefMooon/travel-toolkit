@@ -94,7 +94,7 @@ export default function GroupSetup() {
         <div className="card-header">
           <span className="card-title">Travelling Party</span>
           <div className="add-btns">
-            <button className="btn-add" onClick={addCouple}>
+            <button className="btn-add" onClick={() => addCouple()}>
               <Plus size={12} /> Add Group
             </button>
             <div style={{ position: 'relative' }} ref={pickerRef}>
