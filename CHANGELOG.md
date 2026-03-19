@@ -10,6 +10,44 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [1.0.2] - 2026-03-19
+
+### Added
+
+- Global toast notification system integrated across core trip and cost workflows
+- Reusable split-assignment modal with group creation support during cost assignment
+- Expanded automated test coverage:
+	- Responsive behavior tests across viewport sizes
+	- Core trip UI flow component tests
+	- Unit tests for core calculation functions based on a dedicated calculation test plan
+- Mobile navigation for small screens, with viewport-aware behavior
+
+### Changed
+
+- Cost ledger and top bar responsive behavior improved across mobile, tablet, and larger breakpoints
+- Cost ledger table column sizing and layout refined for better readability on narrow screens
+- Group setup drag-and-drop interactions improved for more reliable reordering
+- Edit row and cost row split handling improved with solo fallback logic and split-type auto-reset behavior
+- Bulk currency assignment now uses dynamic currency options in the bulk action bar
+- Couple card and group setup UI refined with better color handling and accessibility improvements
+- Edit row markup controls updated with improved accessibility and clearer color-dot assisted UI
+- Component structure refactored into colocated subfolders for better maintainability
+
+### Fixed
+
+- Modal keyboard support and focus trapping improved for accessibility and safer interaction flow
+- Mobile navigation visibility now correctly gated by viewport size
+- Edit row animation transform behavior adjusted for smoother transitions
+- Input and markup number widths/layout consistency issues resolved across responsive views
+- Brand asset wiring and SVG handling fixes in app shell and logo integration
+- Removed residual checked-in dependency artifacts from repository state
+
+### Security
+
+- Updated dependency: `undici` to 7.24.4
+
+---
+
 ## [1.0.1] — 2026-03-10
 
 ### Added
@@ -50,6 +88,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Start New Trip action with confirmation prompt; clears all `localStorage` data and resets to initial state
 - Light and dark theme with toggle; theme preference persisted to `localStorage`
 
-[Unreleased]: https://github.com/ChefMooon/mkt/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/ChefMooon/mkt/compare/v1.0.2...HEAD
+[1.0.2]: https://github.com/ChefMooon/mkt/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/ChefMooon/mkt/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/ChefMooon/mkt/releases/tag/v1.0.0
