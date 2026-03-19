@@ -63,6 +63,11 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
   const validation = validateCost(cost);
   const [showErrorTooltip, setShowErrorTooltip] = useState(false);
 
+  const getSoloFallbackAssignment = (preferredIds: string[], fallbackIds: string[]) => {
+    const fallbackId = preferredIds[0] ?? fallbackIds[0] ?? couples[0]?.id;
+    return fallbackId ? [fallbackId] : [];
+  };
+
   const assignedDots = useMemo(() => {
     if (cost.splitType === 'shared') return null;
     return cost.assignedCoupleIds
@@ -197,18 +202,39 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
 
   // Confirm modal selection (for subset)
   const handleConfirmSplitModal = () => {
-    if (pendingSplitType && tempAssignedCouples.length > 0) {
+    if (!pendingSplitType) return;
+
+    if (pendingSplitType === 'subset' && previousSplitType === 'individual' && tempAssignedCouples.length < 2) {
+      editCost(cost.id, {
+        splitType: 'individual',
+        assignedCoupleIds: getSoloFallbackAssignment(tempAssignedCouples, previousAssignedCouples),
+      });
+      setSplitModalOpen(false);
+      setPendingSplitType(null);
+      setTempAssignedCouples([]);
+      return;
+    }
+
+    if (tempAssignedCouples.length > 0) {
       editCost(cost.id, {
         splitType: pendingSplitType,
         assignedCoupleIds: tempAssignedCouples,
       });
       setSplitModalOpen(false);
       setPendingSplitType(null);
+      setTempAssignedCouples([]);
     }
   };
 
   // Cancel modal (revert)
   const handleCancelSplitModal = () => {
+    if (pendingSplitType === 'subset' && previousSplitType === 'individual') {
+      editCost(cost.id, {
+        splitType: 'individual',
+        assignedCoupleIds: getSoloFallbackAssignment([], previousAssignedCouples),
+      });
+    }
+
     setSplitModalOpen(false);
     setPendingSplitType(null);
     setTempAssignedCouples([]);

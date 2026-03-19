@@ -49,6 +49,16 @@ export default function EditRow({ initial, onSave, onCancel }: EditRowProps) {
   const [splitModalOpen, setSplitModalOpen] = useState(false);
   const [pendingSplitType, setPendingSplitType] = useState<Extract<SplitType, 'subset' | 'individual'> | null>(null);
   const [tempAssignedCouples, setTempAssignedCouples] = useState<string[]>([]);
+  const [modalOriginSplitType, setModalOriginSplitType] = useState<SplitType | null>(null);
+  const [modalOriginAssignedCouples, setModalOriginAssignedCouples] = useState<string[]>([]);
+
+  const getSoloFallbackAssignment = useCallback(
+    (preferredIds: string[], fallbackIds: string[]) => {
+      const fallbackId = preferredIds[0] ?? fallbackIds[0] ?? couples[0]?.id;
+      return fallbackId ? [fallbackId] : [];
+    },
+    [couples]
+  );
 
   const handleSave = useCallback(() => {
     const parsedValue = parseFloat(value);
@@ -107,11 +117,15 @@ export default function EditRow({ initial, onSave, onCancel }: EditRowProps) {
       setAssignedCoupleIds([]);
       setPendingSplitType(null);
       setTempAssignedCouples([]);
+      setModalOriginSplitType(null);
+      setModalOriginAssignedCouples([]);
       setSplitModalOpen(false);
       return;
     }
 
     if (nextSplitType === 'subset') {
+      setModalOriginSplitType(splitType);
+      setModalOriginAssignedCouples([...assignedCoupleIds]);
       setSplitType('subset');
       setPendingSplitType('subset');
       setTempAssignedCouples([...assignedCoupleIds]);
@@ -145,17 +159,45 @@ export default function EditRow({ initial, onSave, onCancel }: EditRowProps) {
   };
 
   const handleConfirmSubsetModal = () => {
-    if (pendingSplitType !== 'subset' || tempAssignedCouples.length === 0) return;
+    if (pendingSplitType !== 'subset') return;
+
+    // Solo -> subset only sticks when 2+ groups are selected.
+    if (modalOriginSplitType === 'individual' && tempAssignedCouples.length < 2) {
+      setSplitType('individual');
+      setAssignedCoupleIds(
+        getSoloFallbackAssignment(tempAssignedCouples, modalOriginAssignedCouples)
+      );
+      setSplitModalOpen(false);
+      setPendingSplitType(null);
+      setTempAssignedCouples([]);
+      setModalOriginSplitType(null);
+      setModalOriginAssignedCouples([]);
+      return;
+    }
+
+    if (tempAssignedCouples.length === 0) return;
 
     setSplitType('subset');
     setAssignedCoupleIds(tempAssignedCouples);
     setSplitModalOpen(false);
     setPendingSplitType(null);
     setTempAssignedCouples([]);
+    setModalOriginSplitType(null);
+    setModalOriginAssignedCouples([]);
   };
 
   const handleCloseSplitModal = () => {
     setSplitModalOpen(false);
+
+    if (pendingSplitType === 'subset' && modalOriginSplitType === 'individual') {
+      setSplitType('individual');
+      setAssignedCoupleIds(getSoloFallbackAssignment([], modalOriginAssignedCouples));
+      setPendingSplitType(null);
+      setTempAssignedCouples([]);
+      setModalOriginSplitType(null);
+      setModalOriginAssignedCouples([]);
+      return;
+    }
     
     // Auto-reset to 'shared' if no groups selected in subset/solo mode
     if ((splitType === 'subset' || splitType === 'individual') && assignedCoupleIds.length === 0) {
@@ -165,6 +207,8 @@ export default function EditRow({ initial, onSave, onCancel }: EditRowProps) {
     
     setPendingSplitType(null);
     setTempAssignedCouples([]);
+    setModalOriginSplitType(null);
+    setModalOriginAssignedCouples([]);
   };
 
   const handleCreateGroupInModal = () => {

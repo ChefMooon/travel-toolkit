@@ -167,7 +167,7 @@ describe('CostRow - Who Field Clickability', () => {
       fireEvent.click(whoDots!);
 
       // Modal should appear (rendered via createPortal to document.body)
-      const modal = await screen.findByText('◑ Select Groups');
+      const modal = await screen.findByText('Select Groups');
       expect(modal).toBeInTheDocument();
     });
 
@@ -190,8 +190,7 @@ describe('CostRow - Who Field Clickability', () => {
       fireEvent.click(whoDots!);
 
       // Check that the checkboxes for assigned couples are checked
-      const modal = await screen.findByText('◑ Select Groups') || 
-                   container.querySelector('.split-modal-header');
+      const modal = await screen.findByText('Select Groups');
       expect(modal).toBeInTheDocument();
 
       // Find checkboxes for the assigned couples
@@ -219,7 +218,7 @@ describe('CostRow - Who Field Clickability', () => {
 
       fireEvent.click(container.querySelector('.who-dots')!);
 
-      const title = await screen.findByText('◑ Select Groups');
+      const title = await screen.findByText('Select Groups');
       expect(title).toBeInTheDocument();
     });
 
@@ -239,7 +238,7 @@ describe('CostRow - Who Field Clickability', () => {
       );
 
       fireEvent.click(container.querySelector('.who-dots')!);
-      await screen.findByText('◑ Select Groups');
+      await screen.findByText('Select Groups');
 
       fireEvent.click(screen.getByRole('button', { name: /Create Group/i }));
 
@@ -314,7 +313,7 @@ describe('CostRow - Who Field Clickability', () => {
       const whoDots = container.querySelector('.who-dots');
       fireEvent.click(whoDots!);
 
-      const title = await screen.findByText('◉ Select Group');
+      const title = await screen.findByText('Select Group');
       expect(title).toBeInTheDocument();
     });
 
@@ -336,11 +335,11 @@ describe('CostRow - Who Field Clickability', () => {
       fireEvent.click(container.querySelector('.who-dots')!);
 
       // Modal should appear with the title
-      const title = await screen.findByText('◉ Select Group');
+      const title = await screen.findByText('Select Group');
       expect(title).toBeInTheDocument();
 
       // The current selected couple should be pre-selected as a radio button
-      const modal = screen.getByText('◉ Select Group').closest('.split-modal-header')?.parentElement;
+      const modal = screen.getByText('Select Group').closest('.split-modal-header')?.parentElement;
       expect(modal).toBeInTheDocument();
     });
 
@@ -360,7 +359,7 @@ describe('CostRow - Who Field Clickability', () => {
       );
 
       fireEvent.click(container.querySelector('.who-dots')!);
-      await screen.findByText('◉ Select Group');
+      await screen.findByText('Select Group');
 
       fireEvent.click(screen.getByRole('button', { name: /Create Group/i }));
 
@@ -368,6 +367,58 @@ describe('CostRow - Who Field Clickability', () => {
       expect(mockStoreState.editCost).toHaveBeenCalledWith('cost2', {
         splitType: 'individual',
         assignedCoupleIds: ['couple4'],
+      });
+    });
+
+    it('reverts to solo when subset modal is dismissed after switching from solo', async () => {
+      render(
+        <table>
+          <tbody>
+            <CostRow
+              cost={mockCostIndividual}
+              isSelected={false}
+              onToggleSelect={vi.fn()}
+              onEdit={vi.fn()}
+              onDelete={vi.fn()}
+            />
+          </tbody>
+        </table>
+      );
+
+      fireEvent.click(screen.getByTitle('Change split type'));
+      fireEvent.click(screen.getByRole('button', { name: /Subset/i }));
+      await screen.findByText(/Select Groups/i);
+      fireEvent.click(screen.getByLabelText('Close'));
+
+      expect(mockStoreState.editCost).toHaveBeenCalledWith('cost2', {
+        splitType: 'individual',
+        assignedCoupleIds: ['couple1'],
+      });
+    });
+
+    it('reverts to solo when confirming subset with only one selected group after switching from solo', async () => {
+      render(
+        <table>
+          <tbody>
+            <CostRow
+              cost={mockCostIndividual}
+              isSelected={false}
+              onToggleSelect={vi.fn()}
+              onEdit={vi.fn()}
+              onDelete={vi.fn()}
+            />
+          </tbody>
+        </table>
+      );
+
+      fireEvent.click(screen.getByTitle('Change split type'));
+      fireEvent.click(screen.getByRole('button', { name: /Subset/i }));
+      await screen.findByText(/Select Groups/i);
+      fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+
+      expect(mockStoreState.editCost).toHaveBeenCalledWith('cost2', {
+        splitType: 'individual',
+        assignedCoupleIds: ['couple1'],
       });
     });
   });

@@ -356,4 +356,54 @@ describe('EditRow', () => {
     expect(dots[0]).toHaveAttribute('title', 'Group 1');
     expect(dots[1]).toHaveAttribute('title', 'Group 2');
   });
+
+  it('FE-EDT-014 reverts to solo when subset modal is dismissed after switching from solo', () => {
+    const { onSave } = renderEditRow({
+      initial: {
+        id: 'cost-2',
+        name: 'Cab',
+        currency: 'USD',
+        value: 18,
+        markupOverride: null,
+        splitType: 'individual',
+        assignedCoupleIds: ['c2'],
+      },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Subset' }));
+    fireEvent.click(screen.getByLabelText('Close'));
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        splitType: 'individual',
+        assignedCoupleIds: ['c2'],
+      })
+    );
+  });
+
+  it('FE-EDT-015 reverts to solo when confirming subset with only one selected group after switching from solo', () => {
+    const { onSave } = renderEditRow({
+      initial: {
+        id: 'cost-3',
+        name: 'Snack',
+        currency: 'USD',
+        value: 12,
+        markupOverride: null,
+        splitType: 'individual',
+        assignedCoupleIds: ['c1'],
+      },
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: 'Subset' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(onSave).toHaveBeenCalledWith(
+      expect.objectContaining({
+        splitType: 'individual',
+        assignedCoupleIds: ['c1'],
+      })
+    );
+  });
 });
