@@ -32,7 +32,7 @@ export default function SplitAssignmentModal({
       <div className="split-modal" onClick={(e) => e.stopPropagation()}>
         <div className="split-modal-header">
           <span className="split-modal-title">
-            {mode === 'subset' ? '◑ Select Groups' : '◉ Select Group'}
+            {mode === 'subset' ? 'Select Groups' : 'Select Group'}
           </span>
           <button
             className="split-modal-close"
