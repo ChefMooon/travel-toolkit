@@ -1,11 +1,10 @@
-import { CURRENCIES } from '@/store/types';
-
 interface BulkActionBarProps {
   selectedCount: number;
   onApply: (currency: string) => void;
   onClear: () => void;
   bulkCurrency: string;
   onBulkCurrencyChange: (currency: string) => void;
+  currencies: string[];
 }
 
 export default function BulkActionBar({
@@ -14,6 +13,7 @@ export default function BulkActionBar({
   onClear,
   bulkCurrency,
   onBulkCurrencyChange,
+  currencies,
 }: BulkActionBarProps) {
   if (selectedCount === 0) return null;
 
@@ -26,7 +26,7 @@ export default function BulkActionBar({
         value={bulkCurrency}
         onChange={(e) => onBulkCurrencyChange(e.target.value)}
       >
-        {CURRENCIES.map((c) => (
+        {currencies.map((c) => (
           <option key={c} value={c}>{c}</option>
         ))}
       </select>

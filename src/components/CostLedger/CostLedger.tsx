@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useTripStore } from '@/store/tripStore';
 import {
   DndContext,
@@ -20,7 +20,7 @@ import EditRow from '../EditRow';
 import BulkActionBar from '../BulkActionBar';
 import Modal from '../Modal';
 import { Plus } from 'lucide-react';
-import type { SplitType } from '@/store/types';
+import { getAvailableCurrencies, type SplitType } from '@/store/types';
 import { getSaveFailureCopy, useToastStore } from '@/store/toastStore';
 
 export default function CostLedger() {
@@ -31,6 +31,7 @@ export default function CostLedger() {
   const deleteCost = useTripStore((s) => s.deleteCost);
   const reorderCosts = useTripStore((s) => s.reorderCosts);
   const bulkSetCurrency = useTripStore((s) => s.bulkSetCurrency);
+  const region = useTripStore((s) => s.region);
   const pushToast = useToastStore((s) => s.pushToast);
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -45,6 +46,14 @@ export default function CostLedger() {
   );
 
   const costIds = useMemo(() => costs.map((c) => c.id), [costs]);
+  const availableBulkCurrencies = useMemo(() => getAvailableCurrencies(region), [region]);
+
+  useEffect(() => {
+    if (availableBulkCurrencies.length === 0) return;
+    if (!availableBulkCurrencies.includes(bulkCurrency)) {
+      setBulkCurrency(availableBulkCurrencies[0]);
+    }
+  }, [availableBulkCurrencies, bulkCurrency]);
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
@@ -138,6 +147,7 @@ export default function CostLedger() {
           onClear={() => setSelectedIds(new Set())}
           bulkCurrency={bulkCurrency}
           onBulkCurrencyChange={setBulkCurrency}
+          currencies={availableBulkCurrencies}
         />
 
         <DndContext

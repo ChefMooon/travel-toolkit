@@ -118,14 +118,29 @@ vi.mock('@/components/BulkActionBar', () => ({
     selectedCount,
     onApply,
     onClear,
+    bulkCurrency,
+    onBulkCurrencyChange,
+    currencies,
   }: {
     selectedCount: number;
     onApply: (currency: string) => void;
     onClear: () => void;
+    bulkCurrency: string;
+    onBulkCurrencyChange: (currency: string) => void;
+    currencies: string[];
   }) => (
     <div data-testid="bulk-bar">
       <span>Selected Count: {selectedCount}</span>
-      <button onClick={() => onApply('JPY')}>Apply Bulk</button>
+      <select
+        aria-label="Bulk Currency"
+        value={bulkCurrency}
+        onChange={(e) => onBulkCurrencyChange(e.target.value)}
+      >
+        {currencies.map((currency) => (
+          <option key={currency} value={currency}>{currency}</option>
+        ))}
+      </select>
+      <button onClick={() => onApply(bulkCurrency)}>Apply Bulk</button>
       <button onClick={onClear}>Clear Bulk</button>
     </div>
   ),
@@ -176,6 +191,7 @@ const mockCosts: CostEntry[] = [
 ];
 
 const mockStoreState = {
+  region: 'Europe' as const,
   costs: mockCosts,
   addCost: vi.fn(),
   editCost: vi.fn(),
@@ -191,6 +207,7 @@ const mockToastState = {
 describe('CostLedger', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockStoreState.region = 'Europe';
     mockStoreState.costs = [...mockCosts];
 
     (useTripStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(
@@ -260,8 +277,22 @@ describe('CostLedger', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Apply Bulk' }));
 
-    expect(mockStoreState.bulkSetCurrency).toHaveBeenCalledWith(['cost-1'], 'JPY');
+    expect(mockStoreState.bulkSetCurrency).toHaveBeenCalledWith(['cost-1'], 'EUR');
     expect(screen.getByText('Selected Count: 0')).toBeInTheDocument();
+  });
+
+  it('FE-LED-010 resets bulk currency when region change invalidates current value', () => {
+    const { rerender } = render(<CostLedger />);
+
+    fireEvent.change(screen.getByRole('combobox', { name: 'Bulk Currency' }), {
+      target: { value: 'GBP' },
+    });
+    expect(screen.getByRole('combobox', { name: 'Bulk Currency' })).toHaveValue('GBP');
+
+    mockStoreState.region = 'North America';
+    rerender(<CostLedger />);
+
+    expect(screen.getByRole('combobox', { name: 'Bulk Currency' })).toHaveValue('CAD');
   });
 
   it('FE-LED-006 shows an error toast when adding a cost fails', () => {

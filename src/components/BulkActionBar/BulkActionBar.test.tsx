@@ -5,6 +5,8 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import BulkActionBar from '@/components/BulkActionBar';
 
+const TEST_CURRENCIES = ['USD', 'EUR', 'CAD'];
+
 describe('BulkActionBar', () => {
   it('FE-BULK-001 does not render when selectedCount is zero', () => {
     const { container } = render(
@@ -14,6 +16,7 @@ describe('BulkActionBar', () => {
         onClear={vi.fn()}
         bulkCurrency="USD"
         onBulkCurrencyChange={vi.fn()}
+        currencies={TEST_CURRENCIES}
       />
     );
 
@@ -28,6 +31,7 @@ describe('BulkActionBar', () => {
         onClear={vi.fn()}
         bulkCurrency="USD"
         onBulkCurrencyChange={vi.fn()}
+        currencies={TEST_CURRENCIES}
       />
     );
 
@@ -44,6 +48,7 @@ describe('BulkActionBar', () => {
         onClear={vi.fn()}
         bulkCurrency="USD"
         onBulkCurrencyChange={onBulkCurrencyChange}
+        currencies={TEST_CURRENCIES}
       />
     );
 
@@ -62,6 +67,7 @@ describe('BulkActionBar', () => {
         onClear={vi.fn()}
         bulkCurrency="MXN"
         onBulkCurrencyChange={vi.fn()}
+        currencies={['MXN', ...TEST_CURRENCIES]}
       />
     );
 
@@ -80,11 +86,29 @@ describe('BulkActionBar', () => {
         onClear={onClear}
         bulkCurrency="USD"
         onBulkCurrencyChange={vi.fn()}
+        currencies={TEST_CURRENCIES}
       />
     );
 
     fireEvent.click(screen.getByRole('button', { name: /Clear/i }));
 
     expect(onClear).toHaveBeenCalledTimes(1);
+  });
+
+  it('FE-BULK-006 renders only provided currency options', () => {
+    render(
+      <BulkActionBar
+        selectedCount={2}
+        onApply={vi.fn()}
+        onClear={vi.fn()}
+        bulkCurrency="EUR"
+        onBulkCurrencyChange={vi.fn()}
+        currencies={['EUR', 'GBP']}
+      />
+    );
+
+    const options = screen.getAllByRole('option').map((option) => option.textContent);
+    expect(options).toEqual(['EUR', 'GBP']);
+    expect(screen.queryByRole('option', { name: 'USD' })).not.toBeInTheDocument();
   });
 });
