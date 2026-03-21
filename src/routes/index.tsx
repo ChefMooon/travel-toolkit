@@ -1,4 +1,4 @@
-import { useNavigate } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { TOOLS } from '@/lib/tools';
 
 export default function LandingPage() {
@@ -28,3 +28,7 @@ export default function LandingPage() {
     </section>
   );
 }
+
+export const Route = createFileRoute('/')({
+  component: LandingPage,
+});

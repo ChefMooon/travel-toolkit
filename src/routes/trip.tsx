@@ -1,3 +1,4 @@
+import { createFileRoute } from '@tanstack/react-router';
 import App from '@/App';
 import TripToolbar from '@/components/TripToolbar';
 
@@ -9,3 +10,7 @@ export default function TripCostPage() {
     </>
   );
 }
+
+export const Route = createFileRoute('/trip')({
+  component: TripCostPage,
+});

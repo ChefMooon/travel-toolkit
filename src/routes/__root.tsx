@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Outlet } from '@tanstack/react-router';
+import { Outlet, createRootRoute } from '@tanstack/react-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
@@ -34,3 +34,27 @@ export default function RootLayout() {
     </QueryClientProvider>
   );
 }
+
+function NotFoundRoute() {
+  return (
+    <section className="tool-page" aria-label="Page not found">
+      <h1>Page not found</h1>
+      <p>The page you requested does not exist. Use the grid menu to jump to a tool.</p>
+    </section>
+  );
+}
+
+function RouteError() {
+  return (
+    <section className="tool-page" aria-label="Route error">
+      <h1>Something went wrong</h1>
+      <p>We could not load this route. Try again or switch to another tool.</p>
+    </section>
+  );
+}
+
+export const Route = createRootRoute({
+  component: RootLayout,
+  notFoundComponent: NotFoundRoute,
+  errorComponent: RouteError,
+});
