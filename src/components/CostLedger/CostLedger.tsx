@@ -49,9 +49,11 @@ export default function CostLedger() {
   const availableBulkCurrencies = useMemo(() => getAvailableCurrencies(region), [region]);
 
   useEffect(() => {
-    if (availableBulkCurrencies.length === 0) return;
+    const defaultCurrency = availableBulkCurrencies[0];
+    if (!defaultCurrency) return;
+
     if (!availableBulkCurrencies.includes(bulkCurrency)) {
-      setBulkCurrency(availableBulkCurrencies[0]);
+      setBulkCurrency(defaultCurrency);
     }
   }, [availableBulkCurrencies, bulkCurrency]);
 

@@ -4,7 +4,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import CostLedger from '@/components/CostLedger';
-import type { CostEntry } from '@/store/types';
+import type { CostEntry, Region } from '@/store/types';
 
 vi.mock('@dnd-kit/core', () => ({
   DndContext: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -191,7 +191,7 @@ const mockCosts: CostEntry[] = [
 ];
 
 const mockStoreState = {
-  region: 'Europe' as const,
+  region: 'Europe' as Region,
   costs: mockCosts,
   addCost: vi.fn(),
   editCost: vi.fn(),
