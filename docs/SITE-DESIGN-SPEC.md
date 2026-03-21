@@ -15,11 +15,11 @@ For product scope and business rules, refer to [MKT PRD.md](./MKT%20PRD.md). For
 
 ## 2. Scope and Source Hierarchy
 
-This spec applies to all user-facing surfaces in the SPA:
-- Top bar and global controls
-- Travelling party setup
-- Cost ledger and edit flows
-- Cost summary
+This spec applies to all user-facing surfaces in the app, including the shared route shell and routed pages:
+- Global shell, top bar, and navigation controls
+- Landing page tool launcher
+- Trip Cost setup, ledger, and summary flows
+- Currency, timezone, and forecast tool pages
 - Modals, toasts, and mobile navigation
 
 Source precedence for design decisions:
@@ -32,7 +32,7 @@ If implementation diverges from this document, update this document in the same 
 
 ## 3. Product and UX Intent
 
-The application helps travel groups split costs quickly without hidden calculations. The design intent is:
+The application helps travel groups split costs quickly without hidden calculations, and now also provides a tool-launcher home plus supporting travel tools. The design intent is:
 - Trustworthy: users can always see markup, split mode, and allocation context
 - Fast to edit: inline editing and one-screen workflows
 - Calm but expressive: soft editorial palette, clear hierarchy, minimal clutter
@@ -135,11 +135,11 @@ Current behavior:
 
 ### 5.2 Theme Control UX
 
-The top bar includes a binary toggle:
+The shared top bar includes a binary toggle:
 - Light mode: default knob position
 - Dark mode: knob translates to the right and control tint changes to group color 3
 
-The toggle must always be visible in desktop and mobile top bar layouts.
+The toggle must always be visible in desktop and mobile top bar layouts on every route.
 
 ### 5.3 Theme Requirements for Future Changes
 
@@ -158,9 +158,9 @@ Breakpoints currently in use:
 - Large desktop composition: >= 1280px
 
 Layout behavior:
-- Mobile and tablet: single-column content flow with persistent bottom tab navigation
-- Desktop (768-1279): single-column stacked sections
-- Large desktop (>=1280): two-column layout with summary pinned to right column
+- Landing page, currency, timezone, and forecast pages: single-column content flow on mobile and tablet, then compact stacked sections on desktop
+- Trip Cost page: single-column content flow with persistent bottom tab navigation on mobile and tablet, single-column stacked sections on desktop, and a two-column layout with summary pinned to the right column on large desktop
+- Global shell navigation is available on every route through the top bar grid launcher
 
 Top bar behavior:
 - <=479px: two-row top bar layout
@@ -176,13 +176,21 @@ Touch requirements:
 
 ## 7. Information Architecture and Flows
 
-Primary screen structure:
+Primary screen structure on the Trip Cost page:
 1. Top bar
 2. Travelling party card (includes region selector above party card)
 3. Cost ledger card
 4. Cost summary card
 
-Mobile tab order:
+Landing page structure:
+1. Top bar
+2. Tool launcher card grid
+
+Tool page structure for currency, timezone, and forecast:
+1. Top bar
+2. Route-specific tool content
+
+Mobile tab order on Trip Cost:
 - Party
 - Costs
 - Summary
@@ -199,15 +207,54 @@ Core flows:
 
 ### 8.1 Top Bar
 
-Includes logo, editable trip name, editable global markup, New Trip button, theme toggle.
+The shared top bar includes the logo, grid navigation button, and theme toggle.
+
+On the Trip Cost page, the top bar also includes a page-scoped toolbar with editable trip name, editable global markup, and New Trip button.
 
 States:
-- Trip name field: idle, focus, clear-action visible when focused and non-empty
-- Global markup: display mode, inline input mode, validation fallback to prior value on invalid blur
-- New Trip: opens destructive confirmation modal
+- Grid button: idle, open, and focus-visible states
 - Theme toggle: binary light/dark state
+- Trip name field on Trip Cost: idle, focus, clear-action visible when focused and non-empty
+- Global markup on Trip Cost: display mode, inline input mode, validation fallback to prior value on invalid blur
+- New Trip on Trip Cost: opens destructive confirmation modal
 
-### 8.2 Region Selector
+### 8.2 Grid Navigation Panel
+
+The grid panel opens from the shared top bar and provides navigation to every route.
+
+Behavior:
+- Clicking the grid button toggles the panel open and closed
+- Clicking outside closes the panel
+- Navigating closes the panel
+- On mobile it becomes a full-screen overlay
+- On tablet and desktop it becomes an anchored dropdown panel
+
+Panel content:
+
+| Icon | Label | Route |
+|---|---|---|
+| trip-cost.svg | Trip Cost | /trip |
+| currency.svg | Currency | /currency |
+| timezone.svg | Timezones | /timezone |
+| forecast.svg | Forecast | /forecast |
+
+### 8.3 Landing Page
+
+The landing page is the default entry route and acts as a tool launcher.
+
+Layout:
+- Tool cards use a responsive grid
+- Mobile: one column
+- Tablet: two columns
+- Desktop: two to four columns depending on available width
+
+Each card includes:
+- icon
+- title
+- one-line description
+- clear click target that navigates through the shared route system
+
+### 8.4 Region Selector
 
 Single-select dropdown controlling currency availability for entry and bulk actions.
 
@@ -215,7 +262,7 @@ Requirements:
 - Must show all configured regions from store
 - CAD and USD remain available as always-available currencies regardless of region
 
-### 8.3 Travelling Party
+### 8.5 Travelling Party
 
 Features:
 - Add group
@@ -227,7 +274,7 @@ Features:
 
 Empty state appears when no groups exist.
 
-### 8.4 Cost Ledger
+### 8.6 Cost Ledger
 
 Features:
 - Sortable list (dnd-kit)
@@ -246,7 +293,7 @@ Validation on save (warning toast, no save):
 - Invalid or negative amount
 - Subset/Solo with no assignments
 
-### 8.5 Split Assignment Modal
+### 8.7 Split Assignment Modal
 
 Modes:
 - Subset: multi-select, requires at least one selection to confirm
@@ -256,7 +303,7 @@ Behavioral rules:
 - If subset/solo is closed with no assignments, split resets to shared
 - Modal supports creating a new group inline and assigning it immediately
 
-### 8.6 Cost Summary
+### 8.8 Cost Summary
 
 Card per group with:
 - Currency blocks and bucket totals (shared/subset/individual/subtotal)
@@ -266,7 +313,7 @@ Card per group with:
 
 Empty state appears when no summary can be generated.
 
-### 8.7 Modal System
+### 8.9 Modal System
 
 Two modal styles:
 - Standard modal: full emphasis for destructive confirmations
@@ -278,7 +325,7 @@ Accessibility behavior:
 - Escape closes modal
 - Backdrop click cancels
 
-### 8.8 Toast Notifications
+### 8.10 Toast Notifications
 
 Toast variants:
 - success
@@ -291,14 +338,26 @@ Behavior:
 - Aria-live politeness: error is assertive, others polite
 - Repositioning by breakpoint to avoid overlap with sticky UI
 
-### 8.9 Mobile Navigation
+### 8.11 Mobile Navigation
 
-Visible only <=767px as fixed bottom nav.
+On the Trip Cost page only, the mobile navigation is visible only at <=767px as a fixed bottom nav.
 
 Requirements:
 - Three tabs map directly to party/costs/summary sections
 - Active state uses accent color
 - Must remain visible above content while preserving usable vertical space
+
+Landing and tool pages use the shared top-bar grid navigation instead of bottom tabs.
+
+### 8.12 Tool Page Requirements
+
+The currency, timezone, and forecast pages must reuse the shared shell styling and keep their content in the same visual system as the rest of the app.
+
+Requirements:
+- Use semantic CSS variables and existing surface, spacing, and typography rules
+- Keep focus visibility and keyboard interaction consistent with the rest of the app
+- Provide clear loading, empty, success, and error states where data is fetched or searched
+- Avoid introducing page-specific colors or alternative component chrome unless the design spec is updated in the same change set
 
 ## 9. Accessibility Requirements
 
