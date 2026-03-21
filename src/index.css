@@ -560,6 +560,81 @@ body::before {
   color: var(--text-2);
 }
 
+.tool-controls {
+  display: grid;
+  gap: 12px;
+}
+
+.tool-field {
+  display: grid;
+  gap: 6px;
+}
+
+.tool-label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.tool-input {
+  width: 100%;
+  min-height: 44px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 10px 12px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+}
+
+.tool-input.mono {
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.tool-input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.tool-status {
+  color: var(--text-2);
+}
+
+.tool-status-error {
+  color: var(--danger);
+}
+
+.tool-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border: 1.5px solid var(--border-2);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--text);
+  padding: 0 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tool-button:hover {
+  border-color: var(--c3);
+}
+
+.tool-results {
+  display: grid;
+  gap: 10px;
+}
+
+.tool-meta {
+  color: var(--text-2);
+  font-size: 12px;
+}
+
 @media (min-width: 1024px) {
   .tool-grid {
     gap: 16px;
