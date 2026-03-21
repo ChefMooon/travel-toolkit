@@ -27,6 +27,7 @@ describe('GridPanel', () => {
     render(<GridPanel open={true} onClose={vi.fn()} triggerRef={triggerRef} />);
 
     expect(screen.getByRole('dialog', { name: 'Tool navigation' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Close tool navigation' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Trip Cost' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Currency Converter' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Timezone Converter' })).toBeInTheDocument();

@@ -62,6 +62,15 @@ Defined in [src/index.css](../src/index.css) under :root and theme selectors.
 | --danger | #B85C5C | #B85C5C | Destructive actions |
 | --focus | #7B87BE | #7B87BE | Keyboard focus ring |
 
+Icon tone tokens (theme-aware, used for launcher and nav icons):
+
+| Token | Light | Dark | Usage |
+|---|---|---|---|
+| --nav-icon-filter | sepia-based filter | invert/sepia-based filter | Top-bar grid launcher icon idle tone |
+| --nav-icon-filter-hover | stronger sepia-based filter | brighter invert/sepia-based filter | Top-bar grid launcher icon hover/focus tone |
+| --tool-icon-filter | sepia-based filter | invert/sepia-based filter | Landing and grid-panel tool icon idle tone |
+| --tool-icon-filter-hover | stronger sepia-based filter | brighter invert/sepia-based filter | Landing and grid-panel tool icon hover/focus tone |
+
 Theme-only semantic backgrounds:
 
 | Token | Light | Dark | Usage |
@@ -167,6 +176,10 @@ Top bar behavior:
 - 480-767px: compact single-row
 - >=768px: full single-row
 
+Top-bar grid launcher sizing:
+- Grid launcher trigger target is 48x48 to exceed the 44px minimum touch target
+- Grid launcher glyph is 24x24 and uses theme-aware icon filter tokens
+
 Ledger behavior:
 - >700px: table layout
 - <=700px: row-to-card transformation with 3-row internal grid
@@ -228,6 +241,14 @@ Behavior:
 - Navigating closes the panel
 - On mobile it becomes a full-screen overlay
 - On tablet and desktop it becomes an anchored dropdown panel
+- Escape closes the panel
+- The panel does not include a dedicated Close button; dismissal is via trigger toggle, backdrop, Escape, or route selection
+
+Layout:
+- Four destination tiles are presented in a 2x2 grid on anchored/tablet/desktop panel layouts
+- Each tile stacks icon above label
+- Labels support up to two lines for long names with balanced line-height and clipping
+- Icon tones are theme-aware and intensify slightly on hover/focus for affordance clarity
 
 Panel content:
 
@@ -243,15 +264,14 @@ Panel content:
 The landing page is the default entry route and acts as a tool launcher.
 
 Layout:
-- Tool cards use a responsive grid
-- Mobile: one column
-- Tablet: two columns
-- Desktop: two to four columns depending on available width
+- Tool launcher content is centered within a constrained content width
+- Tool cards use a responsive compact grid with centered card alignment
+- Card width is intentionally narrower than full-row list sizing to preserve scanability
 
 Each card includes:
 - icon
 - title
-- one-line description
+- short description (typically one to two lines)
 - clear click target that navigates through the shared route system
 
 ### 8.4 Region Selector
@@ -449,3 +469,4 @@ Definition of done for design-affecting changes:
 | Version | Date | Notes |
 |---|---|---|
 | 1.0 | 2026-03-21 | Initial site design specification authored from implemented UI, PRD, and architecture docs. |
+| 1.1 | 2026-03-21 | Updated launcher and nav design rules: centered compact landing cards, 2x2 grid navigation tile layout, no dedicated grid-panel close button, and theme-aware icon tone tokens including larger top-bar grid icon sizing. |

@@ -86,9 +86,6 @@ export default function GridPanel({ open, onClose, triggerRef }: GridPanelProps)
         aria-modal="true"
         tabIndex={-1}
       >
-        <button type="button" className="grid-panel-close" onClick={onClose} aria-label="Close tool navigation">
-          Close
-        </button>
         {TOOLS.map((tool) => (
           <button
             key={tool.route}
@@ -100,7 +97,7 @@ export default function GridPanel({ open, onClose, triggerRef }: GridPanelProps)
             }}
           >
             <img src={tool.icon} alt="" aria-hidden="true" />
-            <span>{tool.label}</span>
+            <span className="grid-panel-item-title">{tool.label}</span>
           </button>
         ))}
       </div>
