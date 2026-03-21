@@ -1,0 +1,392 @@
+# MKT Site Design Specification
+
+## 1. Purpose
+
+This document is the canonical design source of truth for the MKT web application UI.
+
+It defines:
+- Visual language (color, typography, spacing, elevation, motion)
+- Theme behavior (light and dark mode)
+- Responsive layout and navigation rules
+- Component behavior and interaction states
+- Accessibility and error-state requirements for user-facing UI
+
+For product scope and business rules, refer to [MKT PRD.md](./MKT%20PRD.md). For technical implementation details, refer to [ARCHITECTURE.md](./ARCHITECTURE.md).
+
+## 2. Scope and Source Hierarchy
+
+This spec applies to all user-facing surfaces in the SPA:
+- Top bar and global controls
+- Travelling party setup
+- Cost ledger and edit flows
+- Cost summary
+- Modals, toasts, and mobile navigation
+
+Source precedence for design decisions:
+1. This document
+2. Implemented design tokens and rules in [src/index.css](../src/index.css)
+3. Component behavior in [src/components](../src/components)
+4. Product constraints in [MKT PRD.md](./MKT%20PRD.md)
+
+If implementation diverges from this document, update this document in the same change set as the UI update.
+
+## 3. Product and UX Intent
+
+The application helps travel groups split costs quickly without hidden calculations. The design intent is:
+- Trustworthy: users can always see markup, split mode, and allocation context
+- Fast to edit: inline editing and one-screen workflows
+- Calm but expressive: soft editorial palette, clear hierarchy, minimal clutter
+- Mobile-first practical: complete task flow on small screens with no desktop-only actions
+
+Terminology in current implementation uses Group and Child labels in several UI surfaces. This is acceptable as long as calculation behavior remains aligned to PRD paying-couple semantics.
+
+## 4. Design Tokens
+
+### 4.1 Core Semantic Tokens
+
+Defined in [src/index.css](../src/index.css) under :root and theme selectors.
+
+| Token | Light | Dark | Usage |
+|---|---|---|---|
+| --bg | #FAFAF7 | #18171A | App background |
+| --bg-2 | #F3F2EE | #211F24 | Subtle raised surfaces |
+| --bg-3 | #EAEAE4 | #2A2830 | Active/hover fill |
+| --surface | #FFFFFF | #1E1C22 | Card and modal base |
+| --surface-2 | #F8F8F5 | #252330 | Header and nested surfaces |
+| --border | #E2E0D8 | #322F3A | Primary borders |
+| --border-2 | #D0CEC4 | #403D4C | Secondary borders |
+| --text | #2A2824 | #EEEAE6 | Primary text |
+| --text-2 | #6B6860 | #9E9B96 | Secondary text |
+| --text-3 | #A8A59E | #625F5A | Tertiary/label text |
+| --accent | #C4737A | #C4737A | Primary action tone |
+| --danger | #B85C5C | #B85C5C | Destructive actions |
+| --focus | #7B87BE | #7B87BE | Keyboard focus ring |
+
+Theme-only semantic backgrounds:
+
+| Token | Light | Dark | Usage |
+|---|---|---|---|
+| --markup-below | #FDE4E1 | #3D2626 | Markup warning state |
+| --markup-equal | #FEF3D1 | #3D3A26 | Neutral/warning state |
+| --markup-above | #E1F5E1 | #263D26 | Positive state |
+
+### 4.2 Group Palette
+
+Primary group colors (1-5) are implemented as CSS variables and soft/border variants. Additional selector colors (6-10) exist in [src/store/types.ts](../src/store/types.ts) for modal choice and theme-aware value mapping.
+
+| Group | Light | Dark |
+|---|---|---|
+| 1 | #C4737A | #E89096 |
+| 2 | #6A8F7A | #86B096 |
+| 3 | #7B87BE | #98A8D9 |
+| 4 | #C49A6A | #DFB885 |
+| 5 | #9B7BB4 | #B89DCE |
+| 6 | #4A8A99 | #6DB5C6 |
+| 7 | #D8724C | #F4956D |
+| 8 | #C9A941 | #E5C565 |
+| 9 | #2B4563 | #5A7DB8 |
+| 10 | #B85A7E | #D887A8 |
+
+### 4.3 Typography
+
+Loaded in [index.html](../index.html):
+- Nunito: primary UI text
+- Fraunces: modal/display headings
+- JetBrains Mono: numeric and code-like values (currencies, totals, percentages)
+
+Type roles:
+- Card labels and metadata: uppercase, compact tracking, 10-11px
+- Body interface text: 12-14px
+- Numeric emphasis (totals/amounts): mono, 11-19px depending on hierarchy
+
+### 4.4 Spacing, Radius, and Elevation
+
+Spacing rhythm is compact and dense for data-entry speed:
+- Primary interior padding: 12, 16, 20, 24
+- Pill and chip controls: rounded 22px
+- Card radius: 12-16px, modal radius: 16-20px
+
+Elevation tokens:
+- --shadow-sm: low elevation for sticky top bar and subtle hovers
+- --shadow: default card depth
+- --shadow-lg: modal/overlay depth
+
+### 4.5 Motion
+
+Motion is minimal and purposeful:
+- Section load stagger: fadeUp animation with small delays
+- Modal open: pop scale animation
+- Toast entry: slide-down fade
+- Hover transforms limited to tiny scale/translate shifts for affordance clarity
+
+Animation should never block input and should remain under ~420ms for core UI transitions.
+
+## 5. Theme System (Light and Dark)
+
+### 5.1 Theme Behavior
+
+Theme is controlled by data-theme on the html element.
+
+Current behavior:
+- Initial theme bootstraps before React mount via inline script in [index.html](../index.html), reading localStorage key mkt-trip-data
+- Store theme state persists via Zustand in [src/store/tripStore.ts](../src/store/tripStore.ts)
+- Toggling theme updates both store state and html[data-theme]
+- Reset-trip keeps current theme, even while resetting trip data
+
+### 5.2 Theme Control UX
+
+The top bar includes a binary toggle:
+- Light mode: default knob position
+- Dark mode: knob translates to the right and control tint changes to group color 3
+
+The toggle must always be visible in desktop and mobile top bar layouts.
+
+### 5.3 Theme Requirements for Future Changes
+
+All new UI must:
+- Use semantic CSS variables, not hardcoded colors
+- Define readable text/background contrast in both themes
+- Preserve focus visibility in both themes
+- Avoid introducing light-only or dark-only component variants unless documented here
+
+## 6. Responsive Design Specification
+
+Breakpoints currently in use:
+- Mobile: <= 479px
+- Tablet: 480px-767px
+- Desktop: >= 768px
+- Large desktop composition: >= 1280px
+
+Layout behavior:
+- Mobile and tablet: single-column content flow with persistent bottom tab navigation
+- Desktop (768-1279): single-column stacked sections
+- Large desktop (>=1280): two-column layout with summary pinned to right column
+
+Top bar behavior:
+- <=479px: two-row top bar layout
+- 480-767px: compact single-row
+- >=768px: full single-row
+
+Ledger behavior:
+- >700px: table layout
+- <=700px: row-to-card transformation with 3-row internal grid
+
+Touch requirements:
+- Interactive controls target minimum 44px for touch contexts (hover:none rules)
+
+## 7. Information Architecture and Flows
+
+Primary screen structure:
+1. Top bar
+2. Travelling party card (includes region selector above party card)
+3. Cost ledger card
+4. Cost summary card
+
+Mobile tab order:
+- Party
+- Costs
+- Summary
+
+Core flows:
+1. Configure trip metadata: set trip name, global markup, theme
+2. Build travelling party: add groups, rename, reorder, set icon/color, add/remove children
+3. Enter costs: create/edit/delete entries, assign split mode, apply markup override, set currency
+4. Optimize bulk edits: multi-select ledger rows and bulk assign currency
+5. Convert totals: enter exchange rates in summary cards and review USD totals
+6. Reset trip: confirm destructive modal before clearing data
+
+## 8. Component Behavior Specification
+
+### 8.1 Top Bar
+
+Includes logo, editable trip name, editable global markup, New Trip button, theme toggle.
+
+States:
+- Trip name field: idle, focus, clear-action visible when focused and non-empty
+- Global markup: display mode, inline input mode, validation fallback to prior value on invalid blur
+- New Trip: opens destructive confirmation modal
+- Theme toggle: binary light/dark state
+
+### 8.2 Region Selector
+
+Single-select dropdown controlling currency availability for entry and bulk actions.
+
+Requirements:
+- Must show all configured regions from store
+- CAD and USD remain available as always-available currencies regardless of region
+
+### 8.3 Travelling Party
+
+Features:
+- Add group
+- Add child (disabled when no groups)
+- Rename inline
+- Reorder by drag handle
+- Remove group with confirmation (also removes linked children)
+- Edit icon and color via dedicated modals
+
+Empty state appears when no groups exist.
+
+### 8.4 Cost Ledger
+
+Features:
+- Sortable list (dnd-kit)
+- Row select and bulk currency application
+- Inline add row and edit row
+- Split mode controls: All, Subset, Solo
+- Split assignment modal for subset/solo assignment
+- Delete confirmation modal
+
+Markup behavior:
+- Uses global markup by default
+- Optional per-cost override with reset-to-global action
+
+Validation on save (warning toast, no save):
+- Missing name
+- Invalid or negative amount
+- Subset/Solo with no assignments
+
+### 8.5 Split Assignment Modal
+
+Modes:
+- Subset: multi-select, requires at least one selection to confirm
+- Solo: single-select, applies immediately
+
+Behavioral rules:
+- If subset/solo is closed with no assignments, split resets to shared
+- Modal supports creating a new group inline and assigning it immediately
+
+### 8.6 Cost Summary
+
+Card per group with:
+- Currency blocks and bucket totals (shared/subset/individual/subtotal)
+- Exchange-rate input per currency
+- USD equivalent per currency
+- Grand total USD when conversion coverage allows
+
+Empty state appears when no summary can be generated.
+
+### 8.7 Modal System
+
+Two modal styles:
+- Standard modal: full emphasis for destructive confirmations
+- Compact modal: smaller footprint for local actions
+
+Accessibility behavior:
+- Dialog role and aria-modal=true
+- Focus trapped within dialog
+- Escape closes modal
+- Backdrop click cancels
+
+### 8.8 Toast Notifications
+
+Toast variants:
+- success
+- warning
+- error
+
+Behavior:
+- Auto-dismiss (default 4800ms)
+- Manual dismiss button
+- Aria-live politeness: error is assertive, others polite
+- Repositioning by breakpoint to avoid overlap with sticky UI
+
+### 8.9 Mobile Navigation
+
+Visible only <=767px as fixed bottom nav.
+
+Requirements:
+- Three tabs map directly to party/costs/summary sections
+- Active state uses accent color
+- Must remain visible above content while preserving usable vertical space
+
+## 9. Accessibility Requirements
+
+Target baseline: WCAG 2.1 AA for color contrast, keyboard access, and focus visibility.
+
+Current required behaviors:
+- All interactive controls are keyboard reachable
+- Visible focus ring via --focus token and focus-visible selectors
+- Modal focus trap and Escape support
+- Notification region with aria-live announcements
+- Minimum touch target sizing in non-hover environments
+- No information conveyed by color alone for critical actions (labels/icons accompany color-coded chips)
+
+Any new component must ship with:
+- Keyboard interaction path
+- Focus-visible state
+- Screen-reader label/role coverage
+- Light and dark theme validation
+
+## 10. Error States and User Feedback
+
+### 10.1 Save Validation Warnings
+
+Warnings shown as toasts for blocked save attempts:
+- Add a name before saving this cost entry.
+- Enter a valid amount that is 0 or higher.
+- Solo costs must include at least one group assignment.
+- Subset costs must include at least one group assignment.
+
+### 10.2 Storage and Persistence Failures
+
+Error toasts normalized from runtime errors:
+- Browser storage is full
+- Browser storage blocked in context
+- Generic localStorage/persistence failure
+- Generic unexpected save failure
+
+### 10.3 Destructive Action Confirmation
+
+Confirmation modal required for:
+- Delete cost entry
+- Remove group
+- Start new trip reset
+
+No destructive action may execute without explicit confirmation.
+
+## 11. Logo, Iconography, and Imagery
+
+Logo:
+- SVG loaded from public/logo.svg and injected into top bar logo container
+- Logo path styling is theme-aware through CSS class styling
+
+Iconography:
+- Lucide React icons used for utility controls and navigation
+- Emoji icon set used for group identity selection
+
+Imagery:
+- No decorative photography system currently used
+- Visual atmosphere created through tokenized colors, subtle dotted background, and component styling
+
+## 12. Voice and Tone for UI Copy
+
+Current UI language style:
+- Plain and concise
+- Action-first button labels
+- Specific, non-technical error messages with clear recovery guidance
+
+Standards:
+- Use direct verbs for actions (Add, Remove, Delete, Reset)
+- Avoid ambiguous labels
+- Keep helper and error text short and outcome-oriented
+
+## 13. Change Management Rules
+
+When changing UI design:
+1. Update this spec in the same pull request as implementation changes.
+2. If adding/changing a token, update token tables in Section 4.
+3. If altering breakpoints or layout behavior, update Section 6.
+4. If adding a component or new state, update Section 8 and Section 10 as applicable.
+5. Verify light and dark mode parity before merge.
+
+Definition of done for design-affecting changes:
+- Updated implementation
+- Updated tests where behavior changed
+- Updated this design spec
+
+## 14. Version History
+
+| Version | Date | Notes |
+|---|---|---|
+| 1.0 | 2026-03-21 | Initial site design specification authored from implemented UI, PRD, and architecture docs. |

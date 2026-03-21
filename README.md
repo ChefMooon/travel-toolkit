@@ -74,6 +74,7 @@ src/
 docs/
   MKT PRD.md        Product Requirements Document
   ARCHITECTURE.md   Architecture reference
+  SITE-DESIGN-SPEC.md  UI and design system source of truth
 ```
 
 ## Testing Docs
