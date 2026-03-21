@@ -1,12 +1,13 @@
-import { useEffect } from 'react';
-import { Outlet, createRootRoute } from '@tanstack/react-router';
+import { useEffect, useState } from 'react';
+import { HeadContent, Outlet, Scripts, createRootRoute } from '@tanstack/react-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
-import { queryClient } from '@/lib/queryClient';
+import { createQueryClient } from '@/lib/queryClient';
 import { useTripStore } from '@/store/tripStore';
 import Navbar from '@/components/Navbar';
 import ToastViewport from '@/components/ToastViewport';
+import appCssUrl from '@/index.css?url';
 
 function ThemeSync() {
   const theme = useTripStore((s) => s.theme);
@@ -19,6 +20,8 @@ function ThemeSync() {
 }
 
 export default function RootLayout() {
+  const [queryClient] = useState(() => createQueryClient());
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeSync />
@@ -53,7 +56,30 @@ function RouteError() {
   );
 }
 
+function RootDocument({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <head>
+        <HeadContent />
+      </head>
+      <body>
+        {children}
+        <Scripts />
+      </body>
+    </html>
+  );
+}
+
 export const Route = createRootRoute({
+  head: () => ({
+    meta: [
+      { charSet: 'utf-8' },
+      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+      { title: 'MKT' },
+    ],
+    links: [{ rel: 'stylesheet', href: appCssUrl }],
+  }),
+  shellComponent: RootDocument,
   component: RootLayout,
   notFoundComponent: NotFoundRoute,
   errorComponent: RouteError,

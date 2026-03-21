@@ -2,7 +2,7 @@
 
 A trip cost splitter for groups of couples. Log shared and individual expenses across multiple currencies, apply configurable cost markups, and get a clear per-couple breakdown with USD totals.
 
-Built as a static web app deployed to Cloudflare Workers.
+Built as a TanStack Start app deployed to Cloudflare Workers.
 
 ## Features
 
@@ -24,15 +24,15 @@ Built as a static web app deployed to Cloudflare Workers.
 | Framework | React 19 + TypeScript 5.7 |
 | Routing | TanStack Router |
 | Server state | TanStack Query |
-| Build | Vite 6 |
+| Build | Vite 7 + TanStack Start plugin |
 | State | Zustand 5 (with `persist` middleware) |
 | Drag & drop | @dnd-kit |
 | Icons | Lucide React |
-| Deployment | Cloudflare Workers (static assets) |
+| Deployment | Cloudflare Workers (server entry + SSR) |
 
 ## Prerequisites
 
-- Node.js 20.19 or later
+- Node.js 22.12 or later
 - npm
 - [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) for deployment (`npm install -g wrangler`)
 
@@ -51,7 +51,7 @@ The dev server starts at `http://localhost:5173`.
 npm run build
 ```
 
-Output is written to `dist/`.
+Output is written to `dist/client` and `dist/server`.
 
 ## Deploy
 
@@ -59,7 +59,7 @@ Output is written to `dist/`.
 wrangler deploy
 ```
 
-Deploys `dist/` as a static asset bundle to Cloudflare Workers. Configured in [`wrangler.toml`](wrangler.toml).
+Deploys through the Start server entry configured in [`wrangler.toml`](wrangler.toml).
 
 ## Project Structure
 
@@ -72,7 +72,6 @@ src/
     tripStore.ts    Zustand store — all app state and actions
     types.ts        TypeScript types and constants
   App.tsx
-  main.tsx
 docs/
   MKT PRD.md        Product Requirements Document
   ARCHITECTURE.md   Architecture reference
