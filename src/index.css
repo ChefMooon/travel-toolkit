@@ -77,6 +77,144 @@ body::before {
 
 /* ══════════════════════════════════════════ TOPBAR */
 
+.app-shell {
+  min-height: 100vh;
+}
+
+.route-body {
+  max-width: 1440px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.navbar {
+  background: var(--surface);
+  border-bottom: 1.5px solid var(--border);
+  padding: 0 24px;
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 220;
+  box-shadow: var(--shadow-sm);
+  transition: background 0.4s, border-color 0.4s;
+}
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.grid-nav-trigger {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: 1.5px solid var(--border-2);
+  background: var(--bg-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.3s;
+}
+
+.grid-nav-trigger:hover {
+  border-color: var(--c3);
+}
+
+.grid-nav-trigger img {
+  width: 20px;
+  height: 20px;
+  display: block;
+}
+
+.grid-panel-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(14, 13, 18, 0.28);
+  z-index: 230;
+}
+
+.grid-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 24px;
+  width: min(360px, calc(100vw - 28px));
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-lg);
+  z-index: 240;
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.grid-panel-item {
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--text);
+  min-height: 44px;
+  font-weight: 700;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.grid-panel-close {
+  justify-self: end;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--text-2);
+  min-height: 36px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.grid-panel-item:hover {
+  border-color: var(--c3);
+}
+
+.grid-panel-item img {
+  width: 20px;
+  height: 20px;
+}
+
+.trip-toolbar {
+  background: var(--surface);
+  border-bottom: 1.5px solid var(--border);
+  padding: 0 24px;
+  min-height: 58px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  z-index: 210;
+  box-shadow: var(--shadow-sm);
+  transition: background 0.4s, border-color 0.4s;
+}
+
+.trip-toolbar-center {
+  display: flex;
+  min-width: 0;
+}
+
+.trip-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
 /* — Container — */
 .topbar {
   background: var(--surface);
@@ -142,7 +280,11 @@ body::before {
   font-size: 14px; line-height: 1;
   color: var(--text-3);
   background: none; border: none; outline: none;
-  cursor: pointer; padding: 0; flex-shrink: 0;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  border-radius: 14px;
+  flex-shrink: 0;
   transition: color 0.15s;
 }
 .trip-pill-clear:hover { color: var(--text); }
@@ -161,6 +303,7 @@ body::before {
   cursor: pointer;
   min-height: 36px;
   white-space: nowrap;
+  font-family: 'Nunito', sans-serif;
 }
 .markup-pill:hover { border-color: var(--c3); }
 
@@ -213,6 +356,8 @@ body::before {
 
 /* — Responsive: tablet (480px–767px), single row compact — */
 @media (min-width: 480px) and (max-width: 767px) {
+  .navbar,
+  .trip-toolbar,
   .topbar       { padding: 0 16px; gap: 10px; }
   .markup-pill  { padding: 4px 10px; font-size: 11px; }
   .btn-new-trip { padding: 4px 10px; font-size: 11px; }
@@ -220,6 +365,31 @@ body::before {
 
 /* — Responsive: mobile (≤479px), two-row layout — */
 @media (max-width: 479px) {
+  .navbar {
+    padding: 10px 14px;
+    min-height: 56px;
+  }
+
+  .grid-panel {
+    left: 14px;
+    right: 14px;
+    width: auto;
+    max-height: calc(100vh - 94px);
+    overflow-y: auto;
+  }
+
+  .trip-toolbar {
+    min-height: auto;
+    padding: 10px 14px;
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .trip-toolbar-right {
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
   .topbar {
     height: auto;
     padding: 10px 14px;
@@ -237,6 +407,7 @@ body::before {
   }
   .brand-logo    { width: 36px; height: 36px; padding: 3px; }
   .trip-pill     { padding: 5px 12px; min-height: 36px; }
+  .trip-pill-clear { width: 36px; height: 36px; }
   /* font-size: 16px prevents iOS Safari from auto-zooming on input focus */
   .trip-pill-text { font-size: 16px; }
   .markup-pill   { padding: 5px 10px; font-size: 12px; }
@@ -254,6 +425,100 @@ body::before {
   max-width: 1440px;
   margin: 0 auto;
   align-items: start;
+}
+
+.tool-landing {
+  padding: 22px 24px;
+  display: grid;
+  gap: 18px;
+}
+
+.tool-landing-header h1 {
+  font-size: 30px;
+  line-height: 1.15;
+}
+
+.tool-landing-header p {
+  margin-top: 8px;
+  color: var(--text-2);
+  max-width: 66ch;
+}
+
+.tool-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.tool-card {
+  border: 1.5px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  min-height: 110px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    'icon label'
+    'icon desc';
+  align-items: center;
+  column-gap: 14px;
+  row-gap: 4px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tool-card:hover {
+  border-color: var(--c3);
+}
+
+.tool-card img {
+  grid-area: icon;
+  width: 36px;
+  height: 36px;
+}
+
+.tool-card-label {
+  grid-area: label;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.tool-card-desc {
+  grid-area: desc;
+  color: var(--text-2);
+}
+
+.tool-page {
+  padding: 22px 24px;
+  display: grid;
+  gap: 14px;
+}
+
+.tool-page h1 {
+  font-size: 28px;
+  line-height: 1.2;
+}
+
+.tool-list {
+  list-style-position: inside;
+  display: grid;
+  gap: 6px;
+  color: var(--text-2);
+}
+
+@media (min-width: 1024px) {
+  .tool-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1440px) {
+  .tool-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 /* Mobile: 320px - 479px */

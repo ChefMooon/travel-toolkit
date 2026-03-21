@@ -22,6 +22,8 @@ Built as a static web app deployed to Cloudflare Workers.
 | | |
 |---|---|
 | Framework | React 19 + TypeScript 5.7 |
+| Routing | TanStack Router |
+| Server state | TanStack Query |
 | Build | Vite 6 |
 | State | Zustand 5 (with `persist` middleware) |
 | Drag & drop | @dnd-kit |
@@ -30,7 +32,7 @@ Built as a static web app deployed to Cloudflare Workers.
 
 ## Prerequisites
 
-- Node.js 18 or later
+- Node.js 20.19 or later
 - npm
 - [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) for deployment (`npm install -g wrangler`)
 
