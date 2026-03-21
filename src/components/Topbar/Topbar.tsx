@@ -35,9 +35,9 @@ export default function Topbar() {
   return (
     <>
       <header className="topbar">
-        <div className="brand">
+        <a className="brand" href="/" aria-label="Go to home page">
           <Logo />
-        </div>
+        </a>
 
         <div className="topbar-center">
           <div className="trip-pill">

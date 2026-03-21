@@ -21,9 +21,9 @@ export default function Navbar() {
 
   return (
     <header className="navbar">
-      <div className="brand">
+      <a className="brand" href="/" aria-label="Go to home page">
         <Logo />
-      </div>
+      </a>
 
       <div className="navbar-actions">
         <button
