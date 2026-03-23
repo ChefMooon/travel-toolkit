@@ -1,10 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router';
-import TimezoneTool from '@/features/timezone/TimezoneTool';
-
-export default function TimezonePage() {
-  return <TimezoneTool />;
-}
+import TimezonePage from '../features/timezone/TimezonePage';
 
 export const Route = createFileRoute('/timezone')({
-  component: TimezonePage,
+  component: () => <TimezonePage />,
 });

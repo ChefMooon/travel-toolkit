@@ -729,6 +729,10 @@ body::before {
 }
 .card + .card { margin-top: 16px; }
 
+.timezone-clock-grid .card + .card {
+  margin-top: 0;
+}
+
 @media (max-width: 479px) {
   .card { border-radius: 12px; }
   .card + .card { margin-top: 12px; }
@@ -1106,10 +1110,34 @@ body::before {
 .btn-add:disabled { cursor: not-allowed; opacity: 0.5; color: var(--text-3); border-color: var(--border); }
 .btn-add:disabled:hover { border-color: var(--border); color: var(--text-3); background: transparent; }
 
+.tz-settings-btn {
+  justify-content: center;
+}
+
 @media (max-width: 479px) {
   .btn-add {
     padding: 4px 12px;
     font-size: 11px;
+  }
+
+  .tz-settings-btn {
+    width: 44px;
+    padding: 4px;
+  }
+
+  .tz-settings-label {
+    display: none;
+  }
+}
+
+@media (min-width: 480px) and (max-width: 767px) {
+  .tz-settings-btn {
+    width: 44px;
+    padding: 4px;
+  }
+
+  .tz-settings-label {
+    display: none;
   }
 }
 
@@ -2055,6 +2083,38 @@ tr.add-row td { padding: 0; border: none; }
   max-height: 90vh;
   overflow-y: auto;
 }
+
+.timezone-config-modal {
+  overflow: hidden;
+}
+
+.timezone-config-modal-scroll {
+  max-height: min(64vh, 560px);
+  overflow-y: auto;
+  padding-right: 12px;
+  scrollbar-gutter: stable both-edges;
+}
+
+.timezone-config-modal-scroll::-webkit-scrollbar {
+  width: 10px;
+}
+
+.timezone-config-modal-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.timezone-config-modal-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-2);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.timezone-config-modal-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-2) transparent;
+}
+
 @keyframes pop { from { opacity: 0; transform: scale(.88); } to { opacity: 1; transform: scale(1); } }
 
 .modal-ico { font-size: 36px; margin-bottom: 11px; }
