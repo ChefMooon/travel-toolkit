@@ -659,6 +659,62 @@ body::before {
   gap: 10px;
 }
 
+.currency-controls {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 768px) {
+  .currency-controls {
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items: end;
+  }
+}
+
+.currency-result {
+  display: grid;
+  gap: 16px;
+  text-align: center;
+}
+
+.currency-rate {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+}
+
+.currency-total {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.currency-total-from {
+  font-size: 26px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-2);
+}
+
+.currency-total-arrow {
+  font-size: 18px;
+  color: var(--text-3);
+}
+
+.currency-total-to {
+  font-size: 26px;
+  font-weight: 800;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--c3);
+}
+
 .tool-meta {
   color: var(--text-2);
   font-size: 12px;

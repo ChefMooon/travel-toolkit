@@ -42,7 +42,7 @@ export default function CurrencyTool() {
         <div className="card-header">
           <p className="card-title">Conversion Inputs</p>
         </div>
-        <div className="card-body tool-controls">
+        <div className="card-body currency-controls">
           <label className="tool-field">
             <span className="tool-label">Amount</span>
             <input
@@ -105,13 +105,17 @@ export default function CurrencyTool() {
             <p className="card-title">Rate Snapshot</p>
             <p className="tool-meta">{query.data.updatedAt}</p>
           </div>
-          <div className="card-body tool-results">
-            <p>
-              {formatMoney(amount, baseCurrency)} = {formatMoney(converted, targetCurrency)}
-            </p>
-            <p>
-              1 {baseCurrency} = {query.data.rates[targetCurrency].toFixed(4)} {targetCurrency}
-            </p>
+          <div className="card-body currency-result">
+            <div className="currency-rate">
+              <span>1 {baseCurrency}</span>
+              <span>=</span>
+              <span>{query.data.rates[targetCurrency].toFixed(4)} {targetCurrency}</span>
+            </div>
+            <div className="currency-total">
+              <span className="currency-total-from">{formatMoney(amount, baseCurrency)}</span>
+              <span className="currency-total-arrow">→</span>
+              <span className="currency-total-to">{formatMoney(converted, targetCurrency)}</span>
+            </div>
           </div>
         </div>
       ) : null}
