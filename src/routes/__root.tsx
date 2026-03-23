@@ -9,11 +9,45 @@ import Navbar from '@/components/Navbar';
 import ToastViewport from '@/components/ToastViewport';
 import appCssUrl from '@/index.css?url';
 
+const INITIAL_THEME_SCRIPT = `(function(){
+  var storageKey = 'mkt-trip-data';
+  var fallbackTheme = 'light';
+  var root = document.documentElement;
+  var theme = fallbackTheme;
+
+  root.classList.add('theme-preload');
+
+  try {
+    var storedValue = window.localStorage.getItem(storageKey);
+
+    if (storedValue) {
+      var parsedValue = JSON.parse(storedValue);
+      var persistedTheme = parsedValue && parsedValue.state && parsedValue.state.theme;
+
+      if (persistedTheme === 'light' || persistedTheme === 'dark') {
+        theme = persistedTheme;
+      }
+    }
+  } catch (error) {
+    theme = fallbackTheme;
+  }
+
+  root.dataset.theme = theme;
+  root.style.colorScheme = theme;
+})();`;
+
 function ThemeSync() {
   const theme = useTripStore((s) => s.theme);
 
   useEffect(() => {
     document.documentElement.dataset['theme'] = theme;
+    document.documentElement.style.colorScheme = theme;
+
+    const frameId = window.requestAnimationFrame(() => {
+      document.documentElement.classList.remove('theme-preload');
+    });
+
+    return () => window.cancelAnimationFrame(frameId);
   }, [theme]);
 
   return null;
@@ -75,9 +109,11 @@ export const Route = createRootRoute({
     meta: [
       { charSet: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+      { name: 'color-scheme', content: 'light dark' },
       { title: 'MKT' },
     ],
     links: [{ rel: 'stylesheet', href: appCssUrl }],
+    scripts: [{ children: INITIAL_THEME_SCRIPT }],
   }),
   shellComponent: RootDocument,
   component: RootLayout,
