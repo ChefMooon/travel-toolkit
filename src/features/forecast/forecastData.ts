@@ -55,13 +55,17 @@ function sortMonthDayWithinRange(a: string, b: string, rangeStart: string): numb
   return normalize(a).localeCompare(normalize(b));
 }
 
-export async function fetchGeocodingResults(query: string, count = 5): Promise<GeoLocation[]> {
+export async function fetchGeocodingResults(
+  query: string,
+  count = 5,
+  signal?: AbortSignal,
+): Promise<GeoLocation[]> {
   if (!query.trim()) {
     return [];
   }
 
   const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=${count}&language=en&format=json`;
-  const res = await fetch(url);
+  const res = await fetch(url, { signal });
 
   if (!res.ok) {
     throw new Error(`Geocoding API error: ${res.status}`);
@@ -93,6 +97,7 @@ export async function fetchClimateData(
   location: GeoLocation,
   dateFrom: string,
   dateTo: string,
+  signal?: AbortSignal,
 ): Promise<ClimateSummary> {
   const BASELINE_START_YEAR = 2000;
   const BASELINE_END_YEAR = 2020;
@@ -125,7 +130,7 @@ export async function fetchClimateData(
     `&daily=${variables}`,
   ].join('');
 
-  const res = await fetch(url);
+  const res = await fetch(url, { signal });
 
   if (!res.ok) {
     throw new Error(`Climate API error: ${res.status}`);

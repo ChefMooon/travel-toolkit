@@ -7,6 +7,7 @@ import ForecastTool from '@/features/forecast/ForecastTool';
 import type { ClimateSummary, GeoLocation } from '@/features/forecast/forecastTypes';
 
 vi.mock('@/features/forecast/useForecast', () => ({
+  FORECAST_GEOCODE_MIN_QUERY_LENGTH: 3,
   useGeocode: vi.fn(),
   useClimateData: vi.fn(),
 }));

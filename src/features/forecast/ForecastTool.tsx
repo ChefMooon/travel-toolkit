@@ -15,7 +15,9 @@ import {
 import { getLocalTimeAtDestination } from './forecastData';
 import { getEventsForRange } from './forecastEvents';
 import type { DailyClimate, ForecastEvent, GeoLocation } from './forecastTypes';
-import { useClimateData, useGeocode } from './useForecast';
+import { FORECAST_GEOCODE_MIN_QUERY_LENGTH, useClimateData, useGeocode } from './useForecast';
+
+const FORECAST_GEOCODE_DEBOUNCE_MS = 500;
 
 function toInputDate(date: Date): string {
   const year = date.getFullYear();
@@ -120,7 +122,7 @@ export default function ForecastTool() {
   useEffect(() => {
     const timeoutId = globalThis.setTimeout(() => {
       setDebouncedSearch(searchInput);
-    }, 250);
+    }, FORECAST_GEOCODE_DEBOUNCE_MS);
 
     return () => {
       globalThis.clearTimeout(timeoutId);
@@ -396,7 +398,7 @@ export default function ForecastTool() {
               />
             </label>
           </div>
-          {debouncedSearch.trim().length >= 2 && geocodeSuggestions.length === 0 && !geocodeQuery.isPending ? (
+          {debouncedSearch.trim().length >= FORECAST_GEOCODE_MIN_QUERY_LENGTH && geocodeSuggestions.length === 0 && !geocodeQuery.isPending ? (
             <p className="tool-status">No matching destinations found.</p>
           ) : null}
           {geocodeQuery.isError ? (
