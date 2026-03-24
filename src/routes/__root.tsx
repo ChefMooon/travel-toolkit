@@ -15,8 +15,6 @@ const INITIAL_THEME_SCRIPT = `(function(){
   var root = document.documentElement;
   var theme = fallbackTheme;
 
-  root.classList.add('theme-preload');
-
   try {
     var storedValue = window.localStorage.getItem(storageKey);
 
@@ -92,7 +90,7 @@ function RouteError() {
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className="theme-preload" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>

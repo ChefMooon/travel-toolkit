@@ -995,6 +995,7 @@ body::before {
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
+  align-items: start;
 }
 
 .forecast-daily-card {
