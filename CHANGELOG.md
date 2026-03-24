@@ -10,6 +10,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [1.1.0] - 2026-03-23
+
+### Added
+
+- Multi-tool navigation shell with dedicated Trip Cost, Currency Converter, Timezone Converter, and Destination Forecast pages
+- Currency Converter tool with live Frankfurter exchange-rate snapshots for supported currency pairs
+- Timezone Converter tool with configurable tracked timezones, analog and digital clock cards, and browser-timezone detection
+- Destination Forecast tool with city geocoding, date-range climate summaries, local-time display, and travel-event overlays
+- Expanded automated test coverage for tool pages, timezone components, trip toolbar, split assignment flows, and forecast/currency behavior
+
+### Changed
+
+- Application migrated to TanStack Router file-based routing and TanStack Start SSR for route-based navigation and server-rendered app delivery
+- Theme initialization and color-scheme handling improved to reduce preload flicker and keep toggle styling consistent across themes
+- Forecast search behavior refined with debounced geocoding, minimum query length safeguards, and request cancellation support
+- Tool page layout, grid navigation, and icon styling refined for stronger alignment and more consistent responsive presentation
+- Navbar and top bar branding links now use standard anchors for more predictable navigation behavior
+
+### Fixed
+
+- Resolved CostLedger TypeScript build blockers that interrupted successful builds
+- Corrected routed app asset/reference wiring issues that affected generated output and shell integration
+
+---
+
 ## [1.0.2] - 2026-03-19
 
 ### Added
@@ -88,7 +113,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Start New Trip action with confirmation prompt; clears all `localStorage` data and resets to initial state
 - Light and dark theme with toggle; theme preference persisted to `localStorage`
 
-[Unreleased]: https://github.com/ChefMooon/mkt/compare/v1.0.2...HEAD
+[Unreleased]: https://github.com/ChefMooon/mkt/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/ChefMooon/mkt/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/ChefMooon/mkt/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/ChefMooon/mkt/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/ChefMooon/mkt/releases/tag/v1.0.0
