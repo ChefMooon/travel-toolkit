@@ -98,6 +98,92 @@ Focus: ledger orchestration for add/edit/delete/selection/bulk apply.
 
 ## Deferred Areas (Not Implemented in This Pass)
 - Drag-and-drop behavior validation (intentionally deferred)
+
+---
+
+## v1.0.2 Coverage Additions
+
+### Summary
+- New test files added: 10
+- New tests added: 40+ (SAM×9, TBR×7, CUR×6, FOR×7, TZ×11)
+- Full suite status after implementation: 33 files passing, 280 tests passing
+- Last verification command: `npm run test -- --run`
+
+### `src/components/SplitAssignmentModal/SplitAssignmentModal.test.tsx` (9 tests)
+Focus: subset vs. individual mode, couple selection callbacks, empty state, backdrop, group creation.
+
+- FE-SAM-001: Subset mode renders "Select Groups" header and checkboxes
+- FE-SAM-002: Individual mode renders "Select Group" header and radio buttons
+- FE-SAM-003: Each couple row is labelled with the couple name
+- FE-SAM-004: Clicking a row calls onToggleCouple with the correct coupleId
+- FE-SAM-005: Confirm button is disabled when no couples are selected (subset mode)
+- FE-SAM-006: Confirm button calls onConfirmSubset when ≥1 couple is selected
+- FE-SAM-007: Empty state message renders when couples array is empty
+- FE-SAM-008: Backdrop overlay click calls onClose
+- FE-SAM-009: Create Group button calls onCreateGroup
+
+### `src/components/TripToolbar/TripToolbar.test.tsx` (7 tests)
+Focus: trip name controls, markup editing, reset modal flow (store-backed, mirrors Topbar coverage).
+
+- FE-TBR-001: Renders trip name input pre-filled with tripName
+- FE-TBR-002: Focusing trip name reveals clear button; clicking it calls setTripName('')
+- FE-TBR-003: Typing in the trip name input calls setTripName with the entered value
+- FE-TBR-004: Clicking markup toggle shows editing input pre-filled with globalMarkup
+- FE-TBR-005: Blurring markup input with negative value does not call setGlobalMarkup
+- FE-TBR-006: Clicking New Trip button opens reset confirmation modal
+- FE-TBR-007: Confirming reset modal calls resetTrip
+
+### `src/features/currency/CurrencyTool.test.tsx` (6 tests)
+Focus: default inputs, query states (loading/error/success), rate display, currency change, invalid amount.
+
+- FE-CUR-001: Renders amount input and base/target dropdowns with default values
+- FE-CUR-002: Shows loading status while query is pending
+- FE-CUR-003: Shows error message and retry button when query fails
+- FE-CUR-004: Displays rate line and formatted conversion after successful load
+- FE-CUR-005: Changing the target currency updates the displayed conversion
+- FE-CUR-006: Negative amount input is treated as zero without crashing
+
+### `src/features/forecast/ForecastTool.test.tsx` (7 tests)
+Focus: search UI, suggestion list from geocode, keyboard selection, loading/error states, climate metrics, event overlap detection.
+
+- FE-FOR-001: Renders location search input and date range inputs with defaults
+- FE-FOR-002: Typing in search shows suggestion list from geocode results
+- FE-FOR-003: Pressing ArrowDown then Enter selects the focused suggestion
+- FE-FOR-004: Shows loading state while climate data is fetching
+- FE-FOR-005: Shows error state when geocoding fails
+- FE-FOR-006: Climate metric cards render after a location and data are loaded
+- FE-FOR-007: Events section appears when events overlap the selected date range
+
+### Timezone feature tests (11 tests across 6 files)
+
+**`src/features/timezone/ClockGrid.test.tsx`** (2 tests)
+- FE-TZ-001: Renders a ClockCard for each tracked zone
+- (bonus) Renders empty state when no zones are tracked
+
+**`src/features/timezone/AnalogClock.test.tsx`** (1 test)
+- FE-TZ-002: Renders SVG with aria-hidden; hour, minute, and second hand elements are present
+
+**`src/features/timezone/DigitalClock.test.tsx`** (2 tests)
+- FE-TZ-003: compact detailLevel shows HH:mm only
+- FE-TZ-004: detailed detailLevel with showSeconds shows full time12 including AM/PM
+
+**`src/features/timezone/TimezoneNavbar.test.tsx`** (2 tests)
+- FE-TZ-005: Settings button opens ConfigModal
+- FE-TZ-006: Detect button calls setLocalTz with the browser timezone
+
+**`src/features/timezone/TimezoneSelect.test.tsx`** (3 tests)
+- FE-TZ-007a: Renders a large list of IANA timezone options
+- FE-TZ-007b: Typing in the search input narrows the timezone list
+- FE-TZ-007c: Selecting an option calls onChange with the timezone value
+
+**`src/features/timezone/ClockCard.test.tsx`** (2 tests)
+- FE-TZ-008a: displayMode=digital renders the card title and formatted time text
+- FE-TZ-008b: displayMode=analog renders an SVG clock face
+
+### Notes
+- `scrollIntoView` is mocked on `HTMLElement.prototype` in ForecastTool tests — jsdom does not implement it.
+- AnalogClock SVG hand identification uses both `stroke` colour and `stroke-width` to distinguish hands from tick marks.
+- All timezone component tests receive a fixed `DateTime` fixture to ensure deterministic time display.
 - Responsive layout assertions by viewport
 - Expanded keyboard/focus accessibility testing beyond modal attributes
 - Full multi-step frontend journeys in `integration.test.tsx`
