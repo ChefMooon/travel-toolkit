@@ -22,14 +22,14 @@ export const TOOLS: Tool[] = [
   },
   {
     route: '/timezone',
-    label: 'Timezone Converter',
-    description: 'Compare times across destinations.',
+    label: 'Timezone Tracker',
+    description: 'Save and track timezones for different locations.',
     icon: '/timezone.svg',
   },
   {
     route: '/forecast',
     label: 'Destination Forecast',
-    description: 'Check weather forecasts before travel.',
+    description: 'Check weather and event forecasts before travel.',
     icon: '/forecast.svg',
   },
 ];
