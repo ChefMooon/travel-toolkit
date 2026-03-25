@@ -2,308 +2,302 @@
 
 **Product Requirements Document**
 
-_Version 1.3 | March 2026 | Status: Draft_
+_Version 2.0 | March 2026 | Status: Draft_
 
 ---
 
 ## Document Metadata
 
-|Field|Value|
+| Field | Value |
 |---|---|
-|**Product Name**|Trip Cost Splitter|
-|**Version**|1.3|
-|**Status**|Draft|
-|**Date**|March 2026|
-|**Owner**|TBD|
-|**Stakeholders**|TBD|
+| Product Name | MKT |
+| Product Positioning | Travel Toolkit |
+| Version | 2.0 |
+| Status | Draft |
+| Date | March 2026 |
+| Owner | TBD |
+| Stakeholders | TBD |
 
 ---
 
 ## 1. Overview
 
-Trip Cost Splitter is a static web-based calculation tool that helps groups of couples (and mixed traveller types) fairly divide shared and individual trip expenses. It handles multi-currency costs, configurable cost markups, flexible group compositions including children or non-paying travellers, and subset splitting for costs shared among only some couples. Trip data is persisted automatically in the browser via `localStorage` and can be fully cleared via a confirmed "Start New Trip" action.
+MKT is a browser-based travel toolkit that brings together four planning utilities in one product:
+
+- **Trip Cost** to calculate shared and split costs across trip groups
+- **Currency Converter** to convert between currencies with live rates
+- **Timezone Tracker** to save and track timezones for different locations
+- **Destination Forecast** to check weather and event forecasts before travel
+
+The product goal is to reduce the need to juggle separate travel calculators, timezone tools, and destination research tabs while planning a trip.
 
 ---
 
 ## 2. Problem Statement
 
-When two or more couples travel together, costs fall into two categories: shared costs (e.g. accommodation, group meals, transport) and individual costs. Shared costs should be split across couples rather than applied in full to each couple. Without a dedicated tool, this calculation becomes error-prone, especially when:
+Travel planning is often fragmented across multiple unrelated tools. A user may need one app to split group costs, another to compare currencies, another to track local times, and another to estimate weather conditions for upcoming dates. That fragmentation creates unnecessary context switching, repeated data entry, and avoidable planning mistakes.
 
-- Costs are recorded in multiple foreign currencies
-- A cost markup (e.g. credit card foreign transaction fee) applies globally or per-cost
-- The group includes non-paying travellers such as children
-- More than two couples are travelling together
-- Some costs are shared among only a subset of couples (e.g. a side excursion)
+This is especially painful when:
 
----
+- A group trip includes both shared and individual costs
+- Travelers need quick conversion context while budgeting
+- Multiple destinations or remote contacts make timezone awareness important
+- The trip depends on seasonal conditions or known local events
+- The user wants lightweight planning help without accounts, syncing, or a full itinerary platform
 
-## 3. Goals & Non-Goals
-
-### 3.1 Goals
-
-- Allow users to log trip costs with key attributes and designate each as shared (all couples), subset-shared (select couples), or individual
-- Split shared and subset-shared costs equitably across the relevant paying couples
-- Support multiple currencies and preserve them separately for manual conversion to USD
-- Apply a global cost markup with per-cost overrides, surfaced clearly in the UI
-- Handle groups of 2+ couples and non-paying travellers (children)
-- Allow editing and deleting of any cost entry (with confirmation on delete)
-- Allow drag-and-drop reordering of cost entries
-- Auto-name couples with the option to rename them
-- Persist all trip data automatically in the browser via `localStorage`
-- Allow the user to reset all data and start a new trip (with confirmation)
-
-### 3.2 Non-Goals
-
-- Real-time currency conversion (exchange rates are applied manually by the user)
-- Payment reconciliation or settlement between individuals
-- Cloud sync or multi-device collaboration (v1)
-- Data export (PDF, CSV) — v1 calculation only
-- Mobile app or CLI — static website only
+MKT solves this by packaging the most common pre-trip planning utilities into one lightweight web app.
 
 ---
 
-## 4. Users & Traveller Types
+## 3. Goals
 
-The tool models a trip group as a collection of traveller records. Two types exist:
-
-### 4.1 Paying Couple
-
-A unit of one or two adults who share responsibility for paying their portion of costs. Shared costs are divided by the number of paying couples included in a given cost. Each couple is a single billing unit regardless of whether it contains one or two people.
-
-Couples are auto-named sequentially (Couple 1, Couple 2, ...) when added. The user may rename any couple at any time by editing the name inline.
-
-### 4.2 Non-Paying Traveller (e.g. Child)
-
-A traveller who participates in the trip but is not assigned any cost share. Non-paying travellers are excluded from the shared cost divisor. Their presence does not affect how costs are split among couples.
-
-> **Example:** 3 couples + 2 children travel together. A shared hotel cost is divided by 3 (couples only), not 5.
+- Provide a single travel toolkit that lets users move between planning utilities without leaving the product
+- Keep the app fast, simple, and usable without account creation
+- Support group trip budgeting with fair cost splitting, markup handling, and multi-currency summaries
+- Support quick currency conversion for common travel currencies
+- Support saved timezone tracking for destinations or travel contacts
+- Support destination research using searchable locations, weather context, and relevant event context
+- Work well on both desktop and mobile form factors
+- Preserve user state locally between sessions where persistence improves continuity
 
 ---
 
-## 5. Cost Model
+## 4. Non-Goals
 
-### 5.1 Cost Attributes
-
-Each cost entry contains the following fields:
-
-|Field|Type|Description|
-|---|---|---|
-|**name**|_String_|A short label describing the cost (e.g. 'Hotel Night 1', 'Dinner').|
-|**currency**|_Currency Code_|The currency this cost was incurred in (e.g. USD, EUR, MXN). Costs in different currencies are kept separate.|
-|**value**|_Decimal_|The base monetary amount of the cost before any markup is applied.|
-|**cost_markup**|_Percentage_|A per-cost markup percentage. Defaults to the global markup. Can be set to any value including 0%. Displayed explicitly in the cost entry row so the user always sees the effective rate.|
-|**split_type**|_Enum_|One of: `shared` (all paying couples), `subset` (selected paying couples only), or `individual` (one couple).|
-|**assigned_couples**|_Reference[]_|For `subset`: the list of couples sharing this cost. For `individual`: the single couple responsible. Unused for `shared`.|
-|**sort_order**|_Integer_|The display order of this cost entry. Updated when the user reorders via drag-and-drop.|
-
-### 5.2 Cost Entry
-
-- Costs are entered manually by the user.
-- Multiple costs can be entered per trip.
-- Any cost entry can be edited or deleted at any time.
-- Cost entries can be reordered via drag-and-drop.
-- Users may select a set of costs and bulk-update their currency.
+- Booking flights, hotels, transport, or activities
+- Payment settlement, debt collection, or reimbursement workflows
+- Real-time collaboration across multiple users or devices
+- Cloud sync, user accounts, or profile management in the current scope
+- Full itinerary building or calendar planning
+- Export workflows such as CSV, PDF, or shareable reports in the current scope
+- A native mobile app or CLI version in the current scope
 
 ---
 
-## 6. Cost Markup
+## 5. Primary Users
 
-### 6.1 Global Markup
+### 5.1 Group Trip Organizer
 
-A single global markup percentage is configured at the trip level. This markup is applied to all costs by default. Common use case: a service fee or tip percentage (e.g. 66%) applied uniformly to all expenses.
+A traveler coordinating shared costs for a group and needing a clear way to divide expenses fairly.
 
-### 6.2 Per-Cost Markup Override
+### 5.2 Independent Traveler
 
-Individual costs can override the global markup. The per-cost markup can be set higher or lower than the global value, including zero (no markup) or a custom rate. This allows exceptions such as costs charged on a no-fee card.
+A traveler who wants lightweight utilities such as currency conversion, timezone tracking, or destination planning without using several separate apps.
 
-### 6.3 Markup UI Requirement
+### 5.3 Pre-Trip Researcher
 
-The effective markup rate must be visible on every cost entry row — not hidden behind an edit screen. When a cost uses the global default, it should be labelled as such (e.g. "66% (global)"). When overridden, the custom value is shown with a visual indicator (e.g. "0% (custom)"). This prevents silent errors from forgotten overrides.
-
-> **Rule:** Final cost value = base value × (1 + effective_markup%). Effective markup defaults to global unless a per-cost override is set.
+A user checking whether a destination fits a travel window by comparing time, climate patterns, and notable events.
 
 ---
 
-## 7. Currency Handling
+## 6. Core Use Cases
 
-Costs may be entered in any currency. The tool does not perform automatic currency conversion. The workflow is:
-
-1. The user enters all costs in their original foreign currencies.
-2. The tool calculates and displays per-couple subtotals grouped by currency.
-3. Once the user has reviewed all totals in their original currencies, they enter exchange rates to convert each currency group to USD.
-4. The tool displays a final USD total per couple.
-
-> **Rationale:** Showing foreign currency totals first preserves accuracy and gives users the chance to verify figures before applying exchange rates.
-
-### 7.1 Bulk Currency Assignment
-
-The user can select one or more cost entries and assign them to a specific currency in a single action. This streamlines data entry when many costs share the same currency.
+- As a group trip organizer, I want to split shared costs across selected groups so I can see what each group owes.
+- As a group trip organizer, I want to keep costs in their original currencies until I choose exchange rates so I can verify totals before converting to USD.
+- As a traveler, I want to convert between common currencies quickly so I can sanity-check costs while planning.
+- As a traveler, I want to save several timezone cards so I can compare local times across destinations or contacts.
+- As a traveler, I want to search a destination and travel window so I can review climate averages before I commit to dates.
+- As a traveler, I want to see relevant events during my selected dates so I can factor them into my planning.
 
 ---
 
-## 8. Cost Splitting Logic
+## 7. Product Scope
 
-### 8.1 Shared Costs
+### 7.1 Toolkit Home and Navigation
 
-Shared costs are divided equally among all paying couples.
+The product must provide a home view that introduces the toolkit and lets users open each tool from one place.
 
-> **Formula:** Each couple's share = (cost value × (1 + markup%)) / number_of_paying_couples
+Requirements:
 
-### 8.2 Subset-Shared Costs
+- Users can launch each tool from a shared home page
+- Users can move between tools from shared navigation
+- Tool names and descriptions should make each workflow immediately understandable
 
-Subset-shared costs are divided equally among the selected subset of couples only. The divisor is the count of couples in the subset.
+### 7.2 Trip Cost
 
-> **Formula:** Each included couple's share = (cost value × (1 + markup%)) / number_of_couples_in_subset
+The Trip Cost tool is the budgeting and cost-splitting workspace for group travel.
 
-Couples not included in the subset owe nothing for this cost.
+Requirements:
 
-### 8.3 Individual Costs
+- Users can create and manage paying groups
+- Users can add non-paying travellers who are visible in the trip setup but excluded from split divisors
+- Users can add costs with a name, amount, currency, split mode, and optional custom markup
+- Users can assign costs as shared, subset, or individual
+- Users can edit and delete costs after creation
+- Users can reorder costs
+- Users can bulk-assign currencies to selected costs
+- Users can set a trip-wide default markup and override it per cost
+- Users can review per-group totals grouped by original currency
+- Users can enter manual exchange rates to compute USD totals once they are ready
+- Users can reset the trip and start fresh after explicit confirmation
 
-Individual costs are assigned to a single couple and are not split. They appear in full in that couple's summary.
+### 7.3 Currency Converter
 
-### 8.4 Rounding
+The Currency Converter provides quick conversion context without requiring the user to manage a full trip ledger.
 
-All per-couple amounts are rounded to 2 decimal places using **half-up rounding** (e.g. $0.005 → $0.01). Where rounding produces a remainder, the difference is added to the first couple in the list. This ensures the sum of all couples' shares always equals the total cost exactly.
+Requirements:
 
-> **Note:** This rounding rule is provisional and may be revised if real-world testing reveals issues.
+- Users can enter an amount and choose base and target currencies
+- The tool supports a defined set of common travel currencies
+- The tool shows the selected conversion result and the current displayed conversion rate
+- The tool handles loading and retry states clearly if data is unavailable
 
-### 8.5 Output
+### 7.4 Timezone Tracker
 
-The tool produces a summary per couple broken down by currency, showing:
+The Timezone Tracker helps users save and track timezones for different locations.
 
-- Total of shared costs allocated to that couple (per currency)
-- Total of subset-shared costs allocated to that couple (per currency)
-- Total of individual costs assigned to that couple (per currency)
-- Combined subtotal per foreign currency
-- USD equivalent (once the user enters an exchange rate for each currency)
-- Grand total in USD across all currencies
+Requirements:
 
----
+- Users can set a local timezone reference
+- Users can add, remove, rename, and reorder tracked timezones
+- Users can choose how each timezone card is displayed
+- Users can toggle supplemental details such as UTC, date, and seconds visibility
+- Saved timezone configuration should persist between sessions
 
-## 9. Data Persistence
+### 7.5 Destination Forecast
 
-### 9.1 localStorage
+The Destination Forecast tool supports lightweight destination planning around weather and date-specific event context.
 
-All trip data is automatically saved to the browser's `localStorage` after every user action. On page load, the tool restores the previous session from `localStorage` if data is present. No manual save action is required.
+Requirements:
 
-The persisted state includes: group composition (couples and non-paying travellers), all cost entries (including sort order), global markup setting, and any exchange rates the user has entered.
-
-### 9.2 Start New Trip (Reset)
-
-A clearly labelled "Start New Trip" button is available at all times. When triggered, the tool displays a confirmation prompt warning the user that all current trip data will be permanently deleted. The reset only proceeds if the user confirms. On confirmation, all `localStorage` data is cleared and the tool returns to its initial empty state.
-
-### 9.3 Limitations
-
-`localStorage` is scoped to the device and browser. Data will be lost if the user clears browser storage. Cross-device access and sharing are not supported in v1.
-
----
-
-## 10. Edge Cases & Constraints
-
-### 10.1 More Than Two Couples
-
-The splitting logic must support any number of paying couples (2 or more). The shared cost divisor adjusts dynamically based on the current couple count or subset size.
-
-### 10.2 Non-Paying Travellers (Children)
-
-Children or other non-paying travellers are tracked in the group but excluded from cost splitting. They do not increase the divisor for shared or subset costs.
-
-### 10.3 Mixed Currencies in a Single Trip
-
-A trip may have costs in multiple currencies simultaneously. The tool must not aggregate costs across currencies. Each currency must remain as a distinct bucket in all calculations and outputs until the user applies exchange rates.
-
-### 10.4 Single Couple
-
-If only one couple is present, all shared costs are assigned 100% to that couple. Subset costs with only one couple selected behave identically. The tool should not error on this edge case.
-
-### 10.5 Zero Markup
-
-A global or per-cost markup of 0% is valid. The effective cost equals the base value.
-
-### 10.6 Subset of One
-
-A subset cost assigned to exactly one couple is functionally equivalent to an individual cost. The tool should accept this without error.
-
-### 10.7 Renaming Couples
-
-Renaming a couple updates all references to that couple throughout the cost list and output summary. No costs are lost or reassigned.
+- Users can search for destinations by name
+- Users can choose a travel date range
+- The tool shows destination context including local time and location metadata
+- The tool shows weather and climate context for the selected destination and date range
+- The tool surfaces matching destination events when available
+- The tool handles empty, loading, and error states clearly
 
 ---
 
-## 11. Functional Requirements
+## 8. Success Criteria
 
-**FR-01: Add Cost Entry** The user can manually add a cost entry specifying: name, currency, value, split type (shared / subset / individual), assigned couples (for subset or individual), and optionally a per-cost markup override.
+The product will be considered successful for the current scope when:
 
-**FR-02: Edit Cost Entry** The user can edit any field of an existing cost entry at any time.
-
-**FR-03: Delete Cost Entry** The user can delete any cost entry. A confirmation prompt is shown before the deletion is applied. The summary updates immediately after confirmation.
-
-**FR-04: Reorder Cost Entries** The user can drag and drop cost entries to change their display order. The new order is persisted to `localStorage`.
-
-**FR-05: Configure Global Markup** The user can set a global markup percentage that applies to all costs by default.
-
-**FR-06: Override Markup Per Cost** The user can set a custom markup on any individual cost, overriding the global markup for that entry. The effective markup is always visible on the cost row.
-
-**FR-07: Bulk Currency Assignment** The user can select multiple cost entries and assign them to a specific currency in one action.
-
-**FR-08: Manage Group Composition** The user can add paying couples and non-paying travellers to the trip group. Couples are auto-named (Couple 1, Couple 2, ...) and can be renamed at any time. Non-paying travellers are excluded from cost splitting.
-
-**FR-09: Subset Splitting** When adding or editing a cost, the user can select `subset` as the split type and choose which paying couples are included. The cost is split only among the selected couples.
-
-**FR-10: Compute Per-Couple Summary** The tool calculates and displays each couple's cost share in real time, separated by currency, including shared, subset, and individual allocations.
-
-**FR-11: Currency Conversion to USD** After reviewing per-couple totals in foreign currencies, the user can enter an exchange rate for each currency. The tool then displays USD-equivalent totals and a grand total per couple in USD.
-
-**FR-12: Multi-Currency Output** All output totals are presented grouped by currency before conversion. No automatic currency conversion is performed.
-
-**FR-13: Persist State via localStorage** All trip data is saved to `localStorage` automatically after every change. The full session is restored on page load.
-
-**FR-14: Start New Trip (Reset)** A "Start New Trip" button is available at all times. It triggers a confirmation prompt before clearing all `localStorage` data and resetting the tool to its initial empty state.
-
-**FR-15: Region Selection for Currencies** A geographic region selector allows users to filter the available currency list by region (North America, Europe, Asia, Oceania, Americas, Africa). CAD and USD are always available in all regions as fallbacks. Region selection simplifies currency picking on multi-region trips without limiting access to any currency.
+- A user can reach all four tools from one shared app experience without needing separate products or tabs for the same core workflows
+- A group trip organizer can complete a full trip-cost workflow from setup to USD summary in the Trip Cost tool without external calculation help
+- A traveler can compare supported currencies, save timezone references, and inspect destination weather context within the same app session
+- Core workflows remain usable on mobile and desktop layouts
+- User continuity is preserved through local persistence for the workflows that benefit from it
 
 ---
 
-## 12. Testing & Quality Assurance
+## 9. Constraints
 
-### Testing Framework
-
-The project uses **Vitest** with **React Testing Library** for test authoring and execution.
-
-### Test Coverage (v1.0.1)
-
-- **Couple Management** — Tests verify adding, renaming, and reordering couples; colour and icon updates persist and display correctly.
-- **Dark Mode** — Integration tests confirm theme toggling works and persists to `localStorage`.
-- **State Persistence** — Tests verify that all store state (couples, costs, exchange rates, region, theme) is saved and restored from `localStorage` correctly.
-- **CostRow Component** — Unit tests cover rendering, inline editing workflows, and currency/markup display.
-
-### Running Tests
-
-```sh
-npm run test          # Run all tests once
-npm run test:watch    # Watch mode for development
-```
-
-### Future Testing Goals
-
-- Expand CostRow and EditRow test coverage to include all split types and edge cases (single couple, zero markup, etc.)
-- Integration tests for bulk currency assignment and drag-and-drop reordering
-- Exchange rate calculation tests across all currency combinations
+- The product is a web app and must remain lightweight to open and use quickly
+- The current scope assumes no user account system and no server-owned personal data model
+- Some features depend on external data availability and may occasionally be unavailable
+- The Currency Converter is limited to its supported currency set in the current scope
+- Destination Forecast quality depends on destination search resolution and available weather or event data
+- Persisted data is local to the current browser environment and is not shared across devices
 
 ---
 
-## 13. Open Questions
+## 10. Functional Requirements
 
-There are no remaining open questions. All decisions have been resolved as of v1.4.
+### 10.1 Shared Product Requirements
+
+**FR-01: Toolkit Launch** The product must provide a home view that presents each available tool and lets the user open it directly.
+
+**FR-02: Shared Navigation** The product must allow users to move between tools without leaving the app shell.
+
+**FR-03: Responsive Layout** All core workflows must remain usable across mobile and desktop screen sizes.
+
+**FR-04: Theme Support** The product must support both light and dark presentation modes.
+
+### 10.2 Trip Cost Requirements
+
+**FR-05: Manage Paying Groups** The user can add, rename, reorder, and remove paying groups.
+
+**FR-06: Manage Non-Paying Travellers** The user can add and remove non-paying travellers linked to a paying group.
+
+**FR-07: Add Cost Entry** The user can create a cost entry with a name, currency, amount, split type, assignment details, and optional custom markup.
+
+**FR-08: Edit or Delete Cost Entry** The user can edit any cost entry and can delete a cost entry with confirmation.
+
+**FR-09: Reorder Costs** The user can reorder cost entries and retain that order during the session.
+
+**FR-10: Bulk Currency Assignment** The user can select multiple costs and assign one currency to the selection.
+
+**FR-11: Split Modes** The tool must support shared, subset, and individual cost assignment.
+
+**FR-12: Multi-Currency Summary** The tool must keep trip costs grouped by original currency before conversion.
+
+**FR-13: Manual USD Conversion** The user can enter exchange rates to compute USD totals after reviewing original-currency summaries.
+
+**FR-14: Trip Reset** The user can clear current trip data only after a deliberate confirmation step.
+
+### 10.3 Currency Converter Requirements
+
+**FR-15: Amount Conversion** The user can convert a numeric amount between supported currencies.
+
+**FR-16: Rate Display** The tool must display the rate used for the selected base and target currencies.
+
+**FR-17: Error Recovery** If conversion data cannot be loaded, the tool must show an error state with a retry path.
+
+### 10.4 Timezone Tracker Requirements
+
+**FR-18: Local Timezone Selection** The user can set or detect a local timezone reference.
+
+**FR-19: Tracked Timezones** The user can add, edit, remove, and reorder tracked timezones.
+
+**FR-20: Card Customization** The user can choose display style and detail visibility for each tracked timezone.
+
+**FR-21: Timezone Persistence** Saved timezone configuration must persist between sessions in the same browser environment.
+
+### 10.5 Destination Forecast Requirements
+
+**FR-22: Destination Search** The user can search for a destination and select from matching results.
+
+**FR-23: Date-Range Forecasting** The user can choose a date range and view destination weather context for that window.
+
+**FR-24: Destination Context** The tool must show local-time and location context for the selected destination.
+
+**FR-25: Event Overlay** The tool should show relevant destination events that overlap with the selected dates when available.
+
+**FR-26: Forecast States** The tool must provide understandable empty, loading, and error states.
 
 ---
 
-## 14. Version History
+## 11. Product Rules and Behavioral Notes
 
-|Version|Date|Author|Notes|
+### 11.1 Trip Cost Rules
+
+- Shared trip costs are divided across all paying groups
+- Subset costs are divided only across the selected paying groups
+- Individual costs are assigned in full to one paying group
+- Non-paying travellers never affect the split divisor
+- Original-currency totals remain separate until the user supplies exchange rates
+
+### 11.2 Toolkit Scope Rules
+
+- The product is planning-oriented, not transaction-oriented
+- The product may help users estimate and compare, but it does not complete bookings or payments
+- The product favors lightweight local persistence over account-based storage in the current scope
+
+---
+
+## 12. Risks and Open Questions
+
+### Risks
+
+- Users may assume all external data is live and real-time across every tool
+- Users may expect cloud sync once multiple tools are present in one product
+- Third-party forecast data availability can affect perceived reliability
+
+### Open Questions
+
+- Should future versions unify the terminology around "trip groups" versus "couples" in the Trip Cost tool UI?
+- Should the Currency Converter expand beyond the currently supported currency set?
+- Should the toolkit eventually support saved destinations or trip presets across tools?
+
+---
+
+## 13. Version History
+
+| Version | Date | Author | Notes |
 |---|---|---|---|
-|1.0|March 2026|TBD|Initial draft from brainstorm notes.|
-|1.1|March 2026|TBD|Resolved open questions: subset splitting, auto-naming with editable couple names, half-up rounding, currency workflow clarified (foreign → USD), markup always visible in UI, edit/delete on cost entries, platform confirmed as static website, export deferred.|
-|1.2|March 2026|TBD|Added localStorage persistence, confirmation prompt on cost entry deletion, drag-and-drop reordering of cost entries.|
-|1.3|March 2026|TBD|Added Start New Trip reset with confirmation prompt. All open questions resolved.|
-|1.4|March 2026|TBD|Added Region Selection filtering for currencies. Documented testing framework and coverage. Implemented mobile responsiveness with card layouts and responsive grids.|
+| 1.0 | March 2026 | TBD | Initial trip cost splitter PRD draft. |
+| 1.1 | March 2026 | TBD | Clarified trip cost splitting, markup behavior, and currency workflow. |
+| 1.2 | March 2026 | TBD | Added persistence, deletion confirmation, and drag-and-drop support to scope. |
+| 1.3 | March 2026 | TBD | Added trip reset workflow and related UX requirements. |
+| 2.0 | March 2026 | TBD | Reframed MKT as a travel toolkit covering Trip Cost, Currency Converter, Timezone Tracker, and Destination Forecast. Aligned product naming and tool descriptions to the current source of truth in `src/lib/tools.ts`, and added core use cases, success criteria, cross-tool scope, and current product constraints. |

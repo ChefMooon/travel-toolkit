@@ -1,49 +1,99 @@
 # MKT
 
-A trip cost splitter for groups of couples. Log shared and individual expenses across multiple currencies, apply configurable cost markups, and get a clear per-couple breakdown with USD totals.
+MKT is a travel planning toolkit built with TanStack Start and deployed to Cloudflare Workers. It combines four focused tools in one app: a trip cost splitter, a currency converter, a timezone tracker, and a destination forecast planner.
 
-Built as a TanStack Start app deployed to Cloudflare Workers.
+## What MKT Includes
+
+- **Trip Cost** — split shared, subset, or individual expenses across trip groups with multi-currency entries and USD rollups
+- **Currency Converter** — compare exchange-rate snapshots across supported currencies
+- **Timezone Converter** — track and customize timezones for the places that matter to your trip
+- **Destination Forecast** — search destinations, inspect climate averages by date range, and surface matching events
 
 ## Features
 
-- **Three split modes** — shared (all couples), subset (selected couples only), or individual (one couple)
-- **Multi-currency with region filtering** — log costs in any currency; select currencies by geographic region; apply exchange rates at the end to convert everything to USD
-- **Cost markup** — configure a global markup percentage (e.g. a credit card foreign transaction fee); override per cost
-- **Drag-and-drop reordering** of cost entries
-- **Bulk currency assignment** — select multiple costs and assign a currency in one action
-- **Non-paying travellers** — add children or other non-paying members without affecting the cost divisor
-- **Persistent state** — all data saved to `localStorage` automatically and restored on page load
-- **Start New Trip** — confirmed reset that clears all data
-- **Light and dark mode**
-- **Fully responsive** — mobile-optimized card layout and adaptive UI for all screen sizes
-
-## Tech Stack
-
-| | |
-|---|---|
-| Framework | React 19 + TypeScript 5.7 |
-| Routing | TanStack Router |
-| Server state | TanStack Query |
-| Build | Vite 7 + TanStack Start plugin |
-| State | Zustand 5 (with `persist` middleware) |
-| Drag & drop | @dnd-kit |
-| Icons | Lucide React |
-| Deployment | Cloudflare Workers (server entry + SSR) |
+- **Four travel tools in one app** — launch tools from the home page and move between them with the shared grid navigation
+- **Flexible trip cost splitting** — use shared, subset, or individual assignment modes for each cost
+- **Trip-level and per-cost markup** — set a global markup and override it on individual entries when needed
+- **Multi-currency trip logging** — keep original trip currencies, filter available currencies by region, and add manual USD exchange rates for final totals
+- **Bulk actions and drag-and-drop** — reorder costs and apply currencies to multiple entries at once
+- **Non-paying travellers** — add children or other non-paying members without affecting the split divisor
+- **Snapshot currency conversion** — convert between USD, EUR, GBP, CAD, JPY, and AUD using in-app rate snapshots
+- **Configurable timezone cards** — save tracked zones, detect the browser timezone, reorder cards, and choose analog or digital display modes
+- **Destination climate lookup** — search locations, choose a date range, view climate averages, and compare local time at the destination
+- **Forecast event overlay** — show curated destination events that overlap with the selected trip dates
+- **Persistent local state** — trip data and timezone settings are stored in `localStorage`; transient UI state stays in memory
+- **Responsive theming** — adaptive layouts with light and dark theme support across the app shell
 
 ## Prerequisites
 
 - Node.js 22.12 or later
 - npm
-- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) for deployment (`npm install -g wrangler`)
+- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) for deployment
+
+## Installation
+
+```sh
+npm install
+```
 
 ## Development
 
 ```sh
-npm install
 npm run dev
 ```
 
-The dev server starts at `http://localhost:5173`.
+The development server runs at `http://localhost:5173`.
+
+## Basic Usage
+
+1. Start the app and open the home page.
+2. Choose a tool from the launcher grid.
+3. Use the shared navigation in the top bar to switch tools without leaving the app shell.
+
+Example workflow:
+
+- Open **Trip Cost** to build a trip ledger, assign costs, and enter manual USD rates for final totals.
+- Open **Timezone Converter** to save destination clocks for the same trip.
+- Open **Destination Forecast** to search a city, pick travel dates, and check climate averages plus matching events.
+
+## Available Routes
+
+| Route | Tool | Purpose |
+|---|---|---|
+| `/` | Travel Toolkit home | Launch and navigate between tools |
+| `/trip` | Trip Cost | Split group expenses and summarize totals |
+| `/currency` | Currency Converter | Convert supported currencies using snapshot data |
+| `/timezone` | Timezone Converter | Track and customize saved timezone cards |
+| `/forecast` | Destination Forecast | Search destinations and inspect date-range climate data |
+
+## Project Structure
+
+```text
+src/
+  routes/          File-based route entry points for each tool page
+  features/        Tool-specific modules for currency, forecast, and timezone
+  components/      Shared UI and trip-cost components
+  store/           Persisted and ephemeral Zustand stores
+  lib/             Shared helpers, tool metadata, and core calculations
+docs/
+  ARCHITECTURE.md       Technical architecture reference
+  MKT PRD.md            Product requirements document
+  SITE-DESIGN-SPEC.md   UI and design system reference
+```
+
+## Testing
+
+Run the full test suite:
+
+```sh
+npm run test -- --run
+```
+
+Additional testing docs:
+
+- [Frontend Test Implementation Report](docs/plans/frontend-test-implementation-report.md)
+- [Frontend Test Coverage Matrix](docs/plans/frontend-test-matrix.md)
+- [Test Maintenance Guide](docs/plans/test-maintenance-guide.md)
 
 ## Build
 
@@ -51,7 +101,7 @@ The dev server starts at `http://localhost:5173`.
 npm run build
 ```
 
-Output is written to `dist/client` and `dist/server`.
+Build output is written to `dist/client` and `dist/server`.
 
 ## Deploy
 
@@ -59,38 +109,15 @@ Output is written to `dist/client` and `dist/server`.
 wrangler deploy
 ```
 
-Deploys through the Start server entry configured in [`wrangler.toml`](wrangler.toml).
+Deployment uses the TanStack Start server entry configured in [wrangler.toml](wrangler.toml).
 
-## Project Structure
+## Further Documentation
 
-```
-src/
-  components/       UI components
-  lib/
-    calculations.ts Cost splitting and summary logic
-  store/
-    tripStore.ts    Zustand store — all app state and actions
-    types.ts        TypeScript types and constants
-  App.tsx
-docs/
-  MKT PRD.md        Product Requirements Document
-  ARCHITECTURE.md   Architecture reference
-  SITE-DESIGN-SPEC.md  UI and design system source of truth
-```
-
-## Testing Docs
-
-- [Frontend Test Implementation Report](docs/plans/frontend-test-implementation-report.md)
-- [Frontend Test Coverage Matrix](docs/plans/frontend-test-matrix.md)
-- [Test Maintenance Guide](docs/plans/test-maintenance-guide.md)
-
-Run tests:
-
-```sh
-npm run test -- --run
-```
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+- [docs/MKT PRD.md](docs/MKT%20PRD.md)
+- [docs/SITE-DESIGN-SPEC.md](docs/SITE-DESIGN-SPEC.md)
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).
 

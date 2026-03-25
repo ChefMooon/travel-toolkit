@@ -2,193 +2,201 @@
 
 ## Overview
 
-MKT is a single-page React application with no backend. All state lives in the browser via Zustand's `persist` middleware, which serialises to `localStorage` on every change and rehydrates automatically on page load. The app is built with Vite and served as a static asset bundle from Cloudflare Workers.
+MKT is a travel-focused web app built as a set of routed tools under one shared TanStack Start shell. The current app includes a trip cost splitter, a currency converter, a timezone tracker, and a destination forecast tool. Persistent client state is stored locally with Zustand where appropriate, while async feature data is handled through TanStack Query.
 
----
+## Runtime Model
 
-## Component Tree
+- **Framework**: TanStack Start with React and file-based routing
+- **Shared shell**: The root route provides the HTML document, theme bootstrap script, navigation, toast viewport, and route outlet
+- **Async data**: TanStack Query manages remote and query-backed feature data
+- **Client state**: Zustand stores persist trip data and timezone configuration to `localStorage`
+- **Deployment target**: Cloudflare Workers using the TanStack Start server entry
 
-```
-App
-├── Topbar            Trip name, global markup, theme toggle, Start New Trip
-├── ToastViewport     Global non-blocking notifications (success/warning/error)
-├── RegionSelector    Geographic region picker for currency filtering
-├── GroupSetup        Add / rename / reorder couples and non-paying travellers
-├── CostLedger        Cost entry list with drag-and-drop (dnd-kit)
-│   ├── CostRow       Read-only display row for a single cost entry
-│   ├── EditRow       Inline edit form for a cost entry
-│   └── BulkActionBar Floating bar shown when one or more cost entries are selected
-└── CostSummary       Per-couple cost breakdown
-    └── CoupleCard    Summary card for a single couple
-```
+The app has no project-owned backend or database. Some features fetch third-party data directly from the client, while others use in-repo datasets.
 
-Supporting primitives: `Modal` — shared confirmation / alert overlay used by Topbar, GroupSetup, and CostLedger. `ToastViewport` subscribes to `src/store/toastStore.ts` for ephemeral session notifications.
+## Route Map
 
----
-
-## State (Zustand Store)
-
-Defined in `src/store/tripStore.ts`. Persisted to `localStorage` under the key `mkt-trip-store` (Zustand default key from the store name).
-
-### State Shape
-
-| Field | Type | Description |
+| Route | Module | Responsibility |
 |---|---|---|
-| `tripName` | `string` | Display name for the trip |
-| `globalMarkup` | `number` | Default markup % applied to all costs |
-| `couples` | `Couple[]` | Ordered list of paying couples |
-| `nonPayingTravellers` | `NonPayingTraveller[]` | Non-paying travellers, each linked to a parent couple |
-| `costs` | `CostEntry[]` | All cost entries |
-| `exchangeRates` | `ExchangeRate[]` | Per-currency USD exchange rates entered by the user |
-| `theme` | `'light' \| 'dark'` | Active UI theme |
-| `region` | `Region` | Active geographic region for currency filtering (e.g. 'North America', 'Europe', 'Asia') |
+| `/` | `src/routes/index.tsx` | Travel Toolkit launcher page |
+| `/trip` | `src/routes/trip.tsx` | Trip cost workflow |
+| `/currency` | `src/routes/currency.tsx` | Currency converter |
+| `/timezone` | `src/routes/timezone.tsx` | Timezone tracker |
+| `/forecast` | `src/routes/forecast.tsx` | Destination forecast |
 
-Full type definitions are in `src/store/types.ts`.
+Tool metadata for labels, descriptions, and icons is centralized in `src/lib/tools.ts` and reused by the landing page and grid navigation.
 
-### Key Actions
+## Shared App Shell
 
-| Action | Description |
+The root layout in `src/routes/__root.tsx` owns the shared runtime setup:
+
+- Creates the TanStack Query client
+- Injects the initial theme bootstrap script before hydration
+- Renders the top navigation and route outlet inside a common app shell
+- Mounts `ToastViewport` once for cross-tool notifications
+- Enables React Query and TanStack Router devtools in development only
+
+This allows each feature route to stay focused on its tool-specific UI while sharing the same document shell and navigation model.
+
+## Feature Modules
+
+### Trip Cost
+
+The `/trip` route renders `TripToolbar` plus the existing cost-splitting application in `src/App.tsx`.
+
+Key responsibilities:
+
+- Manage trip groups, including non-paying travellers
+- Record cost entries with shared, subset, or individual assignment
+- Support per-trip and per-entry markup
+- Group totals by original currency and compute USD totals from user-entered exchange rates
+- Persist trip state between sessions
+
+Primary modules:
+
+- `src/components/GroupSetup`
+- `src/components/CostLedger`
+- `src/components/CostSummary`
+- `src/store/tripStore.ts`
+- `src/lib/calculations.ts`
+
+### Currency Converter
+
+The `/currency` route renders `CurrencyTool`, a focused converter for six supported currencies.
+
+Key responsibilities:
+
+- Accept a base amount and two selected currencies
+- Load snapshot rate data through TanStack Query
+- Show the current conversion and base-to-target rate
+- Handle retry UI when the query fails
+
+The current implementation uses in-repo snapshot data from `src/features/currency/currencyData.ts`, not a live exchange-rate provider.
+
+### Timezone Tracker
+
+The `/timezone` route renders a configurable clock dashboard.
+
+Key responsibilities:
+
+- Save a local timezone preference
+- Add, remove, rename, and reorder tracked zones
+- Switch each zone between analog and digital display
+- Toggle per-zone UTC, date, and seconds visibility
+- Persist timezone configuration across sessions
+
+Primary modules:
+
+- `src/features/timezone/TimezoneNavbar.tsx`
+- `src/features/timezone/ClockGrid.tsx`
+- `src/features/timezone/ConfigModal`
+- `src/store/timezoneStore.ts`
+
+### Destination Forecast
+
+The `/forecast` route renders a destination lookup and climate summary workflow.
+
+Key responsibilities:
+
+- Search destinations through geocoding
+- Select a travel date range
+- Fetch climate averages for that destination and date window
+- Display local time, climate summary metrics, and daily breakdowns
+- Overlay curated events that match the selected destination and date range
+
+Forecast data is a mixed model:
+
+- Geocoding and climate summaries are fetched from Open-Meteo APIs
+- Event overlays come from the local `forecastEvents.ts` dataset
+
+## State Ownership
+
+### Persisted stores
+
+| Store | Storage key | Purpose |
+|---|---|---|
+| `src/store/tripStore.ts` | `mkt-trip-data` | Trip cost data, theme, exchange rates, and region selection |
+| `src/store/timezoneStore.ts` | `mkt-timezone-data` | Local timezone preference and tracked timezone cards |
+
+### Ephemeral stores
+
+| Store | Purpose |
 |---|---|
-| `addCouple` / `removeCouple` / `renameCouple` | Manage paying couples |
-| `reorderCouples` | Persist a new couple sort order |
-| `addNonPayingTraveller` / `removeNonPayingTraveller` | Manage non-paying travellers |
-| `addCost` / `editCost` / `deleteCost` | Manage cost entries |
-| `reorderCosts` | Persist a new cost sort order after drag-and-drop |
-| `bulkSetCurrency` | Apply a currency to an array of cost IDs in one action |
-| `setExchangeRate` | Set or update the USD rate for a given currency |
-| `setRegion` | Update the active region to filter available currencies |
-| `resetTrip` | Clear all state and `localStorage`; return to initial values |
+| `src/store/toastStore.ts` | In-memory notification queue for success, warning, and error toasts |
 
----
+### Query-managed data
 
-## Cost Splitting
+TanStack Query handles feature data that does not belong in a persisted store:
 
-Core logic lives in `src/lib/calculations.ts`. The main entry point for building the per-couple summary is `buildSummary`.
+- Currency snapshot queries
+- Forecast geocoding lookups
+- Forecast climate queries
 
-### Split Types
+## Trip Cost Domain Logic
+
+Core trip calculations live in `src/lib/calculations.ts`.
+
+### Split types
 
 | Split type | Who pays | Divisor |
 |---|---|---|
-| `shared` | All paying couples | `couples.length` |
-| `subset` | Selected paying couples only | `assignedCoupleIds.length` |
-| `individual` | Single couple, no division | 1 |
+| `shared` | All paying groups | `couples.length` |
+| `subset` | Selected paying groups only | `assignedCoupleIds.length` |
+| `individual` | One selected group | `1` |
 
-Non-paying travellers are never included in the divisor regardless of split type.
-
-### Split Modal Behavior
-
-When a cost is set to `subset` or `individual` split type, users open `SplitAssignmentModal` to select one or more couples. The modal enforces these rules:
-
-- **`subset` mode**: Checkbox selection of multiple couples; requires at least one selection to confirm
-- **`individual` mode**: Radio selection of exactly one couple; auto-closes and applies when a selection is made
-- **Auto-reset on close**: If the modal is closed without any selections in `subset` or `individual` mode, the split type automatically resets to `shared` (with empty `assignedCoupleIds`)
-
-This auto-reset prevents invalid cost states (e.g., a cost marked as `subset` but with no assigned couples). It allows users to change their mind about a split type without being forced to select groups.
+Non-paying travellers are never included in the divisor.
 
 ### Markup
 
-```
+```text
 effectiveMarkup = cost.markupOverride !== null ? cost.markupOverride : globalMarkup
 finalCost = baseValue × (1 + effectiveMarkup / 100)
 ```
 
+### Currency handling inside the trip tool
+
+- Cost entries retain their original currency code
+- USD totals are computed only after the user supplies exchange rates for each currency in the trip ledger
+- Grand USD totals appear only when all currencies in scope have rates
+
 ### Rounding
 
-Half-up rounding to 2 decimal places (`roundHalfUp` in `calculations.ts`). Where the rounded per-couple amount multiplied back produces a remainder versus the true total, the difference is added to the **first couple** in the list. This guarantees the sum of all per-couple shares always equals the total cost exactly.
+Half-up rounding is used for per-group cost allocation. Any remainder introduced by rounding is applied to the first group so that distributed totals still match the original total exactly.
 
----
+## External Data and Integrations
 
-## Currency Handling
+| Feature | Data source | Notes |
+|---|---|---|
+| Currency converter | Local snapshot dataset | Simulated rate snapshots shipped with the app |
+| Forecast geocoding | Open-Meteo geocoding API | Direct client fetch |
+| Forecast climate | Open-Meteo climate API | Direct client fetch using selected location and date range |
+| Forecast events | Local generated dataset | Refreshed through `scripts/sync-forecast-events.mjs` |
 
-Costs retain their original currency code and are never automatically converted. The `CostSummary` component groups each couple's costs by currency and shows:
+## Persistence and Storage
 
-1. Per-currency subtotals (shared + subset + individual buckets)
-2. USD equivalents — computed only after the user supplies an exchange rate for that currency
-3. Grand total USD across all currencies (shown only when all currencies have rates)
+- Zustand `persist` rehydrates trip and timezone state automatically on page load
+- Theme is restored before hydration through an inline bootstrap script in the root route
+- Toasts are intentionally not persisted
+- Query results are cached in memory by TanStack Query according to feature-specific query settings
 
-No aggregation across currencies occurs until the user provides exchange rates.
-
----
-
-## Data Persistence
-
-Zustand's `persist` middleware serialises the entire store to `localStorage` as JSON on every state change. On page load, the middleware rehydrates automatically — no explicit save action is needed.
-
-The **Start New Trip** action calls `resetTrip()`, which:
-1. Resets all state fields to their initial values (empty arrays, default markup, etc.)
-2. Clears the `localStorage` key via Zustand's `persist` `clearStorage` utility
-
----
-
-## Region Filtering
-
-Regions organize currencies by geography and are defined in `src/store/types.ts` as a mapping from region name to available currency codes:
-- **North America**: CAD, USD
-- **Europe**: EUR, GBP
-- **Asia**: JPY, SGD, HKD, INR, THB
-- **Oceania**: AUD, NZD
-- **Americas**: MXN, BRL
-- **Africa**: ZAR
-
-CAD and USD are globally available in all regions as fallbacks. When a user selects a region via the `RegionSelector` component, the cost entry form displays currencies available in that region plus the always-available currencies. This streamlines the currency selection UX for users on multi-region trips.
-
----
-
-## Toast Notifications
-
-Global toasts are handled by `src/store/toastStore.ts` and rendered by `src/components/ToastViewport.tsx`.
-
-- Toast state is **ephemeral** and intentionally not persisted to `localStorage`.
-- Supported variants: `success`, `warning`, `error`.
-- Each toast includes a title, message, and auto-dismiss duration.
-- For save failures, `CostLedger` normalizes runtime/storage errors to user-friendly messages explaining why save failed.
-- `EditRow` emits warning toasts for validation failures (missing name, invalid amount, missing assignment for subset/solo).
-
-This design allows any component to emit a toast through a shared store while keeping trip data persistence isolated to `tripStore`.
-
----
-
-## Responsive Design
-
-The app uses a mobile-first responsive CSS approach:
-
-1. **Mobile Card Layout** — Cost ledger displays as a card-based layout on small screens (defined in `src/index.css`), with each cost rendered as a horizontal card.
-2. **Adaptive Grid** — Edit forms use responsive grid layout that adjusts field widths and spacing for different screen sizes.
-3. **Toast Viewport Placement** — Toasts are fixed near the top of the viewport and repositioned by breakpoint to remain visible on mobile, tablet, and desktop without conflicting with sticky navigation.
-4. **Theme-aware Styling** — All components use CSS custom properties (`--bg-1`, `--text`, `--border`, etc.) to adapt colors for light and dark modes without component-level logic.
-5. **Touch-friendly** — Interactive elements use sufficient padding and border-radius for touch targets on mobile devices.
-
----
+The trip reset flow restores the trip store to its initial state while preserving the currently active theme.
 
 ## Testing
 
-The project uses **Vitest** as the test runner with React Testing Library for component testing.
-
-### Test Files
-- `src/**/*.test.tsx` — Unit and integration tests colocated with source files
-- `src/integration.test.tsx` — High-level integration tests covering couple management, dark mode, and persistence
-
-### Tested Areas (v1.0.1)
-- Couple icon and color updates
-- Dark mode theme toggling and persistence
-- State persistence to `localStorage`
-- CostRow component rendering and interactions
-
-Run tests with `npm run test` or `npm run test:watch` for development.
-
----
+The repo uses Vitest and React Testing Library for unit, component, and integration coverage. Tests are colocated with feature modules and shared components, with additional integration coverage at the app level.
 
 ## Deployment
 
-The app is a fully static output (`dist/`). `wrangler.toml` configures Cloudflare Workers to serve the `dist/` directory as a static asset bundle. No serverless functions are used.
+MKT is deployed to Cloudflare Workers through the TanStack Start server entry configured in `wrangler.toml`:
 
 ```toml
 name = "mkt"
-compatibility_date = "2024-01-01"
-
-[assets]
-directory = "./dist"
+compatibility_date = "2025-09-02"
+compatibility_flags = ["nodejs_compat"]
+main = "@tanstack/react-start/server-entry"
 ```
+
+`vite.config.ts` enables the Cloudflare Vite plugin in SSR mode alongside the TanStack Start plugin. The build produces separate client and server outputs under `dist/client` and `dist/server`.
 
 Build and deploy:
 
@@ -196,3 +204,10 @@ Build and deploy:
 npm run build
 wrangler deploy
 ```
+
+## Architecture Boundaries
+
+- No first-party backend API or database is defined in this repo
+- Remote data access is limited to direct client fetches for forecast data
+- The currency converter currently uses shipped snapshot data rather than a live rates service
+- The trip and timezone tools are fully client-side and persist locally in the browser
