@@ -30,7 +30,7 @@ describe('GridPanel', () => {
     expect(screen.queryByRole('button', { name: 'Close tool navigation' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Trip Cost' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Currency Converter' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Timezone Converter' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Timezone Tracker' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Destination Forecast' })).toBeInTheDocument();
   });
 
