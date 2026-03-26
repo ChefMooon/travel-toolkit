@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en" class="theme-preload">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>MKT</title>
+    <script>
+      (function () {
+        var storageKey = 'mkt-trip-data';
+        var fallbackTheme = 'light';
+        var root = document.documentElement;
+        var theme = fallbackTheme;
+
+        try {
+          var storedValue = window.localStorage.getItem(storageKey);
+
+          if (storedValue) {
+            var parsedValue = JSON.parse(storedValue);
+            var persistedTheme = parsedValue && parsedValue.state && parsedValue.state.theme;
+
+            if (persistedTheme === 'light' || persistedTheme === 'dark') {
+              theme = persistedTheme;
+            }
+          }
+        } catch (error) {
+          theme = fallbackTheme;
+        }
+
+        root.dataset.theme = theme;
+        root.style.colorScheme = theme;
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

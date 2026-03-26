@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { HeadContent, Outlet, Scripts, createRootRoute } from '@tanstack/react-router';
+import { Outlet, createRootRoute } from '@tanstack/react-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
@@ -7,32 +7,6 @@ import { createQueryClient } from '@/lib/queryClient';
 import { useTripStore } from '@/store/tripStore';
 import Navbar from '@/components/Navbar';
 import ToastViewport from '@/components/ToastViewport';
-import appCssUrl from '@/index.css?url';
-
-const INITIAL_THEME_SCRIPT = `(function(){
-  var storageKey = 'mkt-trip-data';
-  var fallbackTheme = 'light';
-  var root = document.documentElement;
-  var theme = fallbackTheme;
-
-  try {
-    var storedValue = window.localStorage.getItem(storageKey);
-
-    if (storedValue) {
-      var parsedValue = JSON.parse(storedValue);
-      var persistedTheme = parsedValue && parsedValue.state && parsedValue.state.theme;
-
-      if (persistedTheme === 'light' || persistedTheme === 'dark') {
-        theme = persistedTheme;
-      }
-    }
-  } catch (error) {
-    theme = fallbackTheme;
-  }
-
-  root.dataset.theme = theme;
-  root.style.colorScheme = theme;
-})();`;
 
 function ThemeSync() {
   const theme = useTripStore((s) => s.theme);
@@ -88,32 +62,7 @@ function RouteError() {
   );
 }
 
-function RootDocument({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en" className="theme-preload" suppressHydrationWarning>
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  );
-}
-
 export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { name: 'color-scheme', content: 'light dark' },
-      { title: 'MKT' },
-    ],
-    links: [{ rel: 'stylesheet', href: appCssUrl }],
-    scripts: [{ children: INITIAL_THEME_SCRIPT }],
-  }),
-  shellComponent: RootDocument,
   component: RootLayout,
   notFoundComponent: NotFoundRoute,
   errorComponent: RouteError,
