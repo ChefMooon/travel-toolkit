@@ -9,42 +9,80 @@ vi.mock('@/features/currency/useCurrencySnapshot', () => ({
   useCurrencySnapshot: vi.fn(),
 }));
 
-import { useCurrencySnapshot } from '@/features/currency/useCurrencySnapshot';
+vi.mock('@/features/currency/useCurrencyMetadata', () => ({
+  useCurrencyMetadata: vi.fn(),
+}));
 
+vi.mock('@/features/currency/useCurrencyProviders', () => ({
+  useCurrencyProviders: vi.fn(),
+}));
+
+vi.mock('@/store/currencyStore', () => ({
+  useCurrencyStore: vi.fn((selector: (s: { region: string; setRegion: ReturnType<typeof vi.fn> }) => unknown) =>
+    selector({ region: 'Europe', setRegion: vi.fn() }),
+  ),
+}));
+
+vi.mock('@/features/currency/CurrencyRegionSelector', () => ({
+  default: () => <div data-testid="region-selector" />,
+}));
+
+import { useCurrencySnapshot } from '@/features/currency/useCurrencySnapshot';
+import { useCurrencyMetadata } from '@/features/currency/useCurrencyMetadata';
+import { useCurrencyProviders } from '@/features/currency/useCurrencyProviders';
+
+// Europe region: getAvailableCurrencies('Europe') = ['CAD', 'EUR', 'GBP', 'USD']
+// Default: base = 'CAD', target = 'EUR'
 const mockRates = {
-  USD: 1,
-  EUR: 0.92,
-  GBP: 0.78,
-  CAD: 1.36,
-  JPY: 149.2,
-  AUD: 1.53,
+  CAD: 1,
+  EUR: 0.68,
+  GBP: 0.57,
+  USD: 0.74,
 };
+
+const mockMeta = {
+  CAD: { name: 'Canadian Dollar', symbol: 'C$' },
+  EUR: { name: 'Euro', symbol: '€' },
+  GBP: { name: 'British Pound', symbol: '£' },
+  USD: { name: 'US Dollar', symbol: '$' },
+};
+
+const mockProviders = [
+  {
+    key: 'ECB',
+    name: 'European Central Bank',
+    url: 'https://ecb.europa.eu',
+    currencies: ['CAD', 'EUR', 'GBP', 'USD'],
+  },
+  {
+    key: 'BOC',
+    name: 'Bank of Canada',
+    url: 'https://bankofcanada.ca',
+    currencies: ['CAD', 'USD'],
+  },
+];
 
 const successQuery = {
-  data: { updatedAt: 'Updated moments ago', rates: mockRates },
+  data: { base: 'CAD', updatedAt: '2026-03-26', rates: mockRates },
   isPending: false,
   isError: false,
   refetch: vi.fn(),
 };
 
-const pendingQuery = {
-  data: undefined,
-  isPending: true,
-  isError: false,
-  refetch: vi.fn(),
-};
+const pendingQuery = { data: undefined, isPending: true, isError: false, refetch: vi.fn() };
+const errorQuery = { data: undefined, isPending: false, isError: true, refetch: vi.fn() };
 
-const errorQuery = {
-  data: undefined,
-  isPending: false,
-  isError: true,
-  refetch: vi.fn(),
-};
+const successMeta = { data: mockMeta, isPending: false, isError: false };
+const successProviders = { data: mockProviders, isPending: false, isError: false };
+const idleMeta = { data: undefined, isPending: false, isError: false };
+const idleProviders = { data: undefined, isPending: false, isError: false };
 
 describe('CurrencyTool', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     (useCurrencySnapshot as ReturnType<typeof vi.fn>).mockReturnValue(successQuery);
+    (useCurrencyMetadata as ReturnType<typeof vi.fn>).mockReturnValue(successMeta);
+    (useCurrencyProviders as ReturnType<typeof vi.fn>).mockReturnValue(successProviders);
   });
 
   it('FE-CUR-001 renders amount input and base/target dropdowns with default values', () => {
@@ -52,9 +90,10 @@ describe('CurrencyTool', () => {
 
     expect(screen.getByRole('spinbutton')).toHaveValue(100);
 
+    // CurrencyRegionSelector is mocked — only base + target selects are in the DOM
     const selects = screen.getAllByRole('combobox');
     expect(selects).toHaveLength(2);
-    expect(selects[0]).toHaveValue('USD');
+    expect(selects[0]).toHaveValue('CAD');
     expect(selects[1]).toHaveValue('EUR');
   });
 
@@ -76,13 +115,10 @@ describe('CurrencyTool', () => {
   it('FE-CUR-004 displays rate line and formatted conversion after successful load', () => {
     render(<CurrencyTool />);
 
-    // Rate snapshot line: "1 USD = 0.9200 EUR"
-    expect(screen.getByText('1 USD')).toBeInTheDocument();
-    expect(screen.getByText(/0\.9200/)).toBeInTheDocument();
-
-    // Conversion totals: $100.00 → €92.00
-    expect(screen.getByText('$100.00')).toBeInTheDocument();
-    expect(screen.getByText('€92.00')).toBeInTheDocument();
+    expect(screen.getByText('1 CAD')).toBeInTheDocument();
+    expect(screen.getByText(/0\.6800/)).toBeInTheDocument();
+    expect(screen.getByText('CA$100.00')).toBeInTheDocument();
+    expect(screen.getByText('€68.00')).toBeInTheDocument();
   });
 
   it('FE-CUR-005 changing the target currency updates the displayed conversion', () => {
@@ -91,8 +127,8 @@ describe('CurrencyTool', () => {
     const selects = screen.getAllByRole('combobox');
     fireEvent.change(selects[1]!, { target: { value: 'GBP' } });
 
-    expect(screen.getByText(/0\.7800/)).toBeInTheDocument();
-    expect(screen.getByText('£78.00')).toBeInTheDocument();
+    expect(screen.getByText(/0\.5700/)).toBeInTheDocument();
+    expect(screen.getByText('£57.00')).toBeInTheDocument();
   });
 
   it('FE-CUR-006 negative amount input is treated as zero without crashing', () => {
@@ -101,5 +137,62 @@ describe('CurrencyTool', () => {
     fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '-50' } });
 
     expect(screen.getByText('€0.00')).toBeInTheDocument();
+  });
+
+  it('FE-CUR-008 dropdowns show full currency names from metadata', () => {
+    render(<CurrencyTool />);
+
+    const selects = screen.getAllByRole('combobox');
+    const baseSelect = selects[0]!;
+    expect(baseSelect.querySelector('option[value="CAD"]')?.textContent).toBe(
+      'CAD — Canadian Dollar',
+    );
+    expect(baseSelect.querySelector('option[value="EUR"]')?.textContent).toBe('EUR — Euro');
+  });
+
+  it('FE-CUR-009 relevant providers toggle shows/hides provider rows', () => {
+    render(<CurrencyTool />);
+
+    // Toggle button is visible with correct label
+    const toggle = screen.getByRole('button', { name: /Sources for CAD/i });
+    expect(toggle).toBeInTheDocument();
+
+    // Provider rows are hidden by default
+    expect(screen.queryByRole('link', { name: /European Central Bank/i })).not.toBeInTheDocument();
+
+    // Click to open
+    fireEvent.click(toggle);
+    expect(screen.getByRole('link', { name: /European Central Bank/i })).toBeInTheDocument();
+
+    // BOC covers CAD + USD but not EUR → not present after opening
+    expect(screen.queryByRole('link', { name: /Bank of Canada/i })).not.toBeInTheDocument();
+  });
+
+  it('FE-CUR-010 sources toggle arrow changes on open/close', () => {
+    render(<CurrencyTool />);
+
+    const toggle = screen.getByRole('button', { name: /Sources for CAD/i });
+    expect(toggle.textContent).toContain('▸');
+
+    fireEvent.click(toggle);
+    expect(toggle.textContent).toContain('▾');
+
+    fireEvent.click(toggle);
+    expect(toggle.textContent).toContain('▸');
+  });
+
+  it('FE-CUR-012 dropdowns show raw code when metadata is unavailable', () => {
+    (useCurrencyMetadata as ReturnType<typeof vi.fn>).mockReturnValue(idleMeta);
+    render(<CurrencyTool />);
+
+    const selects = screen.getAllByRole('combobox');
+    expect(selects[0]!.querySelector('option[value="CAD"]')?.textContent).toBe('CAD');
+  });
+
+  it('FE-CUR-013 sources toggle not rendered when no relevant providers', () => {
+    (useCurrencyProviders as ReturnType<typeof vi.fn>).mockReturnValue(idleProviders);
+    render(<CurrencyTool />);
+
+    expect(screen.queryByRole('button', { name: /Sources for/i })).not.toBeInTheDocument();
   });
 });

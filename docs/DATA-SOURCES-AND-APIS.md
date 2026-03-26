@@ -6,7 +6,10 @@ This project does not use a project-owned backend or database. All runtime data 
 
 | Surface | Source | Type | Used by | Notes |
 |---|---|---|---|---|
-| Currency converter | In-repo rate snapshots in [src/features/currency/currencyData.ts](../src/features/currency/currencyData.ts) | Local dataset | `CurrencyTool` via `useCurrencySnapshot` | Simulated snapshot table for `USD`, `EUR`, `GBP`, `CAD`, `JPY`, and `AUD`. No live exchange-rate API is called at runtime. |
+| Currency exchange rates | Frankfurter v2 API (`/v2/rates`) | External HTTP API | `CurrencyTool` via `useCurrencySnapshot` | Fetches live rates for the selected base currency scoped to region-visible currencies. Cached 5 minutes and auto-refetched while the page is open; also refetched on base or region change. |
+| Currency metadata | Frankfurter v2 API (`/v2/currencies`) | External HTTP API | `CurrencyTool` via `useCurrencyMetadata` | Full currency names and symbols used in dropdowns. Cached 24 hours; fetched once per session. |
+| Currency providers | Frankfurter v2 API (`/v2/providers`) | External HTTP API | `CurrencyTool` via `useCurrencyProviders` | Provider list with source links and per-provider currency coverage. Filtered client-side to show providers relevant to the selected pair. Cached 24 hours. |
+| Currency region state | Browser `localStorage` via Zustand `persist` | Browser storage | [src/store/currencyStore.ts](../src/store/currencyStore.ts) | Persists the selected region for the currency converter under `mkt-currency-data`. |
 | Destination search | Open-Meteo geocoding API | External HTTP API | Forecast destination search in [src/features/forecast/forecastData.ts](../src/features/forecast/forecastData.ts) | Called with the user’s search query to resolve candidate destinations, coordinates, timezone, and population. |
 | Climate summary | Open-Meteo climate API | External HTTP API | Forecast climate lookup in [src/features/forecast/forecastData.ts](../src/features/forecast/forecastData.ts) | Called with destination coordinates and the selected date range. The implementation requests daily climate variables and averages them across matching month/day windows. |
 | Forecast events | Checked-in event list generated from an external CSV source | Local generated dataset | Forecast event overlay in [src/features/forecast/forecastEvents.ts](../src/features/forecast/forecastEvents.ts) | Runtime code filters the generated event list by destination and date range. The source sheet is synced by [scripts/sync-forecast-events.mjs](../scripts/sync-forecast-events.mjs). |
@@ -14,6 +17,35 @@ This project does not use a project-owned backend or database. All runtime data 
 | Timezone state | Browser `localStorage` via Zustand `persist` | Browser storage | [src/store/timezoneStore.ts](../src/store/timezoneStore.ts) | Persists the local timezone preference and tracked timezone cards under `mkt-timezone-data`. |
 
 ## External APIs
+
+### Frankfurter API
+
+#### Exchange Rates
+
+- Endpoint: `https://api.frankfurter.dev/v2/rates`
+- Location: [src/features/currency/currencyData.ts](../src/features/currency/currencyData.ts)
+- Purpose: Fetch live exchange rates for the currency converter
+- Input: `base` (selected base currency ISO code), `quotes` (comma-separated region-scoped target currencies)
+- Output used: `date` (mapped to `updatedAt`), `quote` and `rate` pairs from the response array
+- Cache: `staleTime: 5 minutes`; refetched every 5 minutes while the currency page is mounted, paused in hidden tabs, and refetched when base currency or region changes (`queryKey` includes both)
+
+#### Currency Metadata
+
+- Endpoint: `https://api.frankfurter.dev/v2/currencies`
+- Location: [src/features/currency/currencyData.ts](../src/features/currency/currencyData.ts)
+- Purpose: Fetch full currency names and symbols for display in dropdowns
+- Input: None
+- Output used: `iso_code`, `name`, `symbol`
+- Cache: `staleTime: 24 hours`; fetched once per session
+
+#### Currency Providers
+
+- Endpoint: `https://api.frankfurter.dev/v2/providers`
+- Location: [src/features/currency/currencyData.ts](../src/features/currency/currencyData.ts)
+- Purpose: List all data sources behind the Frankfurter rates; displayed in the Data Sources section of the currency page
+- Input: None
+- Output used: `key`, `name`, `data_url`, `currencies` (used client-side to filter providers that cover the selected base and target currency)
+- Cache: `staleTime: 24 hours`; fetched once per session
 
 ### Open-Meteo Geocoding API
 
@@ -32,10 +64,6 @@ This project does not use a project-owned backend or database. All runtime data 
 - Output used: daily temperature, precipitation, rainfall, snowfall, sunshine duration, daylight duration, and windspeed series
 
 ## In-Repo Datasets
-
-### Currency snapshots
-
-The currency converter uses a static snapshot table defined in [src/features/currency/currencyData.ts](../src/features/currency/currencyData.ts). The table is keyed by base currency and returns pre-baked rates between the supported currencies. This keeps the converter deterministic and removes any dependency on a live exchange-rate service.
 
 ### Forecast events
 
@@ -58,13 +86,14 @@ The sync script validates each row, keeps only supported event types, and rewrit
 
 ### Network requests
 
+- The currency converter uses the browser `fetch` API for Frankfurter v2 requests in [src/features/currency/currencyData.ts](../src/features/currency/currencyData.ts)
 - The forecast tool uses the browser `fetch` API for Open-Meteo requests in [src/features/forecast/forecastData.ts](../src/features/forecast/forecastData.ts)
 - The forecast sync script uses Node’s built-in `fetch` to download the CSV source in [scripts/sync-forecast-events.mjs](../scripts/sync-forecast-events.mjs)
 
 ## Summary
 
-- Currency conversion is local and deterministic
+- Currency conversion uses live rates from the Frankfurter v2 API; metadata and providers are cached for 24 hours, and rates refresh every 5 minutes while the currency page is open
 - Forecast search and climate data are fetched live from Open-Meteo
 - Forecast events are sourced externally but committed into the repo as generated data
-- Trip and timezone tools persist only in the browser
+- Trip, timezone, and currency region tools persist only in the browser
 - There is no first-party API server in this repository
