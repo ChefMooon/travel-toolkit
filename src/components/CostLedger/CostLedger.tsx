@@ -39,6 +39,7 @@ export default function CostLedger() {
   const [isAdding, setIsAdding] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [bulkCurrency, setBulkCurrency] = useState('EUR');
+  const [defaultEntryCurrency, setDefaultEntryCurrency] = useState('USD');
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -55,7 +56,10 @@ export default function CostLedger() {
     if (!availableBulkCurrencies.includes(bulkCurrency)) {
       setBulkCurrency(defaultCurrency);
     }
-  }, [availableBulkCurrencies, bulkCurrency]);
+    if (!availableBulkCurrencies.includes(defaultEntryCurrency)) {
+      setDefaultEntryCurrency(defaultCurrency);
+    }
+  }, [availableBulkCurrencies, bulkCurrency, defaultEntryCurrency]);
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
@@ -137,10 +141,33 @@ export default function CostLedger() {
     <>
       <div className="card" style={{ marginTop: 16 }}>
         <div className="card-header">
-          <span className="card-title">Cost Ledger</span>
-          <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 700 }}>
-            {costs.length} {costs.length === 1 ? 'entry' : 'entries'}
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <span className="card-title">Cost Ledger</span>
+            <span aria-hidden="true" style={{ color: 'var(--text-3)', fontWeight: 700 }}>·</span>
+            <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 700 }}>
+              {costs.length} {costs.length === 1 ? 'entry' : 'entries'}
+            </span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <label
+              htmlFor="default-entry-currency-select"
+              style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 600 }}
+            >
+              Default currency
+            </label>
+            <select
+              id="default-entry-currency-select"
+              data-testid="default-entry-currency-select"
+              className="tool-input"
+              style={{ width: 'auto', fontSize: 12, padding: '2px 8px', lineHeight: 1.1, minHeight: 28 }}
+              value={defaultEntryCurrency}
+              onChange={(e) => setDefaultEntryCurrency(e.target.value)}
+            >
+              {availableBulkCurrencies.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <BulkActionBar
@@ -198,6 +225,7 @@ export default function CostLedger() {
 
               {isAdding && (
                 <EditRow
+                  defaultCurrency={defaultEntryCurrency}
                   onSave={handleAddSave}
                   onCancel={() => setIsAdding(false)}
                 />

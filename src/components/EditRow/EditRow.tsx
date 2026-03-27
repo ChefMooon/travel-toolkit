@@ -15,6 +15,7 @@ interface EditRowProps {
     splitType: SplitType;
     assignedCoupleIds: string[];
   };
+  defaultCurrency?: string;
   onSave: (data: {
     name: string;
     currency: string;
@@ -26,7 +27,7 @@ interface EditRowProps {
   onCancel: () => void;
 }
 
-export default function EditRow({ initial, onSave, onCancel }: EditRowProps) {
+export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: EditRowProps) {
   const couples = useTripStore((s) => s.couples);
   const globalMarkup = useTripStore((s) => s.globalMarkup);
   const region = useTripStore((s) => s.region);
@@ -34,7 +35,7 @@ export default function EditRow({ initial, onSave, onCancel }: EditRowProps) {
   const pushToast = useToastStore((s) => s.pushToast);
 
   const [name, setName] = useState(initial?.name ?? '');
-  const [currency, setCurrency] = useState(initial?.currency ?? 'USD');
+  const [currency, setCurrency] = useState(initial?.currency ?? defaultCurrency ?? 'USD');
   const [value, setValue] = useState(initial?.value?.toString() ?? '');
   const [useGlobalMarkup, setUseGlobalMarkup] = useState(initial?.markupOverride === null || initial?.markupOverride === undefined);
   const [markupOverride, setMarkupOverride] = useState(
