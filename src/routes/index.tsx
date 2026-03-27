@@ -1,9 +1,7 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { TOOLS } from '@/lib/tools';
 
 export default function LandingPage() {
-  const navigate = useNavigate();
-
   return (
     <section className="tool-landing" aria-label="Tool launcher">
       <header className="tool-landing-header">
@@ -13,16 +11,15 @@ export default function LandingPage() {
 
       <div className="tool-grid">
         {TOOLS.map((tool) => (
-          <button
+          <Link
             key={tool.route}
-            type="button"
+            to={tool.route}
             className="tool-card"
-            onClick={() => navigate({ to: tool.route })}
           >
             <img src={tool.icon} alt="" aria-hidden="true" />
             <span className="tool-card-label">{tool.label}</span>
             <span className="tool-card-desc">{tool.description}</span>
-          </button>
+          </Link>
         ))}
       </div>
     </section>

@@ -5,15 +5,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import GridPanel from '@/components/GridPanel';
 
-const navigateMock = vi.fn();
-
 vi.mock('@tanstack/react-router', () => ({
-  useNavigate: () => navigateMock,
+  Link: ({ to, children, ...props }: React.ComponentProps<'a'> & { to: string }) => (
+    <a href={to} {...props}>
+      {children}
+    </a>
+  ),
 }));
 
 describe('GridPanel', () => {
   beforeEach(() => {
-    navigateMock.mockReset();
+    vi.clearAllMocks();
   });
 
   it('renders nothing when closed', () => {
@@ -28,20 +30,19 @@ describe('GridPanel', () => {
 
     expect(screen.getByRole('dialog', { name: 'Tool navigation' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Close tool navigation' })).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Trip Cost' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Currency Converter' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Timezone Tracker' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Destination Forecast' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Trip Cost' })).toHaveAttribute('href', '/trip');
+    expect(screen.getByRole('link', { name: 'Currency Converter' })).toHaveAttribute('href', '/currency');
+    expect(screen.getByRole('link', { name: 'Timezone Tracker' })).toHaveAttribute('href', '/timezone');
+    expect(screen.getByRole('link', { name: 'Destination Forecast' })).toHaveAttribute('href', '/forecast');
   });
 
-  it('navigates and closes when selecting a tool', () => {
+  it('closes when selecting a tool link', () => {
     const onClose = vi.fn();
     const triggerRef = { current: document.createElement('button') };
     render(<GridPanel open={true} onClose={onClose} triggerRef={triggerRef} />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Trip Cost' }));
+    fireEvent.click(screen.getByRole('link', { name: 'Trip Cost' }));
 
-    expect(navigateMock).toHaveBeenCalledWith({ to: '/trip' });
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

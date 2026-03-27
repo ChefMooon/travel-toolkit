@@ -212,6 +212,7 @@ body::before {
   border-radius: 12px;
   background: var(--surface-2);
   color: var(--text);
+  text-decoration: none;
   min-height: 106px;
   font-weight: 700;
   padding: 12px 10px;
@@ -534,6 +535,8 @@ body::before {
   border-radius: 16px;
   background: var(--surface);
   box-shadow: var(--shadow-sm);
+  color: var(--text);
+  text-decoration: none;
   min-height: 130px;
   padding: 16px;
   display: flex;

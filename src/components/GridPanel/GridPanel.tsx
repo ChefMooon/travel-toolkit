@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { TOOLS } from '@/lib/tools';
-import { useNavigate } from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
 
 type GridPanelProps = {
   open: boolean;
@@ -9,7 +9,6 @@ type GridPanelProps = {
 };
 
 export default function GridPanel({ open, onClose, triggerRef }: GridPanelProps) {
-  const navigate = useNavigate();
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -87,18 +86,15 @@ export default function GridPanel({ open, onClose, triggerRef }: GridPanelProps)
         tabIndex={-1}
       >
         {TOOLS.map((tool) => (
-          <button
+          <Link
             key={tool.route}
-            type="button"
+            to={tool.route}
             className="grid-panel-item"
-            onClick={() => {
-              navigate({ to: tool.route });
-              onClose();
-            }}
+            onClick={onClose}
           >
             <img src={tool.icon} alt="" aria-hidden="true" />
             <span className="grid-panel-item-title">{tool.label}</span>
-          </button>
+          </Link>
         ))}
       </div>
     </>
