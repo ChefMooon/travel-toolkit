@@ -668,9 +668,32 @@ body::before {
   gap: 12px;
 }
 
+.currency-swap-button {
+  min-height: 44px;
+  width: 44px;
+  justify-self: center;
+  align-self: end;
+  border: 1.5px solid var(--border-2);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.currency-swap-button:hover {
+  border-color: var(--c3);
+}
+
+.currency-swap-button:focus-visible {
+  outline: 3px solid color-mix(in oklab, var(--c3) 45%, white);
+  outline-offset: 2px;
+}
+
 @media (min-width: 768px) {
   .currency-controls {
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr auto 1fr;
     align-items: end;
   }
 }

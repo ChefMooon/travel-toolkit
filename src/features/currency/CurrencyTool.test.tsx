@@ -32,7 +32,7 @@ import { useCurrencyMetadata } from '@/features/currency/useCurrencyMetadata';
 import { useCurrencyProviders } from '@/features/currency/useCurrencyProviders';
 
 // Europe region: getAvailableCurrencies('Europe') = ['CAD', 'EUR', 'GBP', 'USD']
-// Default: base = 'CAD', target = 'EUR'
+// Default: base = 'CAD', target = 'USD' (USD is preferred when available)
 const mockRates = {
   CAD: 1,
   EUR: 0.68,
@@ -94,7 +94,7 @@ describe('CurrencyTool', () => {
     const selects = screen.getAllByRole('combobox');
     expect(selects).toHaveLength(2);
     expect(selects[0]).toHaveValue('CAD');
-    expect(selects[1]).toHaveValue('EUR');
+    expect(selects[1]).toHaveValue('USD');
   });
 
   it('FE-CUR-002 shows loading status while query is pending', () => {
@@ -116,9 +116,9 @@ describe('CurrencyTool', () => {
     render(<CurrencyTool />);
 
     expect(screen.getByText('1 CAD')).toBeInTheDocument();
-    expect(screen.getByText(/0\.6800/)).toBeInTheDocument();
+    expect(screen.getByText(/0\.7400/)).toBeInTheDocument();
     expect(screen.getByText('CA$100.00')).toBeInTheDocument();
-    expect(screen.getByText('€68.00')).toBeInTheDocument();
+    expect(screen.getByText('$74.00')).toBeInTheDocument();
   });
 
   it('FE-CUR-005 changing the target currency updates the displayed conversion', () => {
@@ -136,7 +136,20 @@ describe('CurrencyTool', () => {
 
     fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '-50' } });
 
-    expect(screen.getByText('€0.00')).toBeInTheDocument();
+    expect(screen.getByText('$0.00')).toBeInTheDocument();
+  });
+
+  it('FE-CUR-007 swap button swaps from and to currencies', () => {
+    render(<CurrencyTool />);
+
+    const selects = screen.getAllByRole('combobox');
+    expect(selects[0]).toHaveValue('CAD');
+    expect(selects[1]).toHaveValue('USD');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Swap from and to currencies' }));
+
+    expect(selects[0]).toHaveValue('USD');
+    expect(selects[1]).toHaveValue('CAD');
   });
 
   it('FE-CUR-008 dropdowns show full currency names from metadata', () => {
@@ -164,8 +177,8 @@ describe('CurrencyTool', () => {
     fireEvent.click(toggle);
     expect(screen.getByRole('link', { name: /European Central Bank/i })).toBeInTheDocument();
 
-    // BOC covers CAD + USD but not EUR → not present after opening
-    expect(screen.queryByRole('link', { name: /Bank of Canada/i })).not.toBeInTheDocument();
+    // BOC covers CAD + USD, which is the default pair
+    expect(screen.getByRole('link', { name: /Bank of Canada/i })).toBeInTheDocument();
   });
 
   it('FE-CUR-010 sources toggle arrow changes on open/close', () => {

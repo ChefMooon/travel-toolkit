@@ -95,6 +95,11 @@ export default function CurrencyTool() {
     return meta ? `${code} — ${meta.name}` : code;
   }
 
+  function handleSwapCurrencies() {
+    setBaseCurrency(targetCurrency);
+    setTargetCurrency(baseCurrency);
+  }
+
   return (
     <section className="tool-page" aria-label="Currency converter">
       <h1>Currency Converter</h1>
@@ -140,6 +145,16 @@ export default function CurrencyTool() {
               ))}
             </select>
           </label>
+
+          <button
+            type="button"
+            className="currency-swap-button"
+            onClick={handleSwapCurrencies}
+            aria-label="Swap from and to currencies"
+            title="Swap currencies"
+          >
+            ↔
+          </button>
 
           <label className="tool-field">
             <span className="tool-label">To</span>
