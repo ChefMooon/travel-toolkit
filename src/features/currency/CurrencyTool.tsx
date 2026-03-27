@@ -42,7 +42,18 @@ export default function CurrencyTool() {
 
   const [amountInput, setAmountInput] = useState('100');
   const [baseCurrency, setBaseCurrency] = useState(() => availableCurrencies[0] ?? 'EUR');
-  const [targetCurrency, setTargetCurrency] = useState(() => availableCurrencies[1] ?? 'USD');
+  const [targetCurrency, setTargetCurrency] = useState(() => {
+    // Prefer USD as the default target currency
+    if (availableCurrencies.includes('USD') && availableCurrencies[0] !== 'USD') {
+      return 'USD';
+    }
+    // If USD is first available, use the second available currency
+    if (availableCurrencies[0] === 'USD') {
+      return availableCurrencies[1] ?? 'EUR';
+    }
+    // Fallback to second available currency
+    return availableCurrencies[1] ?? 'EUR';
+  });
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
 
