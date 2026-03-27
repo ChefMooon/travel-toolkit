@@ -3007,6 +3007,7 @@ tr.add-row td { padding: 0; border: none; }
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding: 3px;
   margin-bottom: 16px;
   flex: 1;
   overflow-y: auto;
@@ -3065,6 +3066,28 @@ tr.add-row td { padding: 0; border: none; }
 
 .split-modal-couple:hover {
   background: var(--bg-3);
+}
+
+.split-modal-couple-btn {
+  width: 100%;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+
+.split-modal-couple-btn.is-selected {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent) inset;
+}
+
+.split-modal-couple-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 0;
+}
+
+.split-modal-radio {
+  width: 16px;
+  display: inline-flex;
+  justify-content: center;
 }
 
 .split-modal-couple input {

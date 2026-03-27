@@ -274,11 +274,12 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
           </div>
           <div className="ef">
             <label className="ef-lbl">Split</label>
-            <div className="seg">
+            <div role="group" aria-label="Split type" className="seg">
               <button
                 className={`seg-btn${splitType === 'shared' ? ' on' : ''}`}
                 onClick={() => openSplitModalFor('shared')}
                 type="button"
+                aria-pressed={splitType === 'shared'}
               >
                 All
               </button>
@@ -286,6 +287,7 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
                 className={`seg-btn${splitType === 'subset' ? ' on' : ''}`}
                 onClick={() => openSplitModalFor('subset')}
                 type="button"
+                aria-pressed={splitType === 'subset'}
               >
                 Subset
               </button>
@@ -293,6 +295,7 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
                 className={`seg-btn${splitType === 'individual' ? ' on' : ''}`}
                 onClick={() => openSplitModalFor('individual')}
                 type="button"
+                aria-pressed={splitType === 'individual'}
               >
                 Solo
               </button>
@@ -361,6 +364,7 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
                   type="button"
                   className={`split-select-inline-btn${assignedCoupleIds.length > 0 ? ' with-dots' : ''}`}
                   onClick={() => openSplitModalFor(splitType)}
+                  aria-label={splitType === 'individual' ? 'Change assigned group' : 'Change included groups'}
                 >
                   {assignedCoupleIds.length > 0 ? (
                     <div className="who-dots" style={{ margin: 0 }}>
