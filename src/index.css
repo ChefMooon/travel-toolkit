@@ -2499,15 +2499,33 @@ tr.add-row td { padding: 0; border: none; }
 
 @media (min-width: 768px) and (max-width: 1279px) {
   .s-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    gap: 13px;
-    align-items: start;
-    align-content: start;
+    display: block;
+    column-count: 2;
+    column-gap: 13px;
   }
 
   .s-card {
+    display: inline-block;
+    width: 100%;
     min-width: 0;
+    margin: 0 0 13px;
+    break-inside: avoid;
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .s-cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 13px;
+    align-items: start;
+  }
+
+  .s-card {
+    display: block;
+    width: auto;
+    margin: 0;
+    break-inside: auto;
   }
 }
 
