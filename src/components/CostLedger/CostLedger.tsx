@@ -198,8 +198,8 @@ export default function CostLedger() {
                 <th style={{ width: 96 }}>Markup</th>
                 <th style={{ width: 92 }}>Split</th>
                 <th style={{ width: 60 }}>Who</th>
-                <th style={{ width: 96 }}>Total</th>
                 <th style={{ width: 48 }}>Type</th>
+                <th style={{ width: 96 }}>Total</th>
                 <th style={{ width: 58 }}></th>
               </tr>
             </thead>

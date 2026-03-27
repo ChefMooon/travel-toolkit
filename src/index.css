@@ -1734,8 +1734,8 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
   table.ledger th:nth-child(6) { width: 96px; }      /* markup */
   table.ledger th:nth-child(7) { width: 92px; }      /* split */
   table.ledger th:nth-child(8) { width: 60px; }      /* who */
-  table.ledger th:nth-child(9) { width: 96px; }      /* total */
-  table.ledger th:nth-child(10) { width: 48px; }     /* type */
+  table.ledger th:nth-child(9) { width: 48px; }      /* type */
+  table.ledger th:nth-child(10) { width: 96px; }     /* total */
   table.ledger th:nth-child(11) { width: 58px; }     /* actions */
 }
 
@@ -1824,14 +1824,14 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
   }
 
   /* Row 3, Col 3: Type (left of total) */
-  table.ledger tbody td:nth-child(10) {
+  table.ledger tbody td:nth-child(9) {
     grid-column: 3;
     grid-row: 3;
     justify-content: center;
   }
 
   /* Row 3, Col 4: Total (right-aligned) */
-  table.ledger tbody td:nth-child(9) {
+  table.ledger tbody td:nth-child(10) {
     grid-column: 4;
     grid-row: 3;
     justify-content: flex-end;

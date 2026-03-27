@@ -512,9 +512,6 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
         </div>
       </td>
       <td>
-        <span className="total-num">{formatCurrency(totalWithMarkup, cost.currency)}</span>
-      </td>
-      <td style={{ textAlign: 'center', fontSize: 16 }}>
         <div className="type-popover-container">
           <button
             ref={typeBtnRef}
@@ -565,6 +562,9 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
           </div>,
           document.body
         )}
+      </td>
+      <td>
+        <span className="total-num">{formatCurrency(totalWithMarkup, cost.currency)}</span>
       </td>
       <td>
         <div className="row-acts">
