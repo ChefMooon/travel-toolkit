@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useTripStore } from '@/store/tripStore';
 import { formatCurrency } from '@/lib/calculations';
-import { CURRENCY_FLAGS, COUPLE_ICONS, getColorThemeValue } from '@/store/types';
+import { CURRENCY_FLAGS, COUPLE_ICONS, getColorThemeValue, CURRENCY_SYMBOLS } from '@/store/types';
 import IconChoiceModal from '../IconChoiceModal';
 import ColorChoiceModal from '../ColorChoiceModal';
 import type { CoupleSummary } from '@/store/types';
@@ -13,9 +13,12 @@ interface CoupleCardProps {
 export default function CoupleCard({ summary }: CoupleCardProps) {
   const [iconModalOpen, setIconModalOpen] = useState(false);
   const [colorModalOpen, setColorModalOpen] = useState(false);
+  const [editingCurrency, setEditingCurrency] = useState<string | null>(null);
+  const [editValue, setEditValue] = useState('');
 
   const setExchangeRate = useTripStore((s) => s.setExchangeRate);
   const exchangeRates = useTripStore((s) => s.exchangeRates);
+  const clearExchangeRateOverride = useTripStore((s) => s.clearExchangeRateOverride);
   const updateCoupleIcon = useTripStore((s) => s.updateCoupleIcon);
   const updateCoupleColor = useTripStore((s) => s.updateCoupleColor);
   const theme = useTripStore((s) => s.theme);
@@ -44,6 +47,8 @@ export default function CoupleCard({ summary }: CoupleCardProps) {
     updateCoupleColor(summary.coupleId, colorIndex);
     setColorModalOpen(false);
   };
+
+  const targetSymbol = CURRENCY_SYMBOLS[summary.targetCurrency] ?? summary.targetCurrency;
 
   return (
     <>
@@ -86,6 +91,7 @@ export default function CoupleCard({ summary }: CoupleCardProps) {
             const rate = exchangeRates.find((r) => r.currency === curr.currency);
             const flag = CURRENCY_FLAGS[curr.currency] ?? '🏳️';
             const isUSD = curr.currency === 'USD';
+            const isEditing = editingCurrency === curr.currency;
 
             return (
               <div key={curr.currency}>
@@ -111,29 +117,121 @@ export default function CoupleCard({ summary }: CoupleCardProps) {
                     <span className="sline-lbl">Subtotal</span>
                     <span className="sline-num">{formatCurrency(curr.subtotal, curr.currency)}</span>
                   </div>
-                  {!isUSD && (
-                    <>
-                      <div className="ex-row">
-                        <span className="ex-lbl">1 {curr.currency} = __ USD</span>
-                        <input
-                          className="ex-inp"
-                          type="number"
-                          step="0.0001"
-                          min="0"
-                          value={rate?.rateToUSD ?? ''}
-                          onChange={(e) => {
-                            const val = parseFloat(e.target.value);
-                            if (!isNaN(val) && val >= 0) {
+
+                  {/* Implied rate row: USD cost when target is non-USD */}
+                  {isUSD && summary.targetCurrency !== 'USD' && (() => {
+                    const targetRate = exchangeRates.find((r) => r.currency === summary.targetCurrency);
+                    if (!targetRate) return null;
+                    return (
+                      <div className="ex-row" data-testid={`implied-rate-${curr.currency}`}>
+                        <span className="ex-lbl">
+                          1 USD = {(1 / targetRate.rateToUSD).toFixed(4)} {summary.targetCurrency}
+                        </span>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Inline edit mode (triggered from auto or no-rate state) */}
+                  {!isUSD && isEditing && (
+                    <div className="ex-row">
+                      <span className="ex-lbl">1 {curr.currency} = __ USD</span>
+                      <input
+                        className="ex-inp"
+                        type="number"
+                        step="0.0001"
+                        min="0"
+                        autoFocus
+                        value={editValue}
+                        onChange={(e) => setEditValue(e.target.value)}
+                        onBlur={() => {
+                          const val = parseFloat(editValue);
+                          if (!isNaN(val) && val > 0) {
+                            setExchangeRate(curr.currency, val);
+                          }
+                          setEditingCurrency(null);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            const val = parseFloat(editValue);
+                            if (!isNaN(val) && val > 0) {
                               setExchangeRate(curr.currency, val);
                             }
-                          }}
-                          placeholder="0.0000"
-                        />
-                      </div>
-                      {curr.usdEquivalent !== null && (
-                        <div className="usd-eq">≈ ${curr.usdEquivalent.toFixed(2)}</div>
-                      )}
-                    </>
+                            setEditingCurrency(null);
+                          } else if (e.key === 'Escape') {
+                            setEditingCurrency(null);
+                          }
+                        }}
+                        placeholder="0.0000"
+                      />
+                    </div>
+                  )}
+
+                  {/* Override state: user-supplied rate with lock icon and reset link */}
+                  {!isUSD && !isEditing && !!rate?.isOverridden && (
+                    <div className="ex-row">
+                      <span className="ex-lbl">1 {curr.currency} =</span>
+                      <button
+                        type="button"
+                        className="ex-reset-btn"
+                        onClick={() => clearExchangeRateOverride(curr.currency)}
+                      >
+                        Reset to live
+                      </button>
+                      <span className="ex-lock" aria-label="rate overridden">🔒</span>
+                      <input
+                        className="ex-inp"
+                        type="number"
+                        step="0.0001"
+                        min="0"
+                        value={rate.rateToUSD}
+                        onChange={(e) => {
+                          const val = parseFloat(e.target.value);
+                          if (!isNaN(val) && val >= 0) {
+                            setExchangeRate(curr.currency, val);
+                          }
+                        }}
+                      />
+                    </div>
+                  )}
+
+                  {/* Auto state: live rate shown as read-only text with pencil */}
+                  {!isUSD && !isEditing && !rate?.isOverridden && !!rate && (
+                    <div className="ex-row">
+                      <span className="ex-lbl">1 {curr.currency} = {rate.rateToUSD.toFixed(4)} USD</span>
+                      <button
+                        type="button"
+                        className="ex-edit-btn"
+                        aria-label={`Edit rate for ${curr.currency}`}
+                        onClick={() => {
+                          setEditingCurrency(curr.currency);
+                          setEditValue(rate.rateToUSD.toFixed(4));
+                        }}
+                      >
+                        ✏
+                      </button>
+                    </div>
+                  )}
+
+                  {/* No-rate state: no rate entry yet */}
+                  {!isUSD && !isEditing && !rate && (
+                    <div className="ex-row">
+                      <span className="ex-lbl">1 {curr.currency} = — USD</span>
+                      <button
+                        type="button"
+                        className="ex-edit-btn"
+                        aria-label={`Add rate for ${curr.currency}`}
+                        onClick={() => {
+                          setEditingCurrency(curr.currency);
+                          setEditValue('');
+                        }}
+                      >
+                        ✏
+                      </button>
+                    </div>
+                  )}
+
+                  {!isUSD && curr.targetEquivalent !== null && (
+                    <div className="usd-eq">≈ {targetSymbol}{curr.targetEquivalent.toFixed(2)}</div>
                   )}
                 </div>
               </div>
@@ -141,9 +239,14 @@ export default function CoupleCard({ summary }: CoupleCardProps) {
           })}
         </div>
         <div className="s-grand" style={{ background: cardSoftBackground }}>
-          <span className="s-grand-lbl">Grand Total</span>
+          <span className="s-grand-lbl">
+            Grand Total
+            {summary.targetCurrency !== 'USD' && (
+              <span className="s-grand-lbl-sub"> ({targetSymbol})</span>
+            )}
+          </span>
           <span className="s-grand-num" style={{ color: colorDotColor }}>
-            {summary.grandTotalUSD !== null ? `$${summary.grandTotalUSD.toFixed(2)}` : '—'}
+            {summary.grandTotal !== null ? `${targetSymbol}${summary.grandTotal.toFixed(2)}` : '—'}
           </span>
         </div>
       </div>

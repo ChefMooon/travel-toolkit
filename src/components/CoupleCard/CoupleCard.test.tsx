@@ -44,10 +44,11 @@ describe('CoupleCard', () => {
         subset: 50,
         individual: 25,
         subtotal: 175,
-        usdEquivalent: 175,
+        targetEquivalent: 175,
       },
     ],
-    grandTotalUSD: 175,
+    grandTotal: 175,
+    targetCurrency: 'USD',
   };
 
   beforeEach(() => {
@@ -311,6 +312,109 @@ describe('CoupleCard', () => {
       const { unmount } = render(<CoupleCard summary={summary} />);
       expect(screen.getByText(expectedIcons[idx] as string)).toBeInTheDocument();
       unmount();
+    });
+  });
+
+  describe('rate row states', () => {
+    const eurSummary: CoupleSummary = {
+      coupleId: 'couple-1',
+      coupleName: 'Test Couple',
+      colorIndex: 1,
+      iconIndex: 0,
+      currencies: [
+        {
+          currency: 'EUR',
+          shared: 100,
+          subset: 0,
+          individual: 0,
+          subtotal: 100,
+          targetEquivalent: 110,
+        },
+      ],
+      grandTotal: 110,
+      targetCurrency: 'USD',
+    };
+
+    beforeEach(() => {
+      useTripStore.getState().resetTrip();
+      useTripStore.getState().addCouple();
+      const couple = useTripStore.getState().couples[0];
+      if (couple) {
+        eurSummary.coupleId = couple.id;
+      }
+    });
+
+    it('no-rate state: shows dash and edit affordance when no rate exists', () => {
+      render(<CoupleCard summary={eurSummary} />);
+      expect(screen.getByText('1 EUR = — USD')).toBeInTheDocument();
+      expect(screen.getByLabelText('Add rate for EUR')).toBeInTheDocument();
+    });
+
+    it('auto-state: shows read-only rate text and pencil when rate exists and not overridden', () => {
+      useTripStore.getState().hydrateExchangeRates({ EUR: 0.91 });
+      render(<CoupleCard summary={eurSummary} />);
+      expect(screen.getByText(/1 EUR = .* USD/)).toBeInTheDocument();
+      expect(screen.getByLabelText('Edit rate for EUR')).toBeInTheDocument();
+    });
+
+    it('override-state: shows input and lock icon when isOverridden is true', () => {
+      useTripStore.getState().setExchangeRate('EUR', 1.5);
+      render(<CoupleCard summary={eurSummary} />);
+      expect(screen.getByLabelText('rate overridden')).toBeInTheDocument();
+      expect(screen.getByText('Reset to live')).toBeInTheDocument();
+    });
+
+    it('override-state: Reset to live calls clearExchangeRateOverride', () => {
+      useTripStore.getState().setExchangeRate('EUR', 1.5);
+      render(<CoupleCard summary={eurSummary} />);
+      fireEvent.click(screen.getByText('Reset to live'));
+      const rate = useTripStore.getState().exchangeRates.find((r) => r.currency === 'EUR');
+      expect(rate?.isOverridden).toBe(false);
+    });
+
+    it('clicking pencil in auto-state activates inline number input', async () => {
+      useTripStore.getState().hydrateExchangeRates({ EUR: 0.91 });
+      render(<CoupleCard summary={eurSummary} />);
+      fireEvent.click(screen.getByLabelText('Edit rate for EUR'));
+      await waitFor(() => {
+        expect(screen.getByPlaceholderText('0.0000')).toBeInTheDocument();
+      });
+    });
+
+    it('inline input blur calls setExchangeRate and marks rate as overridden', async () => {
+      useTripStore.getState().hydrateExchangeRates({ EUR: 0.91 });
+      render(<CoupleCard summary={eurSummary} />);
+      fireEvent.click(screen.getByLabelText('Edit rate for EUR'));
+      await waitFor(() => expect(screen.getByPlaceholderText('0.0000')).toBeInTheDocument());
+      const input = screen.getByPlaceholderText('0.0000');
+      fireEvent.change(input, { target: { value: '1.25' } });
+      fireEvent.blur(input);
+      await waitFor(() => {
+        const rate = useTripStore.getState().exchangeRates.find((r) => r.currency === 'EUR');
+        expect(rate?.rateToUSD).toBe(1.25);
+        expect(rate?.isOverridden).toBe(true);
+      });
+    });
+
+    it('implied rate row renders when target is non-USD and cost currency is USD', () => {
+      const usdWithNonUsdTarget: CoupleSummary = {
+        ...mockSummary,
+        targetCurrency: 'EUR',
+        grandTotal: 159.09,
+      };
+      useTripStore.getState().hydrateExchangeRates({ EUR: 0.91 });
+      render(<CoupleCard summary={usdWithNonUsdTarget} />);
+      expect(screen.getByTestId('implied-rate-USD')).toBeInTheDocument();
+    });
+
+    it('grand total sub-label shows target currency symbol when target is not USD', () => {
+      const eurTarget: CoupleSummary = {
+        ...mockSummary,
+        targetCurrency: 'EUR',
+        grandTotal: 159.09,
+      };
+      render(<CoupleCard summary={eurTarget} />);
+      expect(screen.getByText('(€)')).toBeInTheDocument();
     });
   });
 });

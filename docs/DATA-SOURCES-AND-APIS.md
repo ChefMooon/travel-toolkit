@@ -7,13 +7,14 @@ This project does not use a project-owned backend or database. All runtime data 
 | Surface | Source | Type | Used by | Notes |
 |---|---|---|---|---|
 | Currency exchange rates | Frankfurter v2 API (`/v2/rates`) | External HTTP API | `CurrencyTool` via `useCurrencySnapshot` | Fetches live rates for the selected base currency scoped to region-visible currencies. Cached 5 minutes and auto-refetched while the page is open; also refetched on base or region change. |
+| Trip Cost exchange rates | Frankfurter v2 API (`/v2/rates`) | External HTTP API | `CostSummary` via `useTripRates` | Fetches live rates base=USD for the trip region currencies. Shares TanStack Query cache with `useCurrencySnapshot('USD', region)`. Cached 5 minutes; auto-refetched on window focus. |
 | Currency metadata | Frankfurter v2 API (`/v2/currencies`) | External HTTP API | `CurrencyTool` via `useCurrencyMetadata` | Full currency names and symbols used in dropdowns. Cached 24 hours; fetched once per session. |
 | Currency providers | Frankfurter v2 API (`/v2/providers`) | External HTTP API | `CurrencyTool` via `useCurrencyProviders` | Provider list with source links and per-provider currency coverage. Filtered client-side to show providers relevant to the selected pair. Cached 24 hours. |
 | Currency region state | Browser `localStorage` via Zustand `persist` | Browser storage | [src/store/currencyStore.ts](../src/store/currencyStore.ts) | Persists the selected region for the currency converter under `mkt-currency-data`. |
 | Destination search | Open-Meteo geocoding API | External HTTP API | Forecast destination search in [src/features/forecast/forecastData.ts](../src/features/forecast/forecastData.ts) | Called with the user’s search query to resolve candidate destinations, coordinates, timezone, and population. |
 | Climate summary | Open-Meteo climate API | External HTTP API | Forecast climate lookup in [src/features/forecast/forecastData.ts](../src/features/forecast/forecastData.ts) | Called with destination coordinates and the selected date range. The implementation requests daily climate variables and averages them across matching month/day windows. |
 | Forecast events | Checked-in event list generated from an external CSV source | Local generated dataset | Forecast event overlay in [src/features/forecast/forecastEvents.ts](../src/features/forecast/forecastEvents.ts) | Runtime code filters the generated event list by destination and date range. The source sheet is synced by [scripts/sync-forecast-events.mjs](../scripts/sync-forecast-events.mjs). |
-| Trip state | Browser `localStorage` via Zustand `persist` | Browser storage | [src/store/tripStore.ts](../src/store/tripStore.ts) | Persists trip name, markup, couples, costs, exchange rates, theme, and region under `mkt-trip-data`. |
+| Trip state | Browser `localStorage` via Zustand `persist` | Browser storage | [src/store/tripStore.ts](../src/store/tripStore.ts) | Persists trip name, markup, couples, costs, exchange rates, theme, region, and `targetCurrency` under `mkt-trip-data`. `isOverridden` flag on exchange rate entries is backward-compatible with existing persisted data. |
 | Timezone state | Browser `localStorage` via Zustand `persist` | Browser storage | [src/store/timezoneStore.ts](../src/store/timezoneStore.ts) | Persists the local timezone preference and tracked timezone cards under `mkt-timezone-data`. |
 
 ## External APIs
@@ -28,6 +29,15 @@ This project does not use a project-owned backend or database. All runtime data 
 - Input: `base` (selected base currency ISO code), `quotes` (comma-separated region-scoped target currencies)
 - Output used: `date` (mapped to `updatedAt`), `quote` and `rate` pairs from the response array
 - Cache: `staleTime: 5 minutes`; refetched every 5 minutes while the currency page is mounted, paused in hidden tabs, and refetched when base currency or region changes (`queryKey` includes both)
+
+#### Trip Cost Exchange Rates (`useTripRates`)
+
+- Endpoint: `https://api.frankfurter.dev/v2/rates`
+- Location: [src/features/currency/useTripRates.ts](../src/features/currency/useTripRates.ts)
+- Purpose: Auto-hydrate live exchange rates for the Trip Cost tool (base=USD, region currencies)
+- Input: `base=USD`, `quotes` = region currencies minus USD
+- Output used: `rates` Record inverted to `rateToUSD` (e.g. `rates['EUR'] = 0.91` → stored `rateToUSD = 1/0.91`)
+- Cache: `queryKey: ['currency', 'snapshot', 'USD', region]` — intentionally matches `useCurrencySnapshot('USD', region)` so the TanStack Query cache is shared when the currency page also has base=USD; `staleTime: 5 minutes`, refetched every 5 minutes on window focus
 
 #### Currency Metadata
 

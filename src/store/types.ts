@@ -28,6 +28,7 @@ export interface CostEntry {
 export interface ExchangeRate {
   currency: string;
   rateToUSD: number;
+  isOverridden?: boolean;
 }
 
 export interface CurrencyBreakdown {
@@ -36,7 +37,7 @@ export interface CurrencyBreakdown {
   subset: number;
   individual: number;
   subtotal: number;
-  usdEquivalent: number | null;
+  targetEquivalent: number | null;
 }
 
 export interface CoupleSummary {
@@ -45,7 +46,8 @@ export interface CoupleSummary {
   colorIndex: number;
   iconIndex: number;
   currencies: CurrencyBreakdown[];
-  grandTotalUSD: number | null;
+  grandTotal: number | null;
+  targetCurrency: string;
 }
 
 export const CURRENCIES = [

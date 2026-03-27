@@ -15,12 +15,14 @@ interface TripStore {
   exchangeRates: ExchangeRate[];
   theme: 'light' | 'dark';
   region: Region;
+  targetCurrency: string;
 
   // Actions
   setTripName: (name: string) => void;
   setGlobalMarkup: (markup: number) => void;
   setTheme: (theme: 'light' | 'dark') => void;
   setRegion: (region: Region) => void;
+  setTargetCurrency: (currency: string) => void;
 
   // Couple actions
   addCouple: (name?: string) => string;
@@ -43,6 +45,8 @@ interface TripStore {
 
   // Exchange rate actions
   setExchangeRate: (currency: string, rate: number) => void;
+  hydrateExchangeRates: (freshRates: Record<string, number>) => void;
+  clearExchangeRateOverride: (currency: string) => void;
 
   // Reset
   resetTrip: () => void;
@@ -65,6 +69,7 @@ const initialState = {
   exchangeRates: [] as ExchangeRate[],
   theme: 'light' as const,
   region: 'Europe' as const,
+  targetCurrency: 'USD',
 };
 
 export const useTripStore = create<TripStore>()(
@@ -79,6 +84,7 @@ export const useTripStore = create<TripStore>()(
         set({ theme });
       },
       setRegion: (region) => set({ region }),
+      setTargetCurrency: (currency) => set({ targetCurrency: currency }),
 
       addCouple: (name) => {
         const id = generateId();
@@ -202,14 +208,39 @@ export const useTripStore = create<TripStore>()(
           if (existing) {
             return {
               exchangeRates: state.exchangeRates.map((r) =>
-                r.currency === currency ? { ...r, rateToUSD } : r
+                r.currency === currency ? { ...r, rateToUSD, isOverridden: true } : r
               ),
             };
           }
           return {
-            exchangeRates: [...state.exchangeRates, { currency, rateToUSD }],
+            exchangeRates: [...state.exchangeRates, { currency, rateToUSD, isOverridden: true }],
           };
         }),
+
+      hydrateExchangeRates: (freshRates) =>
+        set((state) => {
+          const newRates = [...state.exchangeRates];
+          for (const [currency, rate] of Object.entries(freshRates)) {
+            if (currency === 'USD') continue;
+            const existingIdx = newRates.findIndex((r) => r.currency === currency);
+            if (existingIdx >= 0) {
+              const entry = newRates[existingIdx]!;
+              if (!entry.isOverridden) {
+                newRates[existingIdx] = { ...entry, rateToUSD: 1 / rate };
+              }
+            } else {
+              newRates.push({ currency, rateToUSD: 1 / rate, isOverridden: false });
+            }
+          }
+          return { exchangeRates: newRates };
+        }),
+
+      clearExchangeRateOverride: (currency) =>
+        set((state) => ({
+          exchangeRates: state.exchangeRates.map((r) =>
+            r.currency === currency ? { ...r, isOverridden: false } : r
+          ),
+        })),
 
       resetTrip: () =>
         set({

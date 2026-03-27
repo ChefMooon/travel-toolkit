@@ -118,12 +118,16 @@ export function buildSummary(
   couples: Couple[],
   costs: CostEntry[],
   globalMarkup: number,
-  exchangeRates: ExchangeRate[]
+  exchangeRates: ExchangeRate[],
+  targetCurrency: string = 'USD'
 ): CoupleSummary[] {
   // Gather all unique currencies
   const currenciesUsed = [...new Set(costs.map(c => c.currency))];
 
   const rateMap = new Map(exchangeRates.map(r => [r.currency, r.rateToUSD]));
+  if (!rateMap.has('USD')) rateMap.set('USD', 1);
+
+  const rateForTarget = targetCurrency === 'USD' ? 1 : rateMap.get(targetCurrency);
 
   return couples.map(couple => {
     const currencies: CurrencyBreakdown[] = currenciesUsed.map(currency => {
@@ -150,17 +154,20 @@ export function buildSummary(
       });
 
       const subtotal = roundHalfUp(shared + subset + individual);
-      const rate = rateMap.get(currency);
-      const usdEquivalent = rate !== undefined ? roundHalfUp(subtotal * rate) : null;
+      const rateForCurrency = rateMap.get(currency);
+      const targetEquivalent =
+        rateForCurrency !== undefined && rateForTarget !== undefined
+          ? roundHalfUp((subtotal * rateForCurrency) / rateForTarget)
+          : null;
 
-      return { currency, shared, subset, individual, subtotal, usdEquivalent };
+      return { currency, shared, subset, individual, subtotal, targetEquivalent };
     });
 
     // Filter out currencies with zero subtotal
     const activeCurrencies = currencies.filter(c => c.subtotal > 0 || currenciesUsed.length <= 1);
 
-    const grandTotalUSD = activeCurrencies.every(c => c.usdEquivalent !== null)
-      ? roundHalfUp(activeCurrencies.reduce((sum, c) => sum + (c.usdEquivalent ?? 0), 0))
+    const grandTotal = activeCurrencies.every(c => c.targetEquivalent !== null)
+      ? roundHalfUp(activeCurrencies.reduce((sum, c) => sum + (c.targetEquivalent ?? 0), 0))
       : null;
 
     return {
@@ -169,7 +176,8 @@ export function buildSummary(
       colorIndex: couple.colorIndex,
       iconIndex: couple.iconIndex,
       currencies: activeCurrencies.length > 0 ? activeCurrencies : currencies,
-      grandTotalUSD,
+      grandTotal,
+      targetCurrency,
     };
   });
 }

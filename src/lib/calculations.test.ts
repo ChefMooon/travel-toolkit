@@ -221,7 +221,7 @@ describe('buildSummary', () => {
       subset: 15,
       individual: 0,
       subtotal: 45,
-      usdEquivalent: 45,
+      targetEquivalent: 45,
     });
 
     expect(c3?.currencies[0]).toMatchObject({
@@ -230,11 +230,11 @@ describe('buildSummary', () => {
       subset: 0,
       individual: 12,
       subtotal: 42,
-      usdEquivalent: 42,
+      targetEquivalent: 42,
     });
 
-    expect(c1?.grandTotalUSD).toBe(45);
-    expect(c3?.grandTotalUSD).toBe(42);
+    expect(c1?.grandTotal).toBe(45);
+    expect(c3?.grandTotal).toBe(42);
   });
 
   it('CALC-SUM-002 computes mixed-currency USD equivalents when rates exist', () => {
@@ -260,10 +260,10 @@ describe('buildSummary', () => {
     const usd = c1?.currencies.find(c => c.currency === 'USD');
 
     expect(eur?.subtotal).toBe(30);
-    expect(eur?.usdEquivalent).toBe(33);
+    expect(eur?.targetEquivalent).toBe(33);
     expect(usd?.subtotal).toBe(30);
-    expect(usd?.usdEquivalent).toBe(30);
-    expect(c1?.grandTotalUSD).toBe(63);
+    expect(usd?.targetEquivalent).toBe(30);
+    expect(c1?.grandTotal).toBe(63);
   });
 
   it('CALC-SUM-003 returns null USD fields when an active currency has no rate', () => {
@@ -278,8 +278,8 @@ describe('buildSummary', () => {
     const gbp = c1?.currencies.find(c => c.currency === 'GBP');
 
     expect(gbp?.subtotal).toBe(10);
-    expect(gbp?.usdEquivalent).toBeNull();
-    expect(c1?.grandTotalUSD).toBeNull();
+    expect(gbp?.targetEquivalent).toBeNull();
+    expect(c1?.grandTotal).toBeNull();
   });
 
   it('CALC-SUM-004 retains full currency set when a couple has only zero subtotals', () => {
@@ -327,6 +327,45 @@ describe('buildSummary', () => {
     expect(c1?.currencies.map(c => c.currency)).toEqual(['USD']);
   });
 
+  it('CALC-SUM-006 target currency equals cost currency yields targetEquivalent === subtotal', () => {
+    const costs: CostEntry[] = [
+      makeCost({ id: 'eur-shared', currency: 'EUR', value: 90, splitType: 'shared' }),
+    ];
+    const rates: ExchangeRate[] = [{ currency: 'EUR', rateToUSD: 1.1 }];
+    const summary = buildSummary(couples, costs, 0, rates, 'EUR');
+    const c1 = summary.find(s => s.coupleId === 'c1');
+
+    expect(c1?.currencies[0]?.targetEquivalent).toBe(c1?.currencies[0]?.subtotal);
+  });
+
+  it('CALC-SUM-007 missing targetCurrency in rate map yields null targetEquivalent and grandTotal', () => {
+    const costs: CostEntry[] = [
+      makeCost({ id: 'eur-shared', currency: 'EUR', value: 90, splitType: 'shared' }),
+    ];
+    const rates: ExchangeRate[] = [{ currency: 'EUR', rateToUSD: 1.1 }];
+    const summary = buildSummary(couples, costs, 0, rates, 'MXN');
+    const c1 = summary.find(s => s.coupleId === 'c1');
+
+    expect(c1?.currencies[0]?.targetEquivalent).toBeNull();
+    expect(c1?.grandTotal).toBeNull();
+  });
+
+  it('CALC-SUM-008 converts correctly with non-USD targetCurrency', () => {
+    const costs: CostEntry[] = [
+      makeCost({ id: 'eur-ind', currency: 'EUR', value: 33, splitType: 'individual', assignedCoupleIds: ['c1'] }),
+    ];
+    const rates: ExchangeRate[] = [
+      { currency: 'EUR', rateToUSD: 1.1 },
+      { currency: 'GBP', rateToUSD: 1.3 },
+    ];
+    const summary = buildSummary(couples, costs, 0, rates, 'GBP');
+    const c1 = summary.find(s => s.coupleId === 'c1');
+
+    // targetEquivalent = 33 * 1.1 / 1.3
+    expect(c1?.currencies[0]?.targetEquivalent).toBeCloseTo(33 * 1.1 / 1.3, 2);
+    expect(c1?.grandTotal).toBeCloseTo(33 * 1.1 / 1.3, 2);
+  });
+
   it('CALC-SUM-005 produces stable totals regardless of cost order', () => {
     const costA = makeCost({ id: 'a', currency: 'USD', value: 33.33, splitType: 'shared' });
     const costB = makeCost({ id: 'b', currency: 'USD', value: 20, splitType: 'subset', assignedCoupleIds: ['c1', 'c2'] });
@@ -345,7 +384,7 @@ describe('buildSummary', () => {
     expect(summary).toHaveLength(3);
     for (const row of summary) {
       expect(row.currencies).toEqual([]);
-      expect(row.grandTotalUSD).toBe(0);
+      expect(row.grandTotal).toBe(0);
     }
   });
 });

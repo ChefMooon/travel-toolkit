@@ -2,9 +2,10 @@
 /// <reference types="@testing-library/jest-dom" />
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import CostSummary from '@/components/CostSummary';
 import type { Couple, CostEntry, ExchangeRate } from '@/store/types';
+import type { Region } from '@/store/types';
 
 vi.mock('@/store/tripStore', () => ({
   useTripStore: vi.fn(),
@@ -16,18 +17,31 @@ vi.mock('@/components/CoupleCard', () => ({
   ),
 }));
 
+vi.mock('@/features/currency/useTripRates', () => ({
+  useTripRates: vi.fn(),
+}));
+
 import { useTripStore } from '@/store/tripStore';
+import { useTripRates } from '@/features/currency/useTripRates';
 
 const mockStoreState: {
   couples: Couple[];
   costs: CostEntry[];
   globalMarkup: number;
   exchangeRates: ExchangeRate[];
+  region: Region;
+  targetCurrency: string;
+  hydrateExchangeRates: ReturnType<typeof vi.fn>;
+  setTargetCurrency: ReturnType<typeof vi.fn>;
 } = {
   couples: [],
   costs: [],
   globalMarkup: 66,
   exchangeRates: [],
+  region: 'Europe',
+  targetCurrency: 'USD',
+  hydrateExchangeRates: vi.fn(),
+  setTargetCurrency: vi.fn(),
 };
 
 describe('CostSummary', () => {
@@ -37,10 +51,19 @@ describe('CostSummary', () => {
     mockStoreState.costs = [];
     mockStoreState.globalMarkup = 66;
     mockStoreState.exchangeRates = [];
+    mockStoreState.region = 'Europe';
+    mockStoreState.targetCurrency = 'USD';
 
     (useTripStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(
       (selector: (state: typeof mockStoreState) => unknown) => selector(mockStoreState)
     );
+
+    (useTripRates as ReturnType<typeof vi.fn>).mockReturnValue({
+      isPending: false,
+      isError: false,
+      data: null,
+      refetch: vi.fn(),
+    });
   });
 
   it('FE-SUM-001 renders empty state when no summary data exists', () => {
@@ -108,5 +131,61 @@ describe('CostSummary', () => {
     expect(cards).toHaveLength(2);
     expect(screen.getByText('Group 1:c1')).toBeInTheDocument();
     expect(screen.getByText('Group 2:c2')).toBeInTheDocument();
+  });
+
+  it('FE-SUM-004 disclaimer renders when useTripRates has data', () => {
+    (useTripRates as ReturnType<typeof vi.fn>).mockReturnValue({
+      isPending: false,
+      isError: false,
+      data: { rates: {}, updatedAt: '2026-03-26', fetchedAt: new Date().toISOString() },
+      refetch: vi.fn(),
+    });
+    render(<CostSummary />);
+    expect(screen.getByTestId('rates-disclaimer')).toBeInTheDocument();
+  });
+
+  it('FE-SUM-005 target currency dropdown triggers setTargetCurrency', () => {
+    render(<CostSummary />);
+    const select = screen.getByTestId('target-currency-select');
+    fireEvent.change(select, { target: { value: 'EUR' } });
+    expect(mockStoreState.setTargetCurrency).toHaveBeenCalledWith('EUR');
+  });
+
+  it('FE-SUM-006 hydrateExchangeRates is called when query data arrives', async () => {
+    const rates = { EUR: 0.91, GBP: 0.77 };
+    (useTripRates as ReturnType<typeof vi.fn>).mockReturnValue({
+      isPending: false,
+      isError: false,
+      data: { rates, updatedAt: '2026-03-26', fetchedAt: new Date().toISOString() },
+      refetch: vi.fn(),
+    });
+    render(<CostSummary />);
+    expect(mockStoreState.hydrateExchangeRates).toHaveBeenCalledWith(rates);
+  });
+
+  it('FE-SUM-007 loading indicator renders while useTripRates is pending', () => {
+    (useTripRates as ReturnType<typeof vi.fn>).mockReturnValue({
+      isPending: true,
+      isError: false,
+      data: null,
+      refetch: vi.fn(),
+    });
+    render(<CostSummary />);
+    expect(screen.getByTestId('rates-loading')).toBeInTheDocument();
+  });
+
+  it('FE-SUM-008 inline error and Retry button render when useTripRates errors', () => {
+    const refetch = vi.fn();
+    (useTripRates as ReturnType<typeof vi.fn>).mockReturnValue({
+      isPending: false,
+      isError: true,
+      data: null,
+      refetch,
+    });
+    render(<CostSummary />);
+    expect(screen.getByTestId('rates-error')).toBeInTheDocument();
+    expect(screen.getByText('Retry')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Retry'));
+    expect(refetch).toHaveBeenCalled();
   });
 });
