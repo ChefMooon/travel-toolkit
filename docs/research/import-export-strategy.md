@@ -47,10 +47,11 @@ A compact workbook with one sheet and fixed regions.
 Suggested layout:
 - `A1`: `Summary`
 - `A2`: `schema`, `B2`: schema version value
-- `A3`: `Trip Name`
-- `A4`: `Global Markup`
-- `A5`: `Region`
-- `A6`: `Trip Currency`
+- `A3`: `Trip ID`
+- `A4`: `Trip Name`
+- `A5`: `Global Markup`
+- `A6`: `Region`
+- `A7`: `Trip Currency`
 - `D1`: `Cost Ledger`
 - `D2`: `Name`
 - `E2`: `Currency`
