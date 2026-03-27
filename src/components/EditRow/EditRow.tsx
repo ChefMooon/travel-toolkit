@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useTripStore } from '@/store/tripStore';
 import { useToastStore } from '@/store/toastStore';
-import { getAvailableCurrencies } from '@/store/types';
+import { getAvailableCurrencies, COST_ENTRY_TYPES } from '@/store/types';
 import type { SplitType } from '@/store/types';
 import SplitAssignmentModal from '../SplitAssignmentModal';
 
@@ -14,6 +14,7 @@ interface EditRowProps {
     markupOverride: number | null;
     splitType: SplitType;
     assignedCoupleIds: string[];
+    type?: string | null;
   };
   defaultCurrency?: string;
   onSave: (data: {
@@ -23,6 +24,7 @@ interface EditRowProps {
     markupOverride: number | null;
     splitType: SplitType;
     assignedCoupleIds: string[];
+    type: string | null;
   }) => void;
   onCancel: () => void;
 }
@@ -43,6 +45,7 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
       ? String(initial.markupOverride)
       : String(globalMarkup)
   );
+  const [type, setType] = useState<string | null>(initial?.type ?? null);
   const [splitType, setSplitType] = useState<SplitType>(initial?.splitType ?? 'shared');
   const [assignedCoupleIds, setAssignedCoupleIds] = useState<string[]>(
     initial?.assignedCoupleIds ?? []
@@ -109,8 +112,9 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
       markupOverride: finalMarkup,
       splitType,
       assignedCoupleIds: finalAssigned,
+      type: type || null,
     });
-  }, [name, currency, value, useGlobalMarkup, markupOverride, splitType, assignedCoupleIds, onSave, pushToast]);
+  }, [name, currency, value, useGlobalMarkup, markupOverride, splitType, assignedCoupleIds, type, onSave, pushToast]);
 
   const openSplitModalFor = (nextSplitType: SplitType) => {
     if (nextSplitType === 'shared') {
@@ -231,7 +235,7 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
 
   return (
     <tr className="edit-row">
-      <td colSpan={10}>
+      <td colSpan={11}>
         <div className="edit-grid">
           <div className="ef">
             <label className="ef-lbl">Name</label>
@@ -257,7 +261,7 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
             </select>
           </div>
           <div className="ef">
-            <label className="ef-lbl">Amount</label>
+            <label className="ef-lbl" style={{ textAlign: 'right' }}>Amount</label>
             <input
               className="ef-inp mono"
               type="number"
@@ -294,78 +298,96 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
               </button>
             </div>
           </div>
-          <div className="edit-acts">
+          <div className="ef">
+            <label className="ef-lbl">Type</label>
+            <select
+              className="ef-select"
+              value={type ?? ''}
+              onChange={(e) => setType(e.target.value || null)}
+            >
+              <option value="">None</option>
+              {COST_ENTRY_TYPES.map((t) => (
+                <option key={t.id} value={t.id}>{t.symbol} {t.type_name}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 10, gap: 8, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <div className="markup-row" style={{ marginTop: 0 }}>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={useGlobalMarkup}
+                  onChange={(e) => setUseGlobalMarkup(e.target.checked)}
+                />
+                Use global markup ({globalMarkup}%)
+              </label>
+              <div className={`markup-controls${useGlobalMarkup ? ' is-hidden' : ''}`} aria-hidden={useGlobalMarkup}>
+                <input
+                  className="ef-inp mono markup-override-inp"
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  value={markupOverride}
+                  onChange={(e) => setMarkupOverride(e.target.value)}
+                  placeholder="0"
+                  disabled={useGlobalMarkup}
+                />
+                <button
+                  type="button"
+                  className="markup-reset-btn"
+                  onClick={() => {
+                    setMarkupOverride(String(globalMarkup));
+                    setUseGlobalMarkup(true);
+                  }}
+                  disabled={useGlobalMarkup}
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+
+            {(splitType === 'subset' || splitType === 'individual') && (
+              <div className="subset-picks" style={{ marginTop: 0 }}>
+                <span style={{
+                  fontSize: 10, fontWeight: 800, textTransform: 'uppercase',
+                  letterSpacing: '0.07em', color: 'var(--text-3)',
+                }}>
+                  {splitType === 'individual' ? 'Assigned group:' : 'Included groups:'}
+                </span>
+                <button
+                  type="button"
+                  className={`split-select-inline-btn${assignedCoupleIds.length > 0 ? ' with-dots' : ''}`}
+                  onClick={() => openSplitModalFor(splitType)}
+                >
+                  {assignedCoupleIds.length > 0 ? (
+                    <div className="who-dots" style={{ margin: 0 }}>
+                      {couples
+                        .filter((c) => assignedCoupleIds.includes(c.id))
+                        .map((c) => (
+                          <span
+                            key={c.id}
+                            className="who-dot"
+                            style={{ background: `var(--c${c.colorIndex})` }}
+                            title={c.name}
+                          />
+                        ))}
+                    </div>
+                  ) : (
+                    'Select groups'
+                  )}
+                </button>
+              </div>
+            )}
+          </div>
+
+          <div className="edit-acts" style={{ paddingTop: 0 }}>
             <button className="btn-save" onClick={handleSave} type="button">Save</button>
             <button className="btn-cancel" onClick={onCancel} type="button">✕</button>
           </div>
         </div>
-
-        <div className="markup-row">
-          <label>
-            <input
-              type="checkbox"
-              checked={useGlobalMarkup}
-              onChange={(e) => setUseGlobalMarkup(e.target.checked)}
-            />
-            Use global markup ({globalMarkup}%)
-          </label>
-          <div className={`markup-controls${useGlobalMarkup ? ' is-hidden' : ''}`} aria-hidden={useGlobalMarkup}>
-            <input
-              className="ef-inp mono markup-override-inp"
-              type="number"
-              step="0.1"
-              min="0"
-              value={markupOverride}
-              onChange={(e) => setMarkupOverride(e.target.value)}
-              placeholder="0"
-              disabled={useGlobalMarkup}
-            />
-            <button
-              type="button"
-              className="markup-reset-btn"
-              onClick={() => {
-                setMarkupOverride(String(globalMarkup));
-                setUseGlobalMarkup(true);
-              }}
-              disabled={useGlobalMarkup}
-            >
-              Reset
-            </button>
-          </div>
-        </div>
-
-        {(splitType === 'subset' || splitType === 'individual') && (
-          <div className="subset-picks" style={{ marginTop: 10 }}>
-            <span style={{
-              fontSize: 10, fontWeight: 800, textTransform: 'uppercase',
-              letterSpacing: '0.07em', color: 'var(--text-3)',
-            }}>
-              {splitType === 'individual' ? 'Assigned group:' : 'Included groups:'}
-            </span>
-            <button
-              type="button"
-              className={`split-select-inline-btn${assignedCoupleIds.length > 0 ? ' with-dots' : ''}`}
-              onClick={() => openSplitModalFor(splitType)}
-            >
-              {assignedCoupleIds.length > 0 ? (
-                <div className="who-dots" style={{ margin: 0 }}>
-                  {couples
-                    .filter((c) => assignedCoupleIds.includes(c.id))
-                    .map((c) => (
-                      <span
-                        key={c.id}
-                        className="who-dot"
-                        style={{ background: `var(--c${c.colorIndex})` }}
-                        title={c.name}
-                      />
-                    ))}
-                </div>
-              ) : (
-                'Select groups'
-              )}
-            </button>
-          </div>
-        )}
 
         <SplitAssignmentModal
           open={splitModalOpen}

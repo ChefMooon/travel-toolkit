@@ -91,6 +91,7 @@ describe('EditRow', () => {
       markupOverride: null,
       splitType: 'shared',
       assignedCoupleIds: [],
+      type: null,
     });
   });
 
@@ -210,7 +211,9 @@ describe('EditRow', () => {
     mockStoreState.region = 'Europe';
     renderEditRow();
 
-    const currencySelect = screen.getByRole('combobox');
+    const currencySelect = screen.getAllByRole('combobox').find(
+      (el) => (el as HTMLSelectElement).options[0]?.value !== ''
+    ) as HTMLSelectElement;
     const options = Array.from(currencySelect.querySelectorAll('option')).map((o) => o.value);
 
     expect(options).toEqual(['CAD', 'EUR', 'GBP', 'USD']);

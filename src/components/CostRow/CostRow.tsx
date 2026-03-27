@@ -4,7 +4,7 @@ import { getEffectiveMarkup, getCostWithMarkup, formatCurrency, validateCost } f
 import { createPortal } from 'react-dom';
 import { Pencil, Trash2, GripVertical, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
 import type { CostEntry, SplitType } from '@/store/types';
-import { getAvailableCurrencies } from '@/store/types';
+import { getAvailableCurrencies, COST_ENTRY_TYPES } from '@/store/types';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import SplitAssignmentModal from '../SplitAssignmentModal';
@@ -34,6 +34,8 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
   const [splitModalOpen, setSplitModalOpen] = useState(false);
   const [pendingSplitType, setPendingSplitType] = useState<Extract<SplitType, 'subset' | 'individual'> | null>(null);
   const [tempAssignedCouples, setTempAssignedCouples] = useState<string[]>([]);
+  const [typePopoverOpen, setTypePopoverOpen] = useState(false);
+  const [typePopoverPos, setTypePopoverPos] = useState<{ top: number; left: number } | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const amountInputRef = useRef<HTMLInputElement>(null);
   const splitPopoverRef = useRef<HTMLDivElement>(null);
@@ -41,6 +43,8 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
   const splitPortalRef = useRef<HTMLDivElement>(null);
   const [splitPopoverPos, setSplitPopoverPos] = useState<{ top: number; left: number } | null>(null);
   const couplePopoverRef = useRef<HTMLDivElement>(null);
+  const typeBtnRef = useRef<HTMLButtonElement>(null);
+  const typePortalRef = useRef<HTMLDivElement>(null);
 
   const {
     attributes,
@@ -51,10 +55,13 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
     isDragging,
   } = useSortable({ id: cost.id });
 
+  const typeEntry = COST_ENTRY_TYPES.find((t) => t.id === cost.type) ?? null;
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    backgroundColor: typeEntry ? typeEntry.color + '20' : undefined,
   };
 
   const effectiveMarkup = getEffectiveMarkup(cost, globalMarkup);
@@ -91,12 +98,18 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
         }
         setCouplePopoverOpen(false);
       }
+      if (
+        typeBtnRef.current && !typeBtnRef.current.contains(e.target as Node) &&
+        (!typePortalRef.current || !typePortalRef.current.contains(e.target as Node))
+      ) {
+        setTypePopoverOpen(false);
+      }
     };
-    if (splitPopoverOpen || couplePopoverOpen) {
+    if (splitPopoverOpen || couplePopoverOpen || typePopoverOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [splitPopoverOpen, couplePopoverOpen, cost.splitType, cost.assignedCoupleIds, previousSplitType, cost.id, editCost, previousAssignedCouples]);
+  }, [splitPopoverOpen, couplePopoverOpen, typePopoverOpen, cost.splitType, cost.assignedCoupleIds, previousSplitType, cost.id, editCost, previousAssignedCouples]);
 
   // Handle name edit
   const handleNameEdit = () => {
@@ -255,6 +268,12 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
     }
 
     setTempAssignedCouples((prev) => (prev.includes(newCoupleId) ? prev : [...prev, newCoupleId]));
+  };
+
+  // Handle type change
+  const handleTypeChange = (typeId: string | null) => {
+    editCost(cost.id, { type: typeId });
+    setTypePopoverOpen(false);
   };
 
   // Handle who-dots click to open split modal
@@ -494,6 +513,58 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
       </td>
       <td>
         <span className="total-num">{formatCurrency(totalWithMarkup, cost.currency)}</span>
+      </td>
+      <td style={{ textAlign: 'center', fontSize: 16 }}>
+        <div className="type-popover-container">
+          <button
+            ref={typeBtnRef}
+            className="type-trigger-btn"
+            onClick={() => {
+              if (!typePopoverOpen && typeBtnRef.current) {
+                const rect = typeBtnRef.current.getBoundingClientRect();
+                setTypePopoverPos({ top: rect.bottom + 4, left: Math.max(8, rect.left - 60) });
+              }
+              setTypePopoverOpen(!typePopoverOpen);
+            }}
+            title="Change type"
+          >
+            {typeEntry ? typeEntry.symbol : '·'}
+          </button>
+        </div>
+        {typePopoverOpen && typePopoverPos && createPortal(
+          <div
+            ref={typePortalRef}
+            className="popover split-popover"
+            style={{ position: 'fixed', top: typePopoverPos.top, left: typePopoverPos.left, minWidth: 150 }}
+          >
+            <button
+              className={`popover-item${!cost.type ? ' selected' : ''}`}
+              onClick={() => handleTypeChange(null)}
+            >
+              ✕ None
+            </button>
+            {COST_ENTRY_TYPES.map((t) => {
+              const isSel = cost.type === t.id;
+              return (
+                <button
+                  key={t.id}
+                  className="popover-item"
+                  style={{
+                    backgroundColor: isSel ? t.color + '33' : t.color + '20',
+                    color: isSel ? t.color : undefined,
+                    fontWeight: isSel ? 800 : undefined,
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = t.color + '40'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = isSel ? t.color + '33' : t.color + '20'; }}
+                  onClick={() => handleTypeChange(t.id)}
+                >
+                  {t.symbol} {t.type_name}
+                </button>
+              );
+            })}
+          </div>,
+          document.body
+        )}
       </td>
       <td>
         <div className="row-acts">

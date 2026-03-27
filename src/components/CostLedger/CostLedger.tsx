@@ -101,6 +101,7 @@ export default function CostLedger() {
       markupOverride: number | null;
       splitType: SplitType;
       assignedCoupleIds: string[];
+      type: string | null;
     }) => {
       try {
         addCost(data);
@@ -121,6 +122,7 @@ export default function CostLedger() {
       markupOverride: number | null;
       splitType: SplitType;
       assignedCoupleIds: string[];
+      type: string | null;
     }) => {
       if (editingId) {
         try {
@@ -197,6 +199,7 @@ export default function CostLedger() {
                 <th style={{ width: 92 }}>Split</th>
                 <th style={{ width: 60 }}>Who</th>
                 <th style={{ width: 96 }}>Total</th>
+                <th style={{ width: 48 }}>Type</th>
                 <th style={{ width: 58 }}></th>
               </tr>
             </thead>
@@ -233,7 +236,7 @@ export default function CostLedger() {
 
               {!isAdding && (
                 <tr className="add-row">
-                  <td colSpan={10}>
+                  <td colSpan={11}>
                     <button className="add-row-btn" onClick={() => setIsAdding(true)}>
                       <Plus size={14} /> Add Cost Entry
                     </button>

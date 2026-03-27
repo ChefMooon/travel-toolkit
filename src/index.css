@@ -1735,14 +1735,15 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
   table.ledger th:nth-child(7) { width: 92px; }      /* split */
   table.ledger th:nth-child(8) { width: 60px; }      /* who */
   table.ledger th:nth-child(9) { width: 96px; }      /* total */
-  table.ledger th:nth-child(10) { width: 58px; }     /* actions */
+  table.ledger th:nth-child(10) { width: 48px; }     /* type */
+  table.ledger th:nth-child(11) { width: 58px; }     /* actions */
 }
 
 /* ── MOBILE CARD LAYOUT (≤700px) ──
    Transforms each table row into a 3-row card:
    Row 1: [name ·····················] [edit] [delete]
    Row 2: [currency] [amount] [markup < > ↺]
-   Row 3: [split · who ···············] [total]
+   Row 3: [split · who ·····] [type] [total]
 ─────────────────────────────────────────────────────────────── */
 @media (max-width: 700px) {
   table.ledger,
@@ -1786,7 +1787,7 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
   }
 
   /* Row 1, Right: Actions (col 4) */
-  table.ledger tbody td:nth-child(10) {
+  table.ledger tbody td:nth-child(11) {
     grid-column: 4;
     grid-row: 1;
     justify-content: flex-end;
@@ -1816,10 +1817,17 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
     grid-row: 3;
   }
 
-  /* Row 3, Cols 2–3: Who (flex, fills space) */
+  /* Row 3, Col 2: Who */
   table.ledger tbody td:nth-child(8) {
-    grid-column: 2 / 4;
+    grid-column: 2 / 3;
     grid-row: 3;
+  }
+
+  /* Row 3, Col 3: Type (left of total) */
+  table.ledger tbody td:nth-child(10) {
+    grid-column: 3;
+    grid-row: 3;
+    justify-content: center;
   }
 
   /* Row 3, Col 4: Total (right-aligned) */
@@ -2134,6 +2142,33 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
   display: inline-block;
 }
 
+.type-popover-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.type-trigger-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  min-width: 24px;
+  min-height: 24px;
+  padding: 3px 6px;
+  border-radius: 5px;
+  line-height: 1;
+  transition: background 0.12s;
+  color: var(--text-2);
+}
+
+.type-trigger-btn:hover {
+  background: var(--bg-2);
+}
+
 .popover {
   position: absolute;
   top: 100%;
@@ -2340,7 +2375,7 @@ tr.edit-row td {
 }
 
 .markup-controls.is-hidden {
-  visibility: hidden;
+  display: none;
   pointer-events: none;
 }
 
