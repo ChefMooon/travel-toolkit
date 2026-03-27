@@ -1,15 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router';
-import App from '@/App';
-import TripToolbar from '@/components/TripToolbar';
+import { createFileRoute, lazyRouteComponent } from '@tanstack/react-router';
 
-export default function TripCostPage() {
-  return (
-    <>
-      <TripToolbar />
-      <App />
-    </>
-  );
-}
+const TripCostPage = lazyRouteComponent(() => import('@/features/trip/TripCostPage'));
 
 export const Route = createFileRoute('/trip')({
   component: TripCostPage,

@@ -1,9 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router';
-import CurrencyTool from '@/features/currency/CurrencyTool';
+import { createFileRoute, lazyRouteComponent } from '@tanstack/react-router';
 
-export default function CurrencyPage() {
-  return <CurrencyTool />;
-}
+const CurrencyPage = lazyRouteComponent(() => import('@/features/currency/CurrencyTool'));
 
 export const Route = createFileRoute('/currency')({
   component: CurrencyPage,

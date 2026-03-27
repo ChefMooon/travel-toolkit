@@ -1,9 +1,6 @@
-import { createFileRoute } from '@tanstack/react-router';
-import ForecastTool from '@/features/forecast';
+import { createFileRoute, lazyRouteComponent } from '@tanstack/react-router';
 
-export default function ForecastPage() {
-  return <ForecastTool />;
-}
+const ForecastPage = lazyRouteComponent(() => import('@/features/forecast'));
 
 export const Route = createFileRoute('/forecast')({
   component: ForecastPage,
