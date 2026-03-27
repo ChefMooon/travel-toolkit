@@ -17,15 +17,11 @@ vi.mock('@/features/currency/useCurrencyProviders', () => ({
   useCurrencyProviders: vi.fn(),
 }));
 
-vi.mock('@/store/currencyStore', () => ({
-  useCurrencyStore: vi.fn((selector: (s: { region: string; setRegion: ReturnType<typeof vi.fn> }) => unknown) =>
-    selector({ region: 'Europe', setRegion: vi.fn() }),
-  ),
-}));
-
 vi.mock('@/features/currency/CurrencyRegionSelector', () => ({
   default: () => <div data-testid="region-selector" />,
 }));
+
+import { useCurrencyStore } from '@/store/currencyStore';
 
 import { useCurrencySnapshot } from '@/features/currency/useCurrencySnapshot';
 import { useCurrencyMetadata } from '@/features/currency/useCurrencyMetadata';
@@ -80,6 +76,11 @@ const idleProviders = { data: undefined, isPending: false, isError: false };
 describe('CurrencyTool', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
+    // Seed the real Zustand store with the values the tests expect:
+    // Europe region: getAvailableCurrencies('Europe') = ['CAD', 'EUR', 'GBP', 'USD']
+    // base = 'CAD' (first in list), target = 'USD'
+    useCurrencyStore.setState({ region: 'Europe', amount: '100', baseCurrency: 'CAD', targetCurrency: 'USD' });
     (useCurrencySnapshot as ReturnType<typeof vi.fn>).mockReturnValue(successQuery);
     (useCurrencyMetadata as ReturnType<typeof vi.fn>).mockReturnValue(successMeta);
     (useCurrencyProviders as ReturnType<typeof vi.fn>).mockReturnValue(successProviders);

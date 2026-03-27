@@ -38,39 +38,30 @@ function formatMoney(value: number, currency: string) {
 
 export default function CurrencyTool() {
   const region = useCurrencyStore((s) => s.region);
+  const amountInput = useCurrencyStore((s) => s.amount);
+  const baseCurrency = useCurrencyStore((s) => s.baseCurrency);
+  const targetCurrency = useCurrencyStore((s) => s.targetCurrency);
+  const setAmountInput = useCurrencyStore((s) => s.setAmount);
+  const setBaseCurrency = useCurrencyStore((s) => s.setBaseCurrency);
+  const setTargetCurrency = useCurrencyStore((s) => s.setTargetCurrency);
   const availableCurrencies = useMemo(() => getAvailableCurrencies(region), [region]);
 
-  const [amountInput, setAmountInput] = useState('100');
-  const [baseCurrency, setBaseCurrency] = useState(() => availableCurrencies[0] ?? 'EUR');
-  const [targetCurrency, setTargetCurrency] = useState(() => {
-    // Prefer USD as the default target currency
-    if (availableCurrencies.includes('USD') && availableCurrencies[0] !== 'USD') {
-      return 'USD';
-    }
-    // If USD is first available, use the second available currency
-    if (availableCurrencies[0] === 'USD') {
-      return availableCurrencies[1] ?? 'EUR';
-    }
-    // Fallback to second available currency
-    return availableCurrencies[1] ?? 'EUR';
-  });
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
 
   useEffect(() => {
-    setBaseCurrency((prevBase) => {
-      const newBase = availableCurrencies.includes(prevBase)
-        ? prevBase
-        : (availableCurrencies[0] ?? 'EUR');
-      setTargetCurrency((prevTarget) => {
-        if (!availableCurrencies.includes(prevTarget) || prevTarget === newBase) {
-          return availableCurrencies.find((c) => c !== newBase) ?? availableCurrencies[0] ?? 'USD';
-        }
-        return prevTarget;
-      });
-      return newBase;
-    });
-  }, [availableCurrencies]);
+    const prevBase = useCurrencyStore.getState().baseCurrency;
+    const prevTarget = useCurrencyStore.getState().targetCurrency;
+    const newBase = availableCurrencies.includes(prevBase)
+      ? prevBase
+      : (availableCurrencies[0] ?? 'EUR');
+    const newTarget =
+      !availableCurrencies.includes(prevTarget) || prevTarget === newBase
+        ? (availableCurrencies.find((c) => c !== newBase) ?? availableCurrencies[0] ?? 'USD')
+        : prevTarget;
+    if (newBase !== prevBase) setBaseCurrency(newBase);
+    if (newTarget !== prevTarget) setTargetCurrency(newTarget);
+  }, [availableCurrencies, setBaseCurrency, setTargetCurrency]);
 
   const amount = parseAmount(amountInput);
   const snapshotQuery = useCurrencySnapshot(baseCurrency, region);
@@ -100,6 +91,16 @@ export default function CurrencyTool() {
     setTargetCurrency(baseCurrency);
   }
 
+  function handleReset() {
+    const defaultBase = availableCurrencies[0] ?? 'EUR';
+    const defaultTarget = availableCurrencies.includes('USD') && 'USD' !== defaultBase
+      ? 'USD'
+      : (availableCurrencies.find((c) => c !== defaultBase) ?? availableCurrencies[0] ?? 'USD');
+    setAmountInput('100');
+    setBaseCurrency(defaultBase);
+    setTargetCurrency(defaultTarget);
+  }
+
   return (
     <section className="tool-page" aria-label="Currency converter">
       <h1>Currency Converter</h1>
@@ -109,6 +110,15 @@ export default function CurrencyTool() {
       <div className="card">
         <div className="card-header">
           <p className="card-title">Conversion Inputs</p>
+          <button
+            type="button"
+            className="currency-reset-button"
+            onClick={handleReset}
+            aria-label="Reset conversion inputs"
+            title="Reset to defaults"
+          >
+            Reset
+          </button>
         </div>
         <div className="card-body currency-controls">
           <label className="tool-field">
@@ -131,11 +141,9 @@ export default function CurrencyTool() {
               onChange={(event) => {
                 const newBase = event.target.value;
                 setBaseCurrency(newBase);
-                setTargetCurrency((prev) =>
-                  prev === newBase
-                    ? (availableCurrencies.find((c) => c !== newBase) ?? newBase)
-                    : prev,
-                );
+                if (targetCurrency === newBase) {
+                  setTargetCurrency(availableCurrencies.find((c) => c !== newBase) ?? newBase);
+                }
               }}
             >
               {availableCurrencies.map((currency) => (

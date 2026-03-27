@@ -691,6 +691,32 @@ body::before {
   outline-offset: 2px;
 }
 
+.currency-reset-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 30px;
+  padding: 0 10px;
+  border: 1.5px solid var(--border-2);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-2);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.currency-reset-button:hover {
+  border-color: var(--c3);
+  color: var(--text);
+}
+
+.currency-reset-button:focus-visible {
+  outline: 3px solid color-mix(in oklab, var(--c3) 45%, white);
+  outline-offset: 2px;
+}
+
 @media (min-width: 768px) {
   .currency-controls {
     grid-template-columns: 1fr 1fr auto 1fr;

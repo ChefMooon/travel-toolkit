@@ -88,15 +88,17 @@ useQuery({
 
 ### Component Logic (`CurrencyTool`)
 
-Three pieces of local state:
+Three pieces of persisted state (Zustand `useCurrencyStore`, `mkt-currency-data`):
 
 | State | Initial | Controls |
 |---|---|---|
-| `amountInput` | `'100'` | Text input for the amount |
-| `baseCurrency` | `'USD'` | "From" select dropdown |
-| `targetCurrency` | `'EUR'` | "To" select dropdown |
+| `amount` | `'100'` | Text input for the amount |
+| `baseCurrency` | `'EUR'` | "From" select dropdown |
+| `targetCurrency` | `'USD'` | "To" select dropdown |
 
-`amount` is derived by parsing `amountInput` through `parseAmount`, which coerces invalid or negative inputs to `0`.
+All three values survive page reloads and cross-tab navigation. When the selected region changes, a `useEffect` reads the stored currencies via `useCurrencyStore.getState()` and resets any value that is no longer valid in the new region's currency list.
+
+`amount` (the numeric value) is derived by parsing the stored string through `parseAmount`, which coerces invalid or negative inputs to `0`.
 
 `converted` is a `useMemo` that multiplies `amount` by `query.data.rates[targetCurrency]`. It recalculates whenever `amount`, the query data, or `targetCurrency` changes. Only `baseCurrency` triggers a new fetch — changing `targetCurrency` just re-reads from the already-fetched rates table.
 

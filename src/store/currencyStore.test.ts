@@ -4,7 +4,7 @@ import { useCurrencyStore } from './currencyStore';
 describe('useCurrencyStore', () => {
   beforeEach(() => {
     localStorage.clear();
-    useCurrencyStore.setState({ region: 'Europe' });
+    useCurrencyStore.setState({ region: 'Europe', amount: '100', baseCurrency: 'EUR', targetCurrency: 'USD' });
   });
 
   it('has initial region of Europe', () => {
@@ -30,5 +30,44 @@ describe('useCurrencyStore', () => {
       state?: { region?: string };
     };
     expect(stored.state?.region).toBe('Oceania');
+  });
+
+  it('has initial amount of 100', () => {
+    expect(useCurrencyStore.getState().amount).toBe('100');
+  });
+
+  it('setAmount updates amount and persists to localStorage', () => {
+    useCurrencyStore.getState().setAmount('250');
+    expect(useCurrencyStore.getState().amount).toBe('250');
+    const stored = JSON.parse(localStorage.getItem('mkt-currency-data') ?? '{}') as {
+      state?: { amount?: string };
+    };
+    expect(stored.state?.amount).toBe('250');
+  });
+
+  it('has initial baseCurrency of EUR', () => {
+    expect(useCurrencyStore.getState().baseCurrency).toBe('EUR');
+  });
+
+  it('setBaseCurrency updates baseCurrency and persists to localStorage', () => {
+    useCurrencyStore.getState().setBaseCurrency('GBP');
+    expect(useCurrencyStore.getState().baseCurrency).toBe('GBP');
+    const stored = JSON.parse(localStorage.getItem('mkt-currency-data') ?? '{}') as {
+      state?: { baseCurrency?: string };
+    };
+    expect(stored.state?.baseCurrency).toBe('GBP');
+  });
+
+  it('has initial targetCurrency of USD', () => {
+    expect(useCurrencyStore.getState().targetCurrency).toBe('USD');
+  });
+
+  it('setTargetCurrency updates targetCurrency and persists to localStorage', () => {
+    useCurrencyStore.getState().setTargetCurrency('JPY');
+    expect(useCurrencyStore.getState().targetCurrency).toBe('JPY');
+    const stored = JSON.parse(localStorage.getItem('mkt-currency-data') ?? '{}') as {
+      state?: { targetCurrency?: string };
+    };
+    expect(stored.state?.targetCurrency).toBe('JPY');
   });
 });

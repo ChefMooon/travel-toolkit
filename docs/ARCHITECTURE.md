@@ -70,8 +70,12 @@ Key responsibilities:
 - Load snapshot rate data through TanStack Query
 - Show the current conversion and base-to-target rate
 - Handle retry UI when the query fails
+- Persist the selected amount, base currency, target currency, and region across page reloads via `useCurrencyStore`
 
-The current implementation uses in-repo snapshot data from `src/features/currency/currencyData.ts`, not a live exchange-rate provider.
+Primary modules:
+
+- `src/features/currency/CurrencyTool.tsx`
+- `src/store/currencyStore.ts`
 
 ### Timezone Tracker
 
@@ -117,6 +121,7 @@ Forecast data is a mixed model:
 |---|---|---|
 | `src/store/tripStore.ts` | `mkt-trip-data` | Trip cost data, theme, exchange rates, and region selection |
 | `src/store/timezoneStore.ts` | `mkt-timezone-data` | Local timezone preference and tracked timezone cards |
+| `src/store/currencyStore.ts` | `mkt-currency-data` | Selected region, last-used amount, base currency, and target currency for the currency converter |
 
 ### Ephemeral stores
 
