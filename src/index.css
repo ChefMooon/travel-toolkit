@@ -2410,6 +2410,20 @@ tr.add-row td { padding: 0; border: none; }
 /* ══════════════════════════════════════════ SUMMARY PANEL */
 .s-cards { display: flex; flex-direction: column; gap: 13px; }
 
+@media (min-width: 768px) and (max-width: 1279px) {
+  .s-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 13px;
+    align-items: start;
+    align-content: start;
+  }
+
+  .s-card {
+    min-width: 0;
+  }
+}
+
 .s-card {
   border-radius: 14px; overflow: hidden;
   border: 1.5px solid; box-shadow: var(--shadow-sm);
