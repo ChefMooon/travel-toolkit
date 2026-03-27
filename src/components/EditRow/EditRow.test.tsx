@@ -341,21 +341,16 @@ describe('EditRow', () => {
       },
     });
 
-    // Find the select groups button
-    const selectButton = screen.getByRole('button', { name: '' }); // Button with no text content initially
+    const selectButton = screen.getByRole('button', { name: 'Change included groups' });
 
-    // Verify the button has the with-dots class
     expect(selectButton).toHaveClass('with-dots');
 
-    // Verify color dots are rendered
     const dots = selectButton.querySelectorAll('.who-dot');
     expect(dots).toHaveLength(2);
 
-    // Verify dots have correct background colors (based on couple colorIndex)
     expect(dots[0]).toHaveStyle('background: var(--c1)');
     expect(dots[1]).toHaveStyle('background: var(--c2)');
 
-    // Verify dots have correct titles (couple names)
     expect(dots[0]).toHaveAttribute('title', 'Group 1');
     expect(dots[1]).toHaveAttribute('title', 'Group 2');
   });

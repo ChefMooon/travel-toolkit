@@ -96,6 +96,7 @@ export default function SplitAssignmentModal({
     <div className="modal-overlay" onClick={onClose}>
       <div
         ref={dialogRef}
+        id={modalName}
         className="split-modal"
         role="dialog"
         aria-modal="true"
