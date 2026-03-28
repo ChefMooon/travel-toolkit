@@ -1,4 +1,3 @@
-import { DateTime } from 'luxon';
 import type { TrackedZone } from '@/store/timezoneStore';
 
 export interface TimezoneOption {
@@ -8,16 +7,28 @@ export interface TimezoneOption {
   offsetMinutes: number;
 }
 
-export interface ClockDisplayData {
-  time24: string;
-  time12: string;
-  timeCompact: string;
-  date: string;
-  utcLabel: string;
-  offsetMinutes: number;
-  hourDeg: number;
-  minuteDeg: number;
-  secondDeg: number;
+function buildOffsetInfo(tz: string): { offset: string; offsetMinutes: number } {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: tz,
+    timeZoneName: 'longOffset',
+  }).formatToParts(new Date());
+
+  const zoneName = parts.find((part) => part.type === 'timeZoneName')?.value ?? 'GMT+00:00';
+  const match = zoneName.match(/([+-])(\d{1,2}):(\d{2})/);
+
+  if (!match) {
+    return { offset: 'UTC+00:00', offsetMinutes: 0 };
+  }
+
+  const sign = match[1] === '-' ? -1 : 1;
+  const hours = Number.parseInt(match[2] ?? '0', 10);
+  const minutes = Number.parseInt(match[3] ?? '0', 10);
+  const totalMinutes = sign * (hours * 60 + minutes);
+
+  return {
+    offset: `UTC${sign < 0 ? '-' : '+'}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`,
+    offsetMinutes: totalMinutes,
+  };
 }
 
 export function buildTimezoneOptions(): TimezoneOption[] {
@@ -30,34 +41,16 @@ export function buildTimezoneOptions(): TimezoneOption[] {
 
   return zones
     .map((tz) => {
-      const now = DateTime.now().setZone(tz);
+      const { offset, offsetMinutes } = buildOffsetInfo(tz);
+
       return {
         tz,
         label: tz.replace(/_/g, ' '),
-        offset: `UTC${now.toFormat('ZZ')}`,
-        offsetMinutes: now.offset,
+        offset,
+        offsetMinutes,
       };
     })
     .sort((a, b) => a.offsetMinutes - b.offsetMinutes);
-}
-
-export function getClockDisplayData(now: DateTime, tz: string): ClockDisplayData {
-  const dt = now.setZone(tz);
-  const hour = dt.hour % 12;
-  const minute = dt.minute;
-  const second = dt.second;
-
-  return {
-    time24: dt.toFormat('HH:mm:ss'),
-    time12: dt.toFormat('hh:mm:ss a'),
-    timeCompact: dt.toFormat('HH:mm'),
-    date: dt.toFormat('ccc, LLL dd'),
-    utcLabel: `UTC${dt.toFormat('ZZ')}`,
-    offsetMinutes: dt.offset,
-    hourDeg: hour * 30 + minute * 0.5,
-    minuteDeg: minute * 6 + second * 0.1,
-    secondDeg: second * 6,
-  };
 }
 
 export function createTrackedZone(tz: string, label: string, order: number): TrackedZone {

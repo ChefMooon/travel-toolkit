@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { Suspense, lazy, useState } from 'react';
 import { LocateFixed, Settings } from 'lucide-react';
 import { useTimezoneStore } from '@/store/timezoneStore';
-import ConfigModal from './ConfigModal/ConfigModal';
 import TimezoneSelect from './TimezoneSelect';
+
+const ConfigModal = lazy(() => import('./ConfigModal/ConfigModal'));
 
 export default function TimezoneNavbar() {
   const localTz = useTimezoneStore((state) => state.localTz);
@@ -65,7 +66,9 @@ export default function TimezoneNavbar() {
         </div>
       </div>
 
-      {isConfigOpen && <ConfigModal onClose={() => setIsConfigOpen(false)} />}
+      <Suspense fallback={null}>
+        {isConfigOpen && <ConfigModal onClose={() => setIsConfigOpen(false)} />}
+      </Suspense>
     </>
   );
 }

@@ -32,14 +32,14 @@ describe('TimezoneNavbar', () => {
     vi.restoreAllMocks();
   });
 
-  it('FE-TZ-005 Settings button opens ConfigModal', () => {
+  it('FE-TZ-005 Settings button opens ConfigModal', async () => {
     render(<TimezoneNavbar />);
 
     expect(screen.queryByTestId('config-modal')).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Manage tracked timezones' }));
 
-    expect(screen.getByTestId('config-modal')).toBeInTheDocument();
+    expect(await screen.findByTestId('config-modal')).toBeInTheDocument();
   });
 
   it('FE-TZ-006 Detect button calls setLocalTz with the browser timezone', () => {

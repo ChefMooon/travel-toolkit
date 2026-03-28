@@ -1,5 +1,5 @@
 import type { TrackedZone } from '@/store/timezoneStore';
-import type { ClockDisplayData } from './timezones';
+import type { ClockDisplayData } from './timezoneFormat';
 
 interface DigitalClockProps {
   displayData: ClockDisplayData;

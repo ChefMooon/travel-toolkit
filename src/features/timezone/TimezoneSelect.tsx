@@ -1,8 +1,16 @@
 import { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
-import { buildTimezoneOptions } from './timezones';
+import { buildTimezoneOptions, type TimezoneOption } from './timezones';
 
-const ALL_OPTIONS = buildTimezoneOptions();
+let cachedOptions: TimezoneOption[] | null = null;
+
+function getAllOptions(): TimezoneOption[] {
+  if (!cachedOptions) {
+    cachedOptions = buildTimezoneOptions();
+  }
+
+  return cachedOptions;
+}
 
 interface TimezoneSelectProps {
   value: string;
@@ -22,12 +30,14 @@ export default function TimezoneSelect({
   const [query, setQuery] = useState('');
 
   const filtered = useMemo(() => {
-    if (!searchable) return ALL_OPTIONS;
+    const allOptions = getAllOptions();
+
+    if (!searchable) return allOptions;
 
     const normalized = query.trim().toLowerCase();
-    if (!normalized) return ALL_OPTIONS;
+    if (!normalized) return allOptions;
 
-    return ALL_OPTIONS.filter(
+    return allOptions.filter(
       (option) =>
         option.tz.toLowerCase().includes(normalized) ||
         option.label.toLowerCase().includes(normalized) ||

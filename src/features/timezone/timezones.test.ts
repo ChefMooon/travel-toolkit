@@ -3,8 +3,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
   buildTimezoneOptions,
   createTrackedZone,
-  getClockDisplayData,
 } from './timezones';
+import { getClockDisplayData } from './timezoneFormat';
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -25,14 +25,7 @@ describe('timezone utilities', () => {
   });
 
   it('buildTimezoneOptions falls back when Intl.supportedValuesOf is unavailable', () => {
-    const fallbackTz = 'Europe/Paris';
-
-    vi.spyOn(Intl, 'DateTimeFormat').mockImplementation(
-      (() =>
-        ({
-          resolvedOptions: () => ({ timeZone: fallbackTz }),
-        }) as Intl.DateTimeFormat) as typeof Intl.DateTimeFormat
-    );
+    const fallbackTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
     const original = (Intl as typeof Intl & { supportedValuesOf?: unknown }).supportedValuesOf;
     Object.defineProperty(Intl, 'supportedValuesOf', {

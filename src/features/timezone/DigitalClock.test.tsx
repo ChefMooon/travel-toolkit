@@ -4,7 +4,7 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import DigitalClock from '@/features/timezone/DigitalClock';
-import type { ClockDisplayData } from '@/features/timezone/timezones';
+import type { ClockDisplayData } from '@/features/timezone/timezoneFormat';
 import type { TrackedZone } from '@/store/timezoneStore';
 
 const mockDisplayData: ClockDisplayData = {

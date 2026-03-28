@@ -2,7 +2,7 @@ import type { DateTime } from 'luxon';
 import type { TrackedZone } from '@/store/timezoneStore';
 import AnalogClock from './AnalogClock';
 import DigitalClock from './DigitalClock';
-import { getClockDisplayData } from './timezones';
+import { getClockDisplayData } from './timezoneFormat';
 
 interface ClockCardProps {
   zone: TrackedZone;
