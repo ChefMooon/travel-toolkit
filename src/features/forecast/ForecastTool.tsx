@@ -1,12 +1,18 @@
 import { type KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
 import {
   CalendarDays,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   CloudRain,
   CloudSun,
   Droplets,
+  Info,
+  PanelTop,
   Snowflake,
   Sunrise,
   Sun,
+  Table2,
   Thermometer,
   ThermometerSnowflake,
   ThermometerSun,
@@ -16,6 +22,7 @@ import { getLocalTimeAtDestination } from './forecastData';
 import { getEventsForRange } from './forecastEvents';
 import type { DailyClimate, ForecastEvent, GeoLocation } from './forecastTypes';
 import { FORECAST_GEOCODE_MIN_QUERY_LENGTH, useClimateData, useGeocode } from './useForecast';
+import { useForecastStore } from '../../store/forecastStore';
 
 const FORECAST_GEOCODE_DEBOUNCE_MS = 500;
 
@@ -102,6 +109,305 @@ function getDailyDetailMetrics(day: DailyClimate): DailyMetric[] {
   ];
 }
 
+function ForecastAttribution() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div className="forecast-badge forecast-badge-attribution" ref={ref}>
+      <button
+        type="button"
+        className="forecast-badge-btn"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        aria-label="Weather data source information"
+      >
+        Weather data from{' '}
+        <a
+          href="https://open-meteo.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="forecast-badge-link"
+          onClick={(e) => e.stopPropagation()}
+        >
+          Open-Meteo
+        </a>
+        <Info size={14} strokeWidth={2} />
+      </button>
+      {open && (
+        <div className="forecast-popover" role="tooltip">
+          Climate averages are sourced from Open-Meteo's Climate API, based on historical weather model data spanning multiple decades.
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ForecastEventDisclaimer() {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  return (
+    <div className="forecast-badge" ref={ref}>
+      <button
+        type="button"
+        className="forecast-badge-btn"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        aria-label="Event data source information"
+      >
+        <Info size={14} strokeWidth={2} />
+      </button>
+      {open && (
+        <div className="forecast-popover" role="tooltip">
+          This is a personal data source. All event dates are estimates and may not reflect exact scheduling.
+        </div>
+      )}
+    </div>
+  );
+}
+
+function DailyBreakdownToggle() {
+  const { dailyBreakdownView, setDailyBreakdownView } = useForecastStore();
+
+  return (
+    <div className="forecast-view-toggle" role="radiogroup" aria-label="Daily breakdown view mode">
+      <button
+        type="button"
+        className={`forecast-view-toggle-btn${dailyBreakdownView === 'table' ? ' is-active' : ''}`}
+        onClick={() => setDailyBreakdownView('table')}
+        role="radio"
+        aria-checked={dailyBreakdownView === 'table'}
+        aria-label="Table view"
+      >
+        <Table2 size={14} strokeWidth={2} />
+        <span className="forecast-view-toggle-label">Table</span>
+      </button>
+      <button
+        type="button"
+        className={`forecast-view-toggle-btn${dailyBreakdownView === 'single-day' ? ' is-active' : ''}`}
+        onClick={() => setDailyBreakdownView('single-day')}
+        role="radio"
+        aria-checked={dailyBreakdownView === 'single-day'}
+        aria-label="Day view"
+      >
+        <PanelTop size={14} strokeWidth={2} />
+        <span className="forecast-view-toggle-label">Day View</span>
+      </button>
+    </div>
+  );
+}
+
+function DailyTableView({ days }: { days: DailyClimate[] }) {
+  const [expandedDate, setExpandedDate] = useState<string | null>(null);
+
+  const toggleRow = (date: string) => {
+    setExpandedDate((prev) => (prev === date ? null : date));
+  };
+
+  return (
+    <div className="forecast-table" role="table" aria-label="Daily climate breakdown">
+      <div className="forecast-table-header" role="row">
+        <span role="columnheader">Date</span>
+        <span role="columnheader">High / Low</span>
+        <span role="columnheader" className="forecast-table-col-hide">Precip.</span>
+        <span role="columnheader" className="forecast-table-col-hide-sm">Sunshine</span>
+        <span role="columnheader" className="forecast-table-col-hide-sm">Daylight</span>
+        <span role="columnheader" className="forecast-table-col-expand"><span className="sr-only">Expand</span></span>
+      </div>
+      {days.map((day) => {
+        const isExpanded = expandedDate === day.date;
+        const precipMetric = getDailyPrimaryPrecipMetric(day);
+        return (
+          <div key={day.date} className="forecast-table-row-group">
+            <button
+              type="button"
+              className={`forecast-table-row${isExpanded ? ' is-expanded' : ''}`}
+              onClick={() => toggleRow(day.date)}
+              role="row"
+              aria-expanded={isExpanded}
+            >
+              <span className="forecast-table-cell" role="cell">
+                <CalendarDays size={14} strokeWidth={2} />
+                {formatMonthDay(day.date)}
+              </span>
+              <span className="forecast-table-cell" role="cell">
+                {day.tempMaxC} / {day.tempMinC} <span className="forecast-table-unit">°C</span>
+              </span>
+              <span className="forecast-table-cell forecast-table-col-hide" role="cell">
+                {precipMetric.value} <span className="forecast-table-unit">{precipMetric.unit}</span>
+              </span>
+              <span className="forecast-table-cell forecast-table-col-hide-sm" role="cell">
+                {day.sunshineDurationHrs} <span className="forecast-table-unit">hrs</span>
+              </span>
+              <span className="forecast-table-cell forecast-table-col-hide-sm" role="cell">
+                {day.daylightDurationHrs} <span className="forecast-table-unit">hrs</span>
+              </span>
+              <span className="forecast-table-cell forecast-table-col-expand" role="cell">
+                <ChevronDown size={16} strokeWidth={2} className={`forecast-table-chevron${isExpanded ? ' is-rotated' : ''}`} />
+              </span>
+            </button>
+            <div className={`forecast-table-expand${isExpanded ? ' is-open' : ''}`} role="row">
+              <div className="forecast-table-expand-content">
+                {getDailyDetailMetrics(day).map((metric) => (
+                  <article key={`${day.date}-${metric.label}`} className="forecast-day-detail-metric">
+                    <div className="forecast-summary-metric-image" aria-hidden="true">
+                      <metric.Icon size={18} strokeWidth={2} />
+                    </div>
+                    <p className="forecast-summary-metric-label">{metric.label}</p>
+                    <p className="forecast-summary-metric-value">
+                      {metric.value}
+                      <span>{metric.unit}</span>
+                    </p>
+                  </article>
+                ))}
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function DailySingleDayView({ days }: { days: DailyClimate[] }) {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const stripRef = useRef<HTMLDivElement>(null);
+
+  const selectedDay = days[selectedIndex];
+
+  useEffect(() => {
+    if (!stripRef.current) return;
+    const chip = stripRef.current.children[selectedIndex] as HTMLElement | undefined;
+    chip?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+  }, [selectedIndex]);
+
+  if (!selectedDay) return null;
+
+  const goToPrev = () => setSelectedIndex((i) => Math.max(0, i - 1));
+  const goToNext = () => setSelectedIndex((i) => Math.min(days.length - 1, i + 1));
+
+  const precipMetric = getDailyPrimaryPrecipMetric(selectedDay);
+
+  return (
+    <div className="forecast-single-day">
+      <div className="forecast-day-strip-wrap">
+        <button
+          type="button"
+          className="forecast-day-strip-arrow"
+          onClick={goToPrev}
+          disabled={selectedIndex === 0}
+          aria-label="Previous day"
+        >
+          <ChevronLeft size={18} strokeWidth={2} />
+        </button>
+        <div className="forecast-day-strip" ref={stripRef} role="tablist" aria-label="Select forecast day">
+          {days.map((day, index) => (
+            <button
+              key={day.date}
+              type="button"
+              className={`forecast-day-chip${index === selectedIndex ? ' is-active' : ''}`}
+              onClick={() => setSelectedIndex(index)}
+              role="tab"
+              aria-selected={index === selectedIndex}
+            >
+              {formatMonthDay(day.date)}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          className="forecast-day-strip-arrow"
+          onClick={goToNext}
+          disabled={selectedIndex === days.length - 1}
+          aria-label="Next day"
+        >
+          <ChevronRight size={18} strokeWidth={2} />
+        </button>
+      </div>
+
+      <div className="forecast-single-day-panel" role="tabpanel" aria-label={`Forecast for ${formatMonthDay(selectedDay.date)}`}>
+        <h3 className="forecast-single-day-title">{formatMonthDay(selectedDay.date)}</h3>
+
+        <div className="forecast-single-day-primary">
+          <article className="forecast-summary-metric">
+            <div className="forecast-summary-metric-image" aria-hidden="true">
+              <Thermometer size={18} strokeWidth={2} />
+            </div>
+            <p className="forecast-summary-metric-label">High / Low</p>
+            <p className="forecast-summary-metric-value">
+              {selectedDay.tempMaxC} / {selectedDay.tempMinC}<span>°C</span>
+            </p>
+          </article>
+          <article className="forecast-summary-metric">
+            <div className="forecast-summary-metric-image" aria-hidden="true">
+              <precipMetric.Icon size={18} strokeWidth={2} />
+            </div>
+            <p className="forecast-summary-metric-label">{precipMetric.label}</p>
+            <p className="forecast-summary-metric-value">
+              {precipMetric.value}<span>{precipMetric.unit}</span>
+            </p>
+          </article>
+          <article className="forecast-summary-metric">
+            <div className="forecast-summary-metric-image" aria-hidden="true">
+              <CloudSun size={18} strokeWidth={2} />
+            </div>
+            <p className="forecast-summary-metric-label">Sunshine</p>
+            <p className="forecast-summary-metric-value">
+              {selectedDay.sunshineDurationHrs}<span>hrs</span>
+            </p>
+          </article>
+          <article className="forecast-summary-metric">
+            <div className="forecast-summary-metric-image" aria-hidden="true">
+              <Sunrise size={18} strokeWidth={2} />
+            </div>
+            <p className="forecast-summary-metric-label">Daylight</p>
+            <p className="forecast-summary-metric-value">
+              {selectedDay.daylightDurationHrs}<span>hrs</span>
+            </p>
+          </article>
+        </div>
+
+        <div className="forecast-single-day-secondary">
+          {getDailyDetailMetrics(selectedDay).map((metric) => (
+            <article key={metric.label} className="forecast-summary-metric">
+              <div className="forecast-summary-metric-image" aria-hidden="true">
+                <metric.Icon size={18} strokeWidth={2} />
+              </div>
+              <p className="forecast-summary-metric-label">{metric.label}</p>
+              <p className="forecast-summary-metric-value">
+                {metric.value}<span>{metric.unit}</span>
+              </p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ForecastTool() {
   const suggestionListId = 'forecast-suggestion-list';
   const today = useMemo(() => new Date(), []);
@@ -144,6 +450,8 @@ export default function ForecastTool() {
       globalThis.clearInterval(intervalId);
     };
   }, [selectedLocation]);
+
+  const { dailyBreakdownView } = useForecastStore();
 
   const geocodeQuery = useGeocode(debouncedSearch);
   const climateQuery = useClimateData(selectedLocation, dateFrom, dateTo);
@@ -316,7 +624,8 @@ export default function ForecastTool() {
 
       <div className="card forecast-search-card">
         <div className="card-header">
-          <p className="card-title">Location Search & Date Range</p>
+          <p className="card-title">Location Search &amp; Date Range</p>
+          <ForecastAttribution />
         </div>
         <div className="card-body tool-controls">
           <div className="forecast-location-grid">
@@ -453,8 +762,9 @@ export default function ForecastTool() {
         <>
           {matchedEvents.length > 0 ? (
             <div className="card">
-              <div className="card-header">
+              <div className="card-header card-header-inline-mobile">
                 <p className="card-title">Events During Your Dates</p>
+                <ForecastEventDisclaimer />
               </div>
               <div className="card-body tool-results">
                 {matchedEvents.map((event) => (
@@ -514,91 +824,16 @@ export default function ForecastTool() {
           </div>
 
           <div className="card">
-            <div className="card-header">
+            <div className="card-header card-header-inline-mobile">
               <p className="card-title">Daily Breakdown</p>
+              <DailyBreakdownToggle />
             </div>
             <div className="card-body tool-results">
-              <div className="forecast-daily-grid" role="list" aria-label="Daily climate breakdown">
-                {climateQuery.data.days.map((day) => (
-                  <article key={day.date} className="forecast-daily-card" role="listitem">
-                    <div className="forecast-daily-card-header">
-                      <div className="forecast-summary-metric-image" aria-hidden="true">
-                        <CalendarDays size={18} strokeWidth={2} />
-                      </div>
-                      <h3>{formatMonthDay(day.date)}</h3>
-                    </div>
-
-                    <div className="forecast-daily-card-metrics">
-                      <article className="forecast-daily-card-metric">
-                        <div className="forecast-summary-metric-image" aria-hidden="true">
-                          <Thermometer size={18} strokeWidth={2} />
-                        </div>
-                        <p className="forecast-summary-metric-label">High / Low</p>
-                        <p className="forecast-summary-metric-value">
-                          {day.tempMaxC} / {day.tempMinC}
-                          <span>°C</span>
-                        </p>
-                      </article>
-
-                      {(() => {
-                        const precipMetric = getDailyPrimaryPrecipMetric(day);
-                        return (
-                          <article className="forecast-daily-card-metric">
-                            <div className="forecast-summary-metric-image" aria-hidden="true">
-                              <precipMetric.Icon size={18} strokeWidth={2} />
-                            </div>
-                            <p className="forecast-summary-metric-label">{precipMetric.label}</p>
-                            <p className="forecast-summary-metric-value">
-                              {precipMetric.value}
-                              <span>{precipMetric.unit}</span>
-                            </p>
-                          </article>
-                        );
-                      })()}
-
-                      <article className="forecast-daily-card-metric">
-                        <div className="forecast-summary-metric-image" aria-hidden="true">
-                          <CloudSun size={18} strokeWidth={2} />
-                        </div>
-                        <p className="forecast-summary-metric-label">Sunshine</p>
-                        <p className="forecast-summary-metric-value">
-                          {day.sunshineDurationHrs}
-                          <span>hrs</span>
-                        </p>
-                      </article>
-
-                      <article className="forecast-daily-card-metric">
-                        <div className="forecast-summary-metric-image" aria-hidden="true">
-                          <Sunrise size={18} strokeWidth={2} />
-                        </div>
-                        <p className="forecast-summary-metric-label">Daylight</p>
-                        <p className="forecast-summary-metric-value">
-                          {day.daylightDurationHrs}
-                          <span>hrs</span>
-                        </p>
-                      </article>
-                    </div>
-
-                    <details className="forecast-details forecast-daily-details">
-                      <summary>View day details</summary>
-                      <div className="forecast-day-detail-metrics" role="list" aria-label={`${formatMonthDay(day.date)} details`}>
-                        {getDailyDetailMetrics(day).map((metric) => (
-                          <article key={`${day.date}-${metric.label}`} className="forecast-day-detail-metric" role="listitem">
-                            <div className="forecast-summary-metric-image" aria-hidden="true">
-                              <metric.Icon size={18} strokeWidth={2} />
-                            </div>
-                            <p className="forecast-summary-metric-label">{metric.label}</p>
-                            <p className="forecast-summary-metric-value">
-                              {metric.value}
-                              <span>{metric.unit}</span>
-                            </p>
-                          </article>
-                        ))}
-                      </div>
-                    </details>
-                  </article>
-                ))}
-              </div>
+              {dailyBreakdownView === 'table' ? (
+                <DailyTableView days={climateQuery.data.days} />
+              ) : (
+                <DailySingleDayView days={climateQuery.data.days} />
+              )}
             </div>
           </div>
         </>
