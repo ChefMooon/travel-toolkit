@@ -481,55 +481,18 @@ export default function ForecastTool() {
     [selectedLocation, dateFrom, dateTo],
   );
 
-  const summaryMetrics = useMemo<SummaryMetric[]>(() => {
+  const supportMetrics = useMemo<SummaryMetric[]>(() => {
     if (!climateQuery.data) {
       return [];
     }
 
-    const primaryPrecipMetric = climateQuery.data.precipitationDisplay === 'snow'
-      ? {
-          label: 'Snowfall',
-          value: climateQuery.data.avgSnowfallCm,
-          unit: 'cm/day',
-          Icon: Snowflake,
-        }
-      : {
-          label: 'Precipitation',
-          value: climateQuery.data.avgPrecipitationMm,
-          unit: 'mm/day',
-          Icon: CloudRain,
-        };
-
     return [
-      { label: 'Avg High', value: climateQuery.data.avgHighC, unit: '°C', Icon: ThermometerSun },
-      { label: 'Avg Low', value: climateQuery.data.avgLowC, unit: '°C', Icon: ThermometerSnowflake },
-      { label: 'Avg Mean', value: climateQuery.data.avgMeanC, unit: '°C', Icon: Thermometer },
-      primaryPrecipMetric,
+      { label: 'Precipitation', value: climateQuery.data.avgPrecipitationMm, unit: 'mm/day', Icon: CloudRain },
       { label: 'Sunshine', value: climateQuery.data.avgSunshineDurationHrs, unit: 'hrs/day', Icon: Sun },
       { label: 'Daylight', value: climateQuery.data.avgDaylightDurationHrs, unit: 'hrs/day', Icon: Sunrise },
-    ];
-  }, [climateQuery.data]);
-
-  const summaryDetailMetrics = useMemo<DetailMetric[]>(() => {
-    if (!climateQuery.data) {
-      return [];
-    }
-
-    return [
-      { label: 'Avg Rainfall', value: climateQuery.data.avgRainMm, unit: 'mm/day', Icon: Droplets },
-      { label: 'Avg Snowfall', value: climateQuery.data.avgSnowfallCm, unit: 'cm/day', Icon: Snowflake },
-      {
-        label: 'Avg Total Precipitation',
-        value: climateQuery.data.avgPrecipitationMm,
-        unit: 'mm/day',
-        Icon: CloudRain,
-      },
-      {
-        label: 'Avg Max Wind Speed',
-        value: climateQuery.data.avgWindspeedMaxKmh,
-        unit: 'km/h',
-        Icon: Wind,
-      },
+      { label: 'Rainfall', value: climateQuery.data.avgRainMm, unit: 'mm/day', Icon: Droplets },
+      { label: 'Snowfall', value: climateQuery.data.avgSnowfallCm, unit: 'cm/day', Icon: Snowflake },
+      { label: 'Max Wind', value: climateQuery.data.avgWindspeedMaxKmh, unit: 'km/h', Icon: Wind },
     ];
   }, [climateQuery.data]);
 
@@ -786,9 +749,21 @@ export default function ForecastTool() {
               <p className="card-title">Climate Summary</p>
             </div>
             <div className="card-body tool-results">
-              <div className="forecast-summary-layout">
-                <div className="forecast-summary-strip" role="list" aria-label="Climate summary highlights">
-                  {summaryMetrics.map((metric) => (
+              <div className="forecast-summary-hero-layout">
+                <article className="forecast-hero-card">
+                  <div className="forecast-summary-metric-image forecast-hero-card-icon" aria-hidden="true">
+                    <Thermometer size={28} strokeWidth={2} />
+                  </div>
+                  <p className="forecast-summary-metric-label">Avg Mean Temp</p>
+                  <p className="forecast-hero-card-value">
+                    {climateQuery.data.avgMeanC}<span>°C</span>
+                  </p>
+                  <p className="forecast-hero-card-sublabel">
+                    High {climateQuery.data.avgHighC}° · Low {climateQuery.data.avgLowC}°
+                  </p>
+                </article>
+                <div className="forecast-support-grid" role="list" aria-label="Climate summary stats">
+                  {supportMetrics.map((metric) => (
                     <article key={metric.label} className="forecast-summary-metric" role="listitem">
                       <div className="forecast-summary-metric-image" aria-hidden="true">
                         <metric.Icon size={18} strokeWidth={2} />
@@ -802,24 +777,6 @@ export default function ForecastTool() {
                   ))}
                 </div>
               </div>
-
-              <details className="forecast-details">
-                <summary>More Details</summary>
-                <div className="forecast-details-metric-grid" role="list" aria-label="Climate summary details">
-                  {summaryDetailMetrics.map((metric) => (
-                    <article key={metric.label} className="forecast-details-metric" role="listitem">
-                      <div className="forecast-summary-metric-image" aria-hidden="true">
-                        <metric.Icon size={18} strokeWidth={2} />
-                      </div>
-                      <p className="forecast-summary-metric-label">{metric.label}</p>
-                      <p className="forecast-summary-metric-value">
-                        {metric.value}
-                        <span>{metric.unit}</span>
-                      </p>
-                    </article>
-                  ))}
-                </div>
-              </details>
             </div>
           </div>
 
