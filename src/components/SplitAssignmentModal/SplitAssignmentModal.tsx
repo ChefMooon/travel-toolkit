@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Plus } from 'lucide-react';
-import type { Couple, SplitType } from '@/store/types';
+import { MAX_GROUPS, type Couple, type SplitType } from '@/store/types';
 
 interface SplitAssignmentModalProps {
   open: boolean;
@@ -123,6 +123,7 @@ export default function SplitAssignmentModal({
             type="button"
             className="split-modal-create-btn"
             onClick={onCreateGroup}
+            disabled={couples.length >= MAX_GROUPS}
           >
             <Plus size={14} />
             Create Group

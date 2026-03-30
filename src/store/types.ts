@@ -98,6 +98,23 @@ export const REGIONS: Record<Region, string[]> = {
 
 export const ALWAYS_AVAILABLE_CURRENCIES = ['CAD', 'USD'];
 
+// Hard limits for trip data — also used by the future .xlsx import parser
+export const MAX_GROUPS = 100;
+export const MAX_KIDS_PER_GROUP = 50;
+export const MAX_COST_ENTRIES = 1000;
+export const MAX_TRIP_NAME_LENGTH = 100;
+export const MAX_GROUP_NAME_LENGTH = 50;
+export const MAX_COST_NAME_LENGTH = 200;
+
+export const TRIP_LIMITS = {
+  MAX_GROUPS,
+  MAX_KIDS_PER_GROUP,
+  MAX_COST_ENTRIES,
+  MAX_TRIP_NAME_LENGTH,
+  MAX_GROUP_NAME_LENGTH,
+  MAX_COST_NAME_LENGTH,
+} as const;
+
 export const REGION_LIST = Object.keys(REGIONS) as Region[];
 
 export function getAvailableCurrencies(region: Region): string[] {

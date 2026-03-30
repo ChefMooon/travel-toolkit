@@ -8,6 +8,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
+### Added
+
+- Trip data hard limits for performance safety:
+	- Max 100 groups
+	- Max 50 kids per group
+	- Max 1,000 cost entries
+- Centralized exported trip limit constants and `TRIP_LIMITS` bundle for reuse by future import/parsing workflows (including planned `.xlsx` import)
+- Expanded automated coverage for trip limit enforcement, warning toasts, and name-length truncation behavior in store tests
+
+### Changed
+
+- Trip store actions now enforce hard limits at the data layer and block writes beyond configured limits
+- Reaching a trip limit now surfaces descriptive warning toasts for group, child, and cost-entry capacity
+- UI add/create controls now disable at capacity in Group Setup, Cost Ledger, and split-assignment create-group flows
+- Trip name, group name, and cost name now enforce maximum lengths in both store logic and relevant input controls
+
 ---
 
 ## [1.1.0] - 2026-03-23

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { RotateCcw } from 'lucide-react';
 import { useTripStore } from '@/store/tripStore';
 import Modal from '@/components/Modal';
+import { MAX_TRIP_NAME_LENGTH } from '@/store/types';
 
 export default function TripToolbar() {
   const tripName = useTripStore((s) => s.tripName);
@@ -41,6 +42,7 @@ export default function TripToolbar() {
               onChange={(e) => setTripName(e.target.value)}
               onFocus={() => setTripNameFocused(true)}
               onBlur={() => setTripNameFocused(false)}
+              maxLength={MAX_TRIP_NAME_LENGTH}
               aria-label="Trip name"
             />
             {tripNameFocused && tripName ? (

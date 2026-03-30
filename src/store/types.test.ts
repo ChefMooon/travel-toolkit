@@ -3,6 +3,13 @@ import {
   COUPLE_ICONS,
   COUPLE_COLORS,
   getColorThemeValue,
+  MAX_GROUPS,
+  MAX_KIDS_PER_GROUP,
+  MAX_COST_ENTRIES,
+  MAX_TRIP_NAME_LENGTH,
+  MAX_GROUP_NAME_LENGTH,
+  MAX_COST_NAME_LENGTH,
+  TRIP_LIMITS,
   type Couple,
 } from './types';
 import { useTripStore } from './tripStore';
@@ -244,5 +251,25 @@ describe('Phase 2: Couple Icon & Color Updates', () => {
       expect(couple).toHaveProperty('iconIndex');
       expect(couple.iconIndex).toBeDefined();
     });
+  });
+});
+
+describe('Trip limit constants', () => {
+  it('exports individual limit constants with correct values', () => {
+    expect(MAX_GROUPS).toBe(100);
+    expect(MAX_KIDS_PER_GROUP).toBe(50);
+    expect(MAX_COST_ENTRIES).toBe(1000);
+    expect(MAX_TRIP_NAME_LENGTH).toBe(100);
+    expect(MAX_GROUP_NAME_LENGTH).toBe(50);
+    expect(MAX_COST_NAME_LENGTH).toBe(200);
+  });
+
+  it('TRIP_LIMITS bundles all constants', () => {
+    expect(TRIP_LIMITS.MAX_GROUPS).toBe(MAX_GROUPS);
+    expect(TRIP_LIMITS.MAX_KIDS_PER_GROUP).toBe(MAX_KIDS_PER_GROUP);
+    expect(TRIP_LIMITS.MAX_COST_ENTRIES).toBe(MAX_COST_ENTRIES);
+    expect(TRIP_LIMITS.MAX_TRIP_NAME_LENGTH).toBe(MAX_TRIP_NAME_LENGTH);
+    expect(TRIP_LIMITS.MAX_GROUP_NAME_LENGTH).toBe(MAX_GROUP_NAME_LENGTH);
+    expect(TRIP_LIMITS.MAX_COST_NAME_LENGTH).toBe(MAX_COST_NAME_LENGTH);
   });
 });

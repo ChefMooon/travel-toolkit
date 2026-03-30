@@ -1,6 +1,15 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Couple, NonPayingTraveller, CostEntry, ExchangeRate, Region } from './types';
+import {
+  MAX_GROUPS,
+  MAX_KIDS_PER_GROUP,
+  MAX_COST_ENTRIES,
+  MAX_TRIP_NAME_LENGTH,
+  MAX_GROUP_NAME_LENGTH,
+  MAX_COST_NAME_LENGTH,
+} from './types';
+import { useToastStore } from './toastStore';
 
 function generateId(): string {
   return crypto.randomUUID();
@@ -74,10 +83,10 @@ const initialState = {
 
 export const useTripStore = create<TripStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...initialState,
 
-      setTripName: (name) => set({ tripName: name }),
+      setTripName: (name) => set({ tripName: name.slice(0, MAX_TRIP_NAME_LENGTH) }),
       setGlobalMarkup: (markup) => set({ globalMarkup: markup }),
       setTheme: (theme) => {
         document.documentElement.dataset['theme'] = theme;
@@ -88,11 +97,19 @@ export const useTripStore = create<TripStore>()(
 
       addCouple: (name) => {
         const id = generateId();
+        if (get().couples.length >= MAX_GROUPS) {
+          useToastStore.getState().pushToast({
+            type: 'warning',
+            title: 'Group limit reached',
+            message: 'Trips are limited to 100 groups. Remove a group before adding another.',
+          });
+          return id;
+        }
         set((state) => {
           const num = state.couples.length + 1;
           const newCouple: Couple = {
             id,
-            name: name?.trim() ? name.trim() : `Group ${num}`,
+            name: name?.trim() ? name.trim().slice(0, MAX_GROUP_NAME_LENGTH) : `Group ${num}`,
             colorIndex: nextColorIndex(state.couples),
             iconIndex: 1,
             sortOrder: state.couples.length,
@@ -122,7 +139,7 @@ export const useTripStore = create<TripStore>()(
 
       renameCouple: (id, name) =>
         set((state) => ({
-          couples: state.couples.map((c) => (c.id === id ? { ...c, name } : c)),
+          couples: state.couples.map((c) => (c.id === id ? { ...c, name: name.slice(0, MAX_GROUP_NAME_LENGTH) } : c)),
         })),
 
       reorderCouples: (orderedIds) =>
@@ -147,7 +164,16 @@ export const useTripStore = create<TripStore>()(
           couples: state.couples.map((c) => (c.id === id ? { ...c, colorIndex } : c)),
         })),
 
-      addNonPayingTraveller: (coupleId) =>
+      addNonPayingTraveller: (coupleId) => {
+        const kidsForGroup = get().nonPayingTravellers.filter((t) => t.coupleId === coupleId).length;
+        if (kidsForGroup >= MAX_KIDS_PER_GROUP) {
+          useToastStore.getState().pushToast({
+            type: 'warning',
+            title: 'Child limit reached',
+            message: 'Each group can have up to 50 children. Remove a child before adding another.',
+          });
+          return;
+        }
         set((state) => {
           const num = state.nonPayingTravellers.length + 1;
           const traveller: NonPayingTraveller = {
@@ -156,26 +182,45 @@ export const useTripStore = create<TripStore>()(
             coupleId,
           };
           return { nonPayingTravellers: [...state.nonPayingTravellers, traveller] };
-        }),
+        });
+      },
 
       removeNonPayingTraveller: (id) =>
         set((state) => ({
           nonPayingTravellers: state.nonPayingTravellers.filter((t) => t.id !== id),
         })),
 
-      addCost: (cost) =>
+      addCost: (cost) => {
+        if (get().costs.length >= MAX_COST_ENTRIES) {
+          useToastStore.getState().pushToast({
+            type: 'warning',
+            title: 'Cost entry limit reached',
+            message: 'Trips are limited to 1,000 cost entries. Remove an entry before adding another.',
+          });
+          return;
+        }
         set((state) => {
           const newCost: CostEntry = {
             ...cost,
+            name: cost.name.slice(0, MAX_COST_NAME_LENGTH),
             id: generateId(),
             sortOrder: state.costs.length,
           };
           return { costs: [...state.costs, newCost] };
-        }),
+        });
+      },
 
       editCost: (id, updates) =>
         set((state) => ({
-          costs: state.costs.map((c) => (c.id === id ? { ...c, ...updates } : c)),
+          costs: state.costs.map((c) =>
+            c.id === id
+              ? {
+                  ...c,
+                  ...updates,
+                  ...(updates.name !== undefined ? { name: updates.name.slice(0, MAX_COST_NAME_LENGTH) } : {}),
+                }
+              : c
+          ),
         })),
 
       deleteCost: (id) =>

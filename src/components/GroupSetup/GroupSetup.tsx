@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useTripStore } from '@/store/tripStore';
 import type { Couple } from '@/store/types';
 import { Plus, X } from 'lucide-react';
-import { COUPLE_ICONS, getColorThemeValue } from '@/store/types';
+import { COUPLE_ICONS, getColorThemeValue, MAX_GROUPS, MAX_KIDS_PER_GROUP, MAX_GROUP_NAME_LENGTH } from '@/store/types';
 import Modal from '../Modal';
 import IconChoiceModal from '../IconChoiceModal';
 import ColorChoiceModal from '../ColorChoiceModal';
@@ -94,7 +94,7 @@ export default function GroupSetup() {
         <div className="card-header">
           <span className="card-title">Travelling Party</span>
           <div className="add-btns">
-            <button className="btn-add" onClick={() => addCouple()}>
+            <button className="btn-add" onClick={() => addCouple()} disabled={couples.length >= MAX_GROUPS}>
               <Plus size={12} /> Add Group
             </button>
             <div style={{ position: 'relative' }} ref={pickerRef}>
@@ -110,16 +110,21 @@ export default function GroupSetup() {
                   <div style={{ padding: '4px 14px', fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-3)' }}>
                     Assign to group:
                   </div>
-                  {couples.map((c) => (
-                    <button
-                      key={c.id}
-                      className="child-picker-item"
-                      onClick={() => handleAddChild(c.id)}
-                      style={{ color: getColorThemeValue(c.colorIndex, theme) }}
-                    >
-                      ● {c.name}
-                    </button>
-                  ))}
+                  {couples.map((c) => {
+                    const kidsCount = nonPayingTravellers.filter((t) => t.coupleId === c.id).length;
+                    const atKidLimit = kidsCount >= MAX_KIDS_PER_GROUP;
+                    return (
+                      <button
+                        key={c.id}
+                        className="child-picker-item"
+                        onClick={() => handleAddChild(c.id)}
+                        disabled={atKidLimit}
+                        style={{ color: atKidLimit ? 'var(--text-3)' : getColorThemeValue(c.colorIndex, theme) }}
+                      >
+                        ● {c.name}{atKidLimit ? ' (max)' : ''}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
@@ -209,6 +214,7 @@ export default function GroupSetup() {
                           value={couple.name}
                           onChange={(e) => renameCouple(couple.id, e.target.value)}
                           style={{ color: 'inherit' }}
+                          maxLength={MAX_GROUP_NAME_LENGTH}
                           aria-label={`Rename ${couple.name}`}
                         />
                         <button

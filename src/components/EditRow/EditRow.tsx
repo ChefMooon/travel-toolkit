@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useTripStore } from '@/store/tripStore';
 import { useToastStore } from '@/store/toastStore';
-import { getAvailableCurrencies, COST_ENTRY_TYPES } from '@/store/types';
+import { getAvailableCurrencies, COST_ENTRY_TYPES, MAX_COST_NAME_LENGTH } from '@/store/types';
 import type { SplitType } from '@/store/types';
 import SplitAssignmentModal from '../SplitAssignmentModal';
 
@@ -245,6 +245,7 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="e.g. Hotel Night 1"
+              maxLength={MAX_COST_NAME_LENGTH}
               autoFocus
             />
           </div>

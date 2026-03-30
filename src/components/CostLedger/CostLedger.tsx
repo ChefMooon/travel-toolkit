@@ -20,7 +20,7 @@ import EditRow from '../EditRow';
 import BulkActionBar from '../BulkActionBar';
 import Modal from '../Modal';
 import { Plus } from 'lucide-react';
-import { getAvailableCurrencies, type SplitType } from '@/store/types';
+import { getAvailableCurrencies, type SplitType, MAX_COST_ENTRIES } from '@/store/types';
 import { getSaveFailureCopy, useToastStore } from '@/store/toastStore';
 
 export default function CostLedger() {
@@ -237,7 +237,7 @@ export default function CostLedger() {
               {!isAdding && (
                 <tr className="add-row">
                   <td colSpan={11}>
-                    <button className="add-row-btn" onClick={() => setIsAdding(true)}>
+                    <button className="add-row-btn" onClick={() => setIsAdding(true)} disabled={costs.length >= MAX_COST_ENTRIES}>
                       <Plus size={14} /> Add Cost Entry
                     </button>
                   </td>
