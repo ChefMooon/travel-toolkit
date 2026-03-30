@@ -68,6 +68,32 @@ export interface CoupleSummary {
   targetCurrency: string;
 }
 
+export interface TripSnapshot {
+  tripId: string;
+  tripName: string;
+  globalMarkup: number;
+  couples: Couple[];
+  nonPayingTravellers: NonPayingTraveller[];
+  costs: CostEntry[];
+  exchangeRates: ExchangeRate[];
+  theme: 'light' | 'dark';
+  region: Region;
+  targetCurrency: string;
+}
+
+export interface SaveSlot {
+  slotIndex: number;
+  schemaVersion: number;
+  label: string;
+  tripId: string;
+  tripName: string;
+  savedAt: string;
+  coupleCount: number;
+  costCount: number;
+  targetCurrency: string;
+  data: TripSnapshot;
+}
+
 export const CURRENCIES = [
   'EUR', 'USD', 'GBP', 'MXN', 'JPY', 'CAD', 'AUD',
   'SGD', 'HKD', 'NZD', 'BRL', 'INR', 'THB', 'ZAR'
@@ -105,6 +131,9 @@ export const MAX_COST_ENTRIES = 1000;
 export const MAX_TRIP_NAME_LENGTH = 100;
 export const MAX_GROUP_NAME_LENGTH = 50;
 export const MAX_COST_NAME_LENGTH = 200;
+export const MAX_SAVE_SLOTS = 3;
+export const MAX_SLOT_LABEL_LENGTH = 30;
+export const SAVE_SLOT_SCHEMA_VERSION = 1;
 
 export const TRIP_LIMITS = {
   MAX_GROUPS,
@@ -114,6 +143,10 @@ export const TRIP_LIMITS = {
   MAX_GROUP_NAME_LENGTH,
   MAX_COST_NAME_LENGTH,
 } as const;
+
+export function getDefaultSlotLabel(slotIndex: number): string {
+  return `Slot ${slotIndex + 1}`;
+}
 
 export const REGION_LIST = Object.keys(REGIONS) as Region[];
 

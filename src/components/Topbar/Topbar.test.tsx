@@ -9,20 +9,47 @@ vi.mock('@/store/tripStore', () => ({
   useTripStore: vi.fn(),
 }));
 
+vi.mock('@/store/saveSlotStore', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/store/saveSlotStore')>();
+  return {
+    ...actual,
+    useSaveSlotStore: vi.fn(),
+  };
+});
+
+vi.mock('@/store/toastStore', () => ({
+  useToastStore: vi.fn(),
+}));
+
 vi.mock('@/components/Logo', () => ({
   default: () => <div data-testid="logo">Logo</div>,
 }));
 
 import { useTripStore } from '@/store/tripStore';
+import { useSaveSlotStore } from '@/store/saveSlotStore';
+import { useToastStore } from '@/store/toastStore';
 
 const mockStoreState = {
+  tripId: '123456',
   tripName: 'Spring Trip',
   setTripName: vi.fn(),
   globalMarkup: 66,
   setGlobalMarkup: vi.fn(),
   theme: 'light' as 'light' | 'dark',
   setTheme: vi.fn(),
+  isDirty: false,
+  getSnapshot: vi.fn(),
   resetTrip: vi.fn(),
+};
+
+const mockSaveStoreState = {
+  slots: [null, null, null] as Array<{ tripId: string; data: unknown } | null>,
+  labels: ['Slot 1', 'Slot 2', 'Slot 3'],
+  saveToSlot: vi.fn(),
+};
+
+const mockToastStoreState = {
+  pushToast: vi.fn(),
 };
 
 describe('Topbar', () => {
@@ -31,9 +58,34 @@ describe('Topbar', () => {
     mockStoreState.tripName = 'Spring Trip';
     mockStoreState.globalMarkup = 66;
     mockStoreState.theme = 'light';
+    mockStoreState.isDirty = false;
+    mockStoreState.getSnapshot.mockReturnValue({
+      tripId: '123456',
+      tripName: 'Spring Trip',
+      globalMarkup: 66,
+      couples: [],
+      nonPayingTravellers: [],
+      costs: [],
+      exchangeRates: [],
+      theme: 'light',
+      region: 'Europe',
+      targetCurrency: 'USD',
+    });
+
+    mockSaveStoreState.slots = [null, null, null];
+    mockSaveStoreState.saveToSlot.mockReturnValue(true);
+    mockToastStoreState.pushToast.mockReset();
 
     (useTripStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(
       (selector: (state: typeof mockStoreState) => unknown) => selector(mockStoreState)
+    );
+
+    (useSaveSlotStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(
+      (selector: (state: typeof mockSaveStoreState) => unknown) => selector(mockSaveStoreState),
+    );
+
+    (useToastStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(
+      (selector: (state: typeof mockToastStoreState) => unknown) => selector(mockToastStoreState),
     );
   });
 
@@ -110,5 +162,48 @@ describe('Topbar', () => {
 
     expect(mockStoreState.resetTrip).not.toHaveBeenCalled();
     expect(screen.queryByText('Start a new trip?')).not.toBeInTheDocument();
+  });
+
+  it('shows update-save action when a related slot exists', () => {
+    mockSaveStoreState.slots = [
+      {
+        tripId: '123456',
+        data: {
+          ...mockStoreState.getSnapshot(),
+          tripName: 'Older Version',
+        },
+      },
+      null,
+      null,
+    ];
+
+    render(<Topbar />);
+
+    fireEvent.click(screen.getByRole('button', { name: /New Trip/i }));
+
+    expect(screen.getByRole('button', { name: 'Update Save & Start Fresh' })).toBeInTheDocument();
+  });
+
+  it('updates matching save slot then resets when using update-save action', () => {
+    const snapshot = mockStoreState.getSnapshot();
+    mockSaveStoreState.slots = [
+      {
+        tripId: '123456',
+        data: {
+          ...snapshot,
+          tripName: 'Older Version',
+        },
+      },
+      null,
+      null,
+    ];
+
+    render(<Topbar />);
+
+    fireEvent.click(screen.getByRole('button', { name: /New Trip/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Update Save & Start Fresh' }));
+
+    expect(mockSaveStoreState.saveToSlot).toHaveBeenCalledWith(0, snapshot);
+    expect(mockStoreState.resetTrip).toHaveBeenCalledTimes(1);
   });
 });

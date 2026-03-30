@@ -6,11 +6,23 @@ interface ModalProps {
   body: string;
   confirmLabel: string;
   onConfirm: () => void;
+  secondaryActionLabel?: string;
+  onSecondaryAction?: () => void;
   onCancel: () => void;
   compact?: boolean;
 }
 
-export default function Modal({ icon, title, body, confirmLabel, onConfirm, onCancel, compact = false }: ModalProps) {
+export default function Modal({
+  icon,
+  title,
+  body,
+  confirmLabel,
+  onConfirm,
+  secondaryActionLabel,
+  onSecondaryAction,
+  onCancel,
+  compact = false,
+}: ModalProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const titleId = useId();
   const bodyId = useId();
@@ -91,6 +103,9 @@ export default function Modal({ icon, title, body, confirmLabel, onConfirm, onCa
         <div className="modal-body" id={bodyId}>{body}</div>
         <div className="modal-acts">
           <button className="btn-m-cancel" onClick={onCancel}>Cancel</button>
+          {secondaryActionLabel && onSecondaryAction ? (
+            <button className="btn-m-secondary" onClick={onSecondaryAction}>{secondaryActionLabel}</button>
+          ) : null}
           <button className="btn-m-confirm" onClick={onConfirm}>{confirmLabel}</button>
         </div>
       </div>

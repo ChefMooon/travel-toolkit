@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useTripStore } from './tripStore';
 import { useToastStore } from './toastStore';
+import { useSaveSlotStore } from './saveSlotStore';
 import {
   MAX_GROUPS,
   MAX_KIDS_PER_GROUP,
@@ -13,6 +14,70 @@ import {
 describe('tripStore — new actions', () => {
   beforeEach(() => {
     useTripStore.getState().resetTrip();
+    useTripStore.getState().markClean();
+    useSaveSlotStore.setState({ slots: [null, null, null], labels: ['Slot 1', 'Slot 2', 'Slot 3'] });
+    useToastStore.getState().clearToasts();
+  });
+
+  describe('trip id and dirty state', () => {
+    it('setTripId accepts a valid 6-digit value', () => {
+      useTripStore.getState().setTripId('123456');
+      expect(useTripStore.getState().tripId).toBe('123456');
+    });
+
+    it('setTripId rejects invalid formats and raises warning toast', () => {
+      const prevId = useTripStore.getState().tripId;
+      useTripStore.getState().setTripId('12ab');
+      expect(useTripStore.getState().tripId).toBe(prevId);
+      const toasts = useToastStore.getState().toasts;
+      expect(toasts[toasts.length - 1]?.title).toBe('Trip ID must be 6 digits');
+    });
+
+    it('setTripId rejects duplicates already stored in save slots', () => {
+      useSaveSlotStore.setState({
+        slots: [
+          {
+            slotIndex: 0,
+            schemaVersion: 1,
+            label: 'Slot 1',
+            tripId: '222222',
+            tripName: 'Saved Trip',
+            savedAt: new Date().toISOString(),
+            coupleCount: 0,
+            costCount: 0,
+            targetCurrency: 'USD',
+            data: {
+              tripId: '222222',
+              tripName: 'Saved Trip',
+              globalMarkup: 66,
+              couples: [],
+              nonPayingTravellers: [],
+              costs: [],
+              exchangeRates: [],
+              theme: 'light',
+              region: 'Europe',
+              targetCurrency: 'USD',
+            },
+          },
+          null,
+          null,
+        ],
+      });
+
+      const prevId = useTripStore.getState().tripId;
+      useTripStore.getState().setTripId('222222');
+
+      expect(useTripStore.getState().tripId).toBe(prevId);
+      const toasts = useToastStore.getState().toasts;
+      expect(toasts[toasts.length - 1]?.title).toBe('Duplicate trip ID');
+    });
+
+    it('markClean resets isDirty to false', () => {
+      useTripStore.getState().setTripName('Changed');
+      expect(useTripStore.getState().isDirty).toBe(true);
+      useTripStore.getState().markClean();
+      expect(useTripStore.getState().isDirty).toBe(false);
+    });
   });
 
   describe('setTargetCurrency', () => {

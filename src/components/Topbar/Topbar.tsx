@@ -1,8 +1,12 @@
 import { useState, useCallback } from 'react';
 import { useTripStore } from '@/store/tripStore';
+import { findRelatedOlderSlotIndex, useSaveSlotStore } from '@/store/saveSlotStore';
+import { useToastStore } from '@/store/toastStore';
 import { Sun, Moon, RotateCcw } from 'lucide-react';
 import Modal from '../Modal';
 import Logo from '../Logo';
+import SaveDataPanel from '@/components/SaveDataPanel';
+import { getDefaultSlotLabel } from '@/store/types';
 
 export default function Topbar() {
   const tripName = useTripStore((s) => s.tripName);
@@ -11,9 +15,16 @@ export default function Topbar() {
   const setGlobalMarkup = useTripStore((s) => s.setGlobalMarkup);
   const theme = useTripStore((s) => s.theme);
   const setTheme = useTripStore((s) => s.setTheme);
+  const isDirty = useTripStore((s) => s.isDirty);
+  const getSnapshot = useTripStore((s) => s.getSnapshot);
   const resetTrip = useTripStore((s) => s.resetTrip);
+  const slots = useSaveSlotStore((s) => s.slots);
+  const labels = useSaveSlotStore((s) => s.labels);
+  const saveToSlot = useSaveSlotStore((s) => s.saveToSlot);
+  const pushToast = useToastStore((s) => s.pushToast);
 
   const [showReset, setShowReset] = useState(false);
+  const [showSavePanel, setShowSavePanel] = useState(false);
   const [tripNameFocused, setTripNameFocused] = useState(false);
   const [editingMarkup, setEditingMarkup] = useState(false);
   const [markupInput, setMarkupInput] = useState(String(globalMarkup));
@@ -31,6 +42,29 @@ export default function Topbar() {
     }
     setEditingMarkup(false);
   }, [markupInput, setGlobalMarkup, globalMarkup]);
+
+  const currentSnapshot = getSnapshot();
+  const relatedSlotIndex = findRelatedOlderSlotIndex(slots, currentSnapshot);
+
+  const handleSaveThenReset = useCallback(() => {
+    if (relatedSlotIndex < 0) {
+      return;
+    }
+
+    const ok = saveToSlot(relatedSlotIndex, currentSnapshot);
+    if (!ok) {
+      return;
+    }
+
+    const slotLabel = labels[relatedSlotIndex] ?? getDefaultSlotLabel(relatedSlotIndex);
+    pushToast({
+      type: 'success',
+      title: 'Saved and started new trip',
+      message: `Updated ${slotLabel} and cleared the current trip.`,
+    });
+    resetTrip();
+    setShowReset(false);
+  }, [currentSnapshot, labels, pushToast, relatedSlotIndex, resetTrip, saveToSlot]);
 
   return (
     <>
@@ -87,6 +121,17 @@ export default function Topbar() {
             <RotateCcw size={12} /> <span>New Trip</span>
           </button>
 
+          <button
+            type="button"
+            className="btn-save-panel"
+            data-dirty={isDirty ? 'true' : 'false'}
+            onClick={() => setShowSavePanel(true)}
+            aria-label="Open save slots"
+            title="Save slots"
+          >
+            <img src="/save.svg" alt="" aria-hidden="true" />
+          </button>
+
           <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
             <div className="toggle-knob">
               <span>{theme === 'dark' ? <Moon size={12} /> : <Sun size={12} />}</span>
@@ -100,6 +145,8 @@ export default function Topbar() {
           icon="🗑️"
           title="Start a new trip?"
           body="This will permanently delete all current trip data including couples, costs, and exchange rates. This action cannot be undone."
+          secondaryActionLabel={relatedSlotIndex >= 0 ? 'Update Save & Start Fresh' : undefined}
+          onSecondaryAction={relatedSlotIndex >= 0 ? handleSaveThenReset : undefined}
           confirmLabel="Delete & Start Fresh"
           onConfirm={() => {
             resetTrip();
@@ -108,6 +155,8 @@ export default function Topbar() {
           onCancel={() => setShowReset(false)}
         />
       )}
+
+      <SaveDataPanel open={showSavePanel} onClose={() => setShowSavePanel(false)} />
     </>
   );
 }

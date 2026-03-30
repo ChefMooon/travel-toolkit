@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Couple, NonPayingTraveller, CostEntry, ExchangeRate, Region } from './types';
+import type { Couple, NonPayingTraveller, CostEntry, ExchangeRate, Region, TripSnapshot } from './types';
 import {
   MAX_GROUPS,
   MAX_KIDS_PER_GROUP,
@@ -10,12 +10,22 @@ import {
   MAX_COST_NAME_LENGTH,
 } from './types';
 import { useToastStore } from './toastStore';
+import { useSaveSlotStore } from './saveSlotStore';
 
 function generateId(): string {
   return crypto.randomUUID();
 }
 
+function generateTripId(): string {
+  return String(Math.floor(Math.random() * 900000) + 100000);
+}
+
+function hasDuplicateSavedTripId(tripId: string): boolean {
+  return useSaveSlotStore.getState().slots.some((slot) => slot?.tripId === tripId);
+}
+
 interface TripStore {
+  tripId: string;
   tripName: string;
   globalMarkup: number;
   couples: Couple[];
@@ -25,8 +35,10 @@ interface TripStore {
   theme: 'light' | 'dark';
   region: Region;
   targetCurrency: string;
+  isDirty: boolean;
 
   // Actions
+  setTripId: (tripId: string) => void;
   setTripName: (name: string) => void;
   setGlobalMarkup: (markup: number) => void;
   setTheme: (theme: 'light' | 'dark') => void;
@@ -57,6 +69,11 @@ interface TripStore {
   hydrateExchangeRates: (freshRates: Record<string, number>) => void;
   clearExchangeRateOverride: (currency: string) => void;
 
+  // Snapshot and dirty state
+  getSnapshot: () => TripSnapshot;
+  loadSnapshot: (snapshot: TripSnapshot) => void;
+  markClean: () => void;
+
   // Reset
   resetTrip: () => void;
 }
@@ -70,6 +87,7 @@ const nextColorIndex = (couples: Couple[]): number => {
 };
 
 const initialState = {
+  tripId: generateTripId(),
   tripName: 'My Trip',
   globalMarkup: 66,
   couples: [] as Couple[],
@@ -79,6 +97,7 @@ const initialState = {
   theme: 'light' as const,
   region: 'Europe' as const,
   targetCurrency: 'USD',
+  isDirty: false,
 };
 
 export const useTripStore = create<TripStore>()(
@@ -86,14 +105,40 @@ export const useTripStore = create<TripStore>()(
     (set, get) => ({
       ...initialState,
 
-      setTripName: (name) => set({ tripName: name.slice(0, MAX_TRIP_NAME_LENGTH) }),
-      setGlobalMarkup: (markup) => set({ globalMarkup: markup }),
+      setTripId: (tripId) => {
+        const normalized = tripId.trim();
+        if (normalized === get().tripId) {
+          return;
+        }
+        if (!/^\d{6}$/.test(normalized)) {
+          useToastStore.getState().pushToast({
+            type: 'warning',
+            title: 'Trip ID must be 6 digits',
+            message: 'Enter a numeric trip ID like 123456.',
+          });
+          return;
+        }
+
+        if (hasDuplicateSavedTripId(normalized)) {
+          useToastStore.getState().pushToast({
+            type: 'warning',
+            title: 'Duplicate trip ID',
+            message: `Trip ID ${normalized} already exists in a save slot.`,
+          });
+          return;
+        }
+
+        set({ tripId: normalized, isDirty: true });
+      },
+
+      setTripName: (name) => set({ tripName: name.slice(0, MAX_TRIP_NAME_LENGTH), isDirty: true }),
+      setGlobalMarkup: (markup) => set({ globalMarkup: markup, isDirty: true }),
       setTheme: (theme) => {
         document.documentElement.dataset['theme'] = theme;
-        set({ theme });
+        set({ theme, isDirty: true });
       },
-      setRegion: (region) => set({ region }),
-      setTargetCurrency: (currency) => set({ targetCurrency: currency }),
+      setRegion: (region) => set({ region, isDirty: true }),
+      setTargetCurrency: (currency) => set({ targetCurrency: currency, isDirty: true }),
 
       addCouple: (name) => {
         const id = generateId();
@@ -114,7 +159,7 @@ export const useTripStore = create<TripStore>()(
             iconIndex: 1,
             sortOrder: state.couples.length,
           };
-          return { couples: [...state.couples, newCouple] };
+          return { couples: [...state.couples, newCouple], isDirty: true };
         });
         return id;
       },
@@ -135,11 +180,13 @@ export const useTripStore = create<TripStore>()(
             }
             return cost;
           }),
+          isDirty: true,
         })),
 
       renameCouple: (id, name) =>
         set((state) => ({
           couples: state.couples.map((c) => (c.id === id ? { ...c, name: name.slice(0, MAX_GROUP_NAME_LENGTH) } : c)),
+          isDirty: true,
         })),
 
       reorderCouples: (orderedIds) =>
@@ -151,17 +198,19 @@ export const useTripStore = create<TripStore>()(
               return couple ? { ...couple, sortOrder: i } : null;
             })
             .filter((c): c is Couple => c !== null);
-          return { couples: reordered };
+          return { couples: reordered, isDirty: true };
         }),
 
       updateCoupleIcon: (id, iconIndex) =>
         set((state) => ({
           couples: state.couples.map((c) => (c.id === id ? { ...c, iconIndex } : c)),
+          isDirty: true,
         })),
 
       updateCoupleColor: (id, colorIndex) =>
         set((state) => ({
           couples: state.couples.map((c) => (c.id === id ? { ...c, colorIndex } : c)),
+          isDirty: true,
         })),
 
       addNonPayingTraveller: (coupleId) => {
@@ -181,13 +230,14 @@ export const useTripStore = create<TripStore>()(
             label: `Child ${num}`,
             coupleId,
           };
-          return { nonPayingTravellers: [...state.nonPayingTravellers, traveller] };
+          return { nonPayingTravellers: [...state.nonPayingTravellers, traveller], isDirty: true };
         });
       },
 
       removeNonPayingTraveller: (id) =>
         set((state) => ({
           nonPayingTravellers: state.nonPayingTravellers.filter((t) => t.id !== id),
+          isDirty: true,
         })),
 
       addCost: (cost) => {
@@ -206,7 +256,7 @@ export const useTripStore = create<TripStore>()(
             id: generateId(),
             sortOrder: state.costs.length,
           };
-          return { costs: [...state.costs, newCost] };
+          return { costs: [...state.costs, newCost], isDirty: true };
         });
       },
 
@@ -221,11 +271,13 @@ export const useTripStore = create<TripStore>()(
                 }
               : c
           ),
+          isDirty: true,
         })),
 
       deleteCost: (id) =>
         set((state) => ({
           costs: state.costs.filter((c) => c.id !== id),
+          isDirty: true,
         })),
 
       reorderCosts: (orderedIds) =>
@@ -237,7 +289,7 @@ export const useTripStore = create<TripStore>()(
               return cost ? { ...cost, sortOrder: i } : null;
             })
             .filter((c): c is CostEntry => c !== null);
-          return { costs: reordered };
+          return { costs: reordered, isDirty: true };
         }),
 
       bulkSetCurrency: (costIds, currency) =>
@@ -245,6 +297,7 @@ export const useTripStore = create<TripStore>()(
           costs: state.costs.map((c) =>
             costIds.includes(c.id) ? { ...c, currency } : c
           ),
+          isDirty: true,
         })),
 
       setExchangeRate: (currency, rateToUSD) =>
@@ -255,10 +308,12 @@ export const useTripStore = create<TripStore>()(
               exchangeRates: state.exchangeRates.map((r) =>
                 r.currency === currency ? { ...r, rateToUSD, isOverridden: true } : r
               ),
+              isDirty: true,
             };
           }
           return {
             exchangeRates: [...state.exchangeRates, { currency, rateToUSD, isOverridden: true }],
+            isDirty: true,
           };
         }),
 
@@ -285,16 +340,57 @@ export const useTripStore = create<TripStore>()(
           exchangeRates: state.exchangeRates.map((r) =>
             r.currency === currency ? { ...r, isOverridden: false } : r
           ),
+          isDirty: true,
         })),
+
+      getSnapshot: () => {
+        const state = get();
+        return {
+          tripId: state.tripId,
+          tripName: state.tripName,
+          globalMarkup: state.globalMarkup,
+          couples: state.couples,
+          nonPayingTravellers: state.nonPayingTravellers,
+          costs: state.costs,
+          exchangeRates: state.exchangeRates,
+          theme: state.theme,
+          region: state.region,
+          targetCurrency: state.targetCurrency,
+        };
+      },
+
+      loadSnapshot: (snapshot) => {
+        document.documentElement.dataset['theme'] = snapshot.theme;
+        set({
+          ...snapshot,
+          isDirty: false,
+        });
+      },
+
+      markClean: () => set({ isDirty: false }),
 
       resetTrip: () =>
         set({
           ...initialState,
+          tripId: generateTripId(),
+          isDirty: false,
           theme: document.documentElement.dataset['theme'] as 'light' | 'dark' ?? 'light',
         }),
     }),
     {
       name: 'mkt-trip-data',
+      partialize: (state) => ({
+        tripId: state.tripId,
+        tripName: state.tripName,
+        globalMarkup: state.globalMarkup,
+        couples: state.couples,
+        nonPayingTravellers: state.nonPayingTravellers,
+        costs: state.costs,
+        exchangeRates: state.exchangeRates,
+        theme: state.theme,
+        region: state.region,
+        targetCurrency: state.targetCurrency,
+      }),
     }
   )
 );
