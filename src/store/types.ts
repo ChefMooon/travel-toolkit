@@ -36,11 +36,11 @@ export interface CostEntryType {
 // Edit COST_ENTRY_TYPES to add, remove, or change available cost types.
 export const COST_ENTRY_TYPES: readonly CostEntryType[] = [
   { id: 'accommodation', type_name: 'Accommodation', symbol: '🏨', color: '#5B8DD9' },
-  { id: 'transport',     type_name: 'Transport',     symbol: '✈️', color: '#4AACB0' },
+  { id: 'tours',         type_name: 'Tours',         symbol: '🚌', color: '#4AACB0' },
+  { id: 'trains',        type_name: 'Trains',        symbol: '🚂', color: '#E5C565' },
+  { id: 'transfer',      type_name: 'Transfer',      symbol: '✈️', color: '#D46B8E' },
   { id: 'food',          type_name: 'Food',          symbol: '🍽️', color: '#E0875A' },
   { id: 'activity',      type_name: 'Activity',      symbol: '🎭', color: '#9B72CF' },
-  { id: 'shopping',      type_name: 'Shopping',      symbol: '🛍️', color: '#D46B8E' },
-  { id: 'other',         type_name: 'Other',         symbol: '📌', color: '#8C8C8C' },
 ];
 
 export interface ExchangeRate {
