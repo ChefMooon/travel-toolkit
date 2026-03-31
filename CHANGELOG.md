@@ -16,6 +16,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 	- Max 1,000 cost entries
 - Centralized exported trip limit constants and `TRIP_LIMITS` bundle for reuse by future import/parsing workflows (including planned `.xlsx` import)
 - Expanded automated coverage for trip limit enforcement, warning toasts, and name-length truncation behavior in store tests
+- Dedicated `TripCostPage` component extraction for the trip tool route, enabling cleaner route composition
+- Route-level lazy loading across tool pages (`trip`, `currency`, `timezone`, `forecast`) for improved bundle loading behavior
+- Save Slots workflow with three persistent slots, slot rename/swap/clear actions, and slot metadata for quick restore
+- Trip Cost `.xlsx` export/import workflow with schema-aware parsing and validation support
+- Import/Export Settings controls for schema format (`.xlsx v1` multi-sheet, `.xlsx v2` single-sheet), filename presets, date suffix, and import exchange-rate strategy
 
 ### Changed
 
@@ -23,6 +28,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Reaching a trip limit now surfaces descriptive warning toasts for group, child, and cost-entry capacity
 - UI add/create controls now disable at capacity in Group Setup, Cost Ledger, and split-assignment create-group flows
 - Trip name, group name, and cost name now enforce maximum lengths in both store logic and relevant input controls
+- Cost Ledger table column order updated to show `Type` before `Total` for clearer scanning
+- Responsive `s-cards` layout tuned with additional media-query behavior for improved small-screen presentation
+- Import/export strategy research updated with a refined single-sheet workbook layout proposal
+- Split-assignment modal now includes an explicit modal id to strengthen accessibility/test targeting
 
 ---
 
