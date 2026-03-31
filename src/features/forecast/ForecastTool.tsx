@@ -14,8 +14,6 @@ import {
   Sun,
   Table2,
   Thermometer,
-  ThermometerSnowflake,
-  ThermometerSun,
   Wind,
 } from 'lucide-react';
 import { getLocalTimeAtDestination } from './forecastData';
@@ -78,7 +76,6 @@ type SummaryMetric = {
   Icon: typeof Thermometer;
 };
 
-type DetailMetric = SummaryMetric;
 type DailyMetric = SummaryMetric;
 
 function getDailyPrimaryPrecipMetric(day: DailyClimate): DailyMetric {
