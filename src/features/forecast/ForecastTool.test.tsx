@@ -2,7 +2,7 @@
 /// <reference types="@testing-library/jest-dom" />
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import ForecastTool from '@/features/forecast/ForecastTool';
 import type { ClimateSummary, GeoLocation } from '@/features/forecast/forecastTypes';
 
@@ -122,9 +122,13 @@ describe('ForecastTool', () => {
 
     selectFirstSuggestion();
 
-    expect(screen.getByText('Avg High')).toBeInTheDocument();
-    expect(screen.getByText('Avg Low')).toBeInTheDocument();
-    expect(screen.getByText('Avg Mean')).toBeInTheDocument();
+    expect(screen.getByText('Avg Mean Temp')).toBeInTheDocument();
+    expect(screen.getByText(/High 18\.5/)).toBeInTheDocument();
+    expect(screen.getByText(/Low 10\.2/)).toBeInTheDocument();
+
+    const climateStatsList = screen.getByRole('list', { name: 'Climate summary stats' });
+    expect(within(climateStatsList).getByText('Precipitation')).toBeInTheDocument();
+    expect(within(climateStatsList).getByText('Sunshine')).toBeInTheDocument();
   });
 
   it('FE-FOR-007 events section appears when events overlap the selected date range', () => {
