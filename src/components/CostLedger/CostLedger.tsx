@@ -20,7 +20,7 @@ import EditRow from '../EditRow';
 import BulkActionBar from '../BulkActionBar';
 import Modal from '../Modal';
 import { Plus } from 'lucide-react';
-import { getAvailableCurrencies, type SplitType, MAX_COST_ENTRIES } from '@/store/types';
+import { getAvailableCurrencies, getDefaultCurrency, type SplitType, MAX_COST_ENTRIES } from '@/store/types';
 import { getSaveFailureCopy, useToastStore } from '@/store/toastStore';
 
 export default function CostLedger() {
@@ -39,7 +39,7 @@ export default function CostLedger() {
   const [isAdding, setIsAdding] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [bulkCurrency, setBulkCurrency] = useState('EUR');
-  const [defaultEntryCurrency, setDefaultEntryCurrency] = useState('USD');
+  const [defaultEntryCurrency, setDefaultEntryCurrency] = useState(() => getDefaultCurrency(region));
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -50,7 +50,7 @@ export default function CostLedger() {
   const availableBulkCurrencies = useMemo(() => getAvailableCurrencies(region), [region]);
 
   useEffect(() => {
-    const defaultCurrency = availableBulkCurrencies[0];
+    const defaultCurrency = getDefaultCurrency(region);
     if (!defaultCurrency) return;
 
     if (!availableBulkCurrencies.includes(bulkCurrency)) {
@@ -59,7 +59,7 @@ export default function CostLedger() {
     if (!availableBulkCurrencies.includes(defaultEntryCurrency)) {
       setDefaultEntryCurrency(defaultCurrency);
     }
-  }, [availableBulkCurrencies, bulkCurrency, defaultEntryCurrency]);
+  }, [availableBulkCurrencies, bulkCurrency, defaultEntryCurrency, region]);
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {

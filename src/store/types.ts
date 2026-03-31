@@ -156,6 +156,13 @@ export function getAvailableCurrencies(region: Region): string[] {
   return Array.from(available).sort();
 }
 
+export function getDefaultCurrency(region: Region): string {
+  const available = getAvailableCurrencies(region);
+  // Return first currency that's not USD or CAD
+  const firstNonUSBased = available.find((c) => c !== 'USD' && c !== 'CAD');
+  return firstNonUSBased || available[0] || 'USD';
+}
+
 export const COUPLE_ICONS = [
   '🧳', '🌿', '🗺️', '🌸', '✨',
   '🎒', '🌊', '🏔️', '🎉', '🌙',

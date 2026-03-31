@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useTripStore } from '@/store/tripStore';
 import { useToastStore } from '@/store/toastStore';
-import { getAvailableCurrencies, COST_ENTRY_TYPES, MAX_COST_NAME_LENGTH } from '@/store/types';
+import { getAvailableCurrencies, getDefaultCurrency, COST_ENTRY_TYPES, MAX_COST_NAME_LENGTH } from '@/store/types';
 import type { SplitType } from '@/store/types';
 import SplitAssignmentModal from '../SplitAssignmentModal';
 
@@ -37,7 +37,9 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
   const pushToast = useToastStore((s) => s.pushToast);
 
   const [name, setName] = useState(initial?.name ?? '');
-  const [currency, setCurrency] = useState(initial?.currency ?? defaultCurrency ?? 'USD');
+  const [currency, setCurrency] = useState(
+    () => initial?.currency ?? defaultCurrency ?? getDefaultCurrency(region)
+  );
   const [value, setValue] = useState(initial?.value?.toString() ?? '');
   const [useGlobalMarkup, setUseGlobalMarkup] = useState(initial?.markupOverride === null || initial?.markupOverride === undefined);
   const [markupOverride, setMarkupOverride] = useState(

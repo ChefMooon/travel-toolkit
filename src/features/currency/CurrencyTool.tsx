@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getAvailableCurrencies } from '@/store/types';
+import { getAvailableCurrencies, getDefaultCurrency } from '@/store/types';
 import { useCurrencyStore } from '@/store/currencyStore';
 import { useCurrencySnapshot } from './useCurrencySnapshot';
 import { useCurrencyMetadata } from './useCurrencyMetadata';
@@ -54,7 +54,7 @@ export default function CurrencyTool() {
     const prevTarget = useCurrencyStore.getState().targetCurrency;
     const newBase = availableCurrencies.includes(prevBase)
       ? prevBase
-      : (availableCurrencies[0] ?? 'EUR');
+      : getDefaultCurrency(region);
     const newTarget =
       !availableCurrencies.includes(prevTarget) || prevTarget === newBase
         ? (availableCurrencies.find((c) => c !== newBase) ?? availableCurrencies[0] ?? 'USD')
@@ -92,7 +92,7 @@ export default function CurrencyTool() {
   }
 
   function handleReset() {
-    const defaultBase = availableCurrencies[0] ?? 'EUR';
+    const defaultBase = getDefaultCurrency(region);
     const defaultTarget = availableCurrencies.includes('USD') && 'USD' !== defaultBase
       ? 'USD'
       : (availableCurrencies.find((c) => c !== defaultBase) ?? availableCurrencies[0] ?? 'USD');

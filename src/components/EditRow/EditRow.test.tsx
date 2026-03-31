@@ -86,7 +86,7 @@ describe('EditRow', () => {
     expect(onSave).toHaveBeenCalledTimes(1);
     expect(onSave).toHaveBeenCalledWith({
       name: 'Dinner',
-      currency: 'USD',
+       currency: 'EUR',
       value: 123.45,
       markupOverride: null,
       splitType: 'shared',
