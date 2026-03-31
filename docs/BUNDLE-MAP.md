@@ -2,7 +2,7 @@
 
 This document tracks how the app is split into browser bundles, what each bundle contains, and where the split logic is implemented.
 
-Last updated: 2026-03-28
+Last updated: 2026-03-30
 
 ## How Bundling Works in This Repo
 
@@ -141,7 +141,42 @@ Primary files:
 Split behavior source:
 - Lazy boundary: [src/routes/forecast.tsx](../src/routes/forecast.tsx#L3)
 
-## 6. Shared Vendor and Common Chunks
+## 6. XLSX Async Bundle (Import/Export)
+
+Contains:
+- The `xlsx` library runtime
+- Import/export workbook pipeline modules
+- Single-sheet and three-sheet parser/builder modules
+
+Primary files:
+- [src/components/SaveDataPanel/SaveDataPanel.tsx](../src/components/SaveDataPanel/SaveDataPanel.tsx)
+- [src/lib/xlsx/importWorkbook.ts](../src/lib/xlsx/importWorkbook.ts)
+- [src/lib/xlsx/exportWorkbook.ts](../src/lib/xlsx/exportWorkbook.ts)
+- [src/lib/xlsx/singleSheetParser.ts](../src/lib/xlsx/singleSheetParser.ts)
+- [src/lib/xlsx/threeSheetParser.ts](../src/lib/xlsx/threeSheetParser.ts)
+- [src/lib/xlsx/singleSheetBuilder.ts](../src/lib/xlsx/singleSheetBuilder.ts)
+- [src/lib/xlsx/threeSheetBuilder.ts](../src/lib/xlsx/threeSheetBuilder.ts)
+
+Split behavior source:
+- UI-level lazy import: [src/components/SaveDataPanel/SaveDataPanel.tsx](../src/components/SaveDataPanel/SaveDataPanel.tsx#L316)
+- UI-level lazy import: [src/components/SaveDataPanel/SaveDataPanel.tsx](../src/components/SaveDataPanel/SaveDataPanel.tsx#L435)
+- Library-level dynamic import of `xlsx`: [src/lib/xlsx/importWorkbook.ts](../src/lib/xlsx/importWorkbook.ts#L16)
+- Library-level dynamic import of `xlsx`: [src/lib/xlsx/exportWorkbook.ts](../src/lib/xlsx/exportWorkbook.ts#L12)
+
+Observed output (2026-03-30, `npx vite build`):
+- `dist/assets/xlsx-CNerDvZX.js`: 429.19 kB (gzip 142.94 kB)
+- `dist/assets/importWorkbook-CuiOgAOk.js`: 3.98 kB (gzip 1.85 kB)
+- `dist/assets/exportWorkbook-iQSV1aFC.js`: 1.52 kB (gzip 0.77 kB)
+- `dist/assets/singleSheetParser-hQn624z4.js`: 1.21 kB (gzip 0.67 kB)
+- `dist/assets/threeSheetParser-zf-My3Tw.js`: 1.54 kB (gzip 0.82 kB)
+- `dist/assets/singleSheetBuilder-B9KIXGjK.js`: 1.72 kB (gzip 0.83 kB)
+- `dist/assets/threeSheetBuilder-BpARiPfK.js`: 1.18 kB (gzip 0.61 kB)
+
+Notes:
+- This keeps XLSX parsing/writing code out of the initial route shell and route entry bundles.
+- The `xlsx` chunk is expected to be the largest single JS asset, but it should only load during workbook import/export flows.
+
+## 7. Shared Vendor and Common Chunks
 
 Contains:
 - Third-party libraries shared across routes (React, TanStack Router, TanStack Query, Zustand, lucide-react, luxon)
@@ -149,6 +184,7 @@ Contains:
 
 Notes:
 - dnd-kit is no longer expected in shared vendor/common chunks because it is used only by the timezone settings async subtree.
+- `xlsx` is not expected in shared vendor/common chunks; it should remain in the on-demand XLSX async subtree.
 
 Behavior source:
 - Default Vite/Rollup chunking, since there is no `build.rollupOptions.output.manualChunks` override in [vite.config.ts](../vite.config.ts)
@@ -173,3 +209,5 @@ When adding a new tool page or changing route splits:
 3. List the new route bundle in this document with its primary feature files.
 4. Run a production build and inspect output chunks to validate expected boundaries.
 5. If custom `manualChunks` is added later, update this document's bundling model section.
+6. Confirm the `xlsx` chunk remains on-demand and is not pulled into initial shell/common vendor output.
+7. If `npm run build` fails due to type-check errors, run `npx vite build` for a temporary bundle-only size snapshot while fixing TypeScript separately.
