@@ -154,7 +154,13 @@ export default function TripToolbar() {
             </button>
           )}
 
-          <button type="button" className="btn-new-trip" onClick={() => setShowReset(true)}>
+          <button
+            type="button"
+            className="btn-new-trip"
+            onClick={() => setShowReset(true)}
+            aria-label="Start new trip"
+            title="New Trip"
+          >
             <RotateCcw size={12} /> <span>New Trip</span>
           </button>
 
