@@ -66,6 +66,9 @@ function formatPopulation(population: number): string {
 function renderEventDateRange(event: ForecastEvent): string {
   const start = formatMonthDay(event.startDate);
   const end = formatMonthDay(event.endDate);
+  if (event.year > 0) {
+    return `${start}, ${event.year} - ${end}, ${event.year}`;
+  }
   return `${start} - ${end}`;
 }
 

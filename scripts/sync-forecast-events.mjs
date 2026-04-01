@@ -81,6 +81,7 @@ function toEvent(row, rowNumber) {
     locationKeyRaw = '',
     startDateRaw = '',
     endDateRaw = '',
+    yearRaw = '',
     descriptionRaw = '',
     typeRaw = '',
   ] = cells;
@@ -90,6 +91,7 @@ function toEvent(row, rowNumber) {
   const locationKey = locationKeyRaw.trim().toLowerCase();
   const startDate = startDateRaw.trim();
   const endDate = endDateRaw.trim();
+  const yearStr = yearRaw.trim();
   const description = descriptionRaw.trim();
   const type = typeRaw.trim().toLowerCase();
 
@@ -97,7 +99,7 @@ function toEvent(row, rowNumber) {
     return null;
   }
 
-  if (!name || !locationKey || !startDate || !endDate || !description || !type) {
+  if (!name || !locationKey || !startDate || !endDate || !yearStr || !description || !type) {
     console.warn(`Skipping row ${rowNumber}: one or more required columns are blank.`);
     return null;
   }
@@ -106,6 +108,13 @@ function toEvent(row, rowNumber) {
     console.warn(`Skipping row ${rowNumber}: dates must use MM-DD format.`);
     return null;
   }
+
+  if (!/^\d{4}$/.test(yearStr)) {
+    console.warn(`Skipping row ${rowNumber}: year must be a 4-digit number.`);
+    return null;
+  }
+
+  const year = Number(yearStr);
 
   if (!FORECAST_TYPES.has(type)) {
     console.warn(`Skipping row ${rowNumber}: invalid type "${type}".`);
@@ -118,6 +127,7 @@ function toEvent(row, rowNumber) {
     locationKey,
     startDate,
     endDate,
+    year,
     description,
     type,
   };
@@ -131,6 +141,7 @@ function renderEvent(event) {
     `    locationKey: ${quote(event.locationKey)},`,
     `    startDate: ${quote(event.startDate)},`,
     `    endDate: ${quote(event.endDate)},`,
+    `    year: ${event.year},`,
     `    description: ${quote(event.description)},`,
     `    type: ${quote(event.type)},`,
     '  },',
@@ -151,16 +162,50 @@ ${renderedEvents}
 export function getEventsForRange(locationName: string, dateFrom: string, dateTo: string): ForecastEvent[] {
   const locationKey = locationName.toLowerCase().trim();
   const toMD = (date: string) => date.slice(5);
+  const toYear = (date: string) => Number(date.slice(0, 4));
   const rangeStart = toMD(dateFrom);
   const rangeEnd = toMD(dateTo);
+  const yearStart = toYear(dateFrom);
+  const yearEnd = toYear(dateTo);
 
-  return FORECAST_EVENTS.filter((event) => {
-    if (event.locationKey !== locationKey) {
-      return false;
+  const overlaps = (start: string, end: string) => start <= rangeEnd && end >= rangeStart;
+
+  const locationEvents = FORECAST_EVENTS.filter((e) => e.locationKey === locationKey);
+
+  const grouped = new Map<string, ForecastEvent[]>();
+  for (const event of locationEvents) {
+    const list = grouped.get(event.id) ?? [];
+    list.push(event);
+    grouped.set(event.id, list);
+  }
+
+  const results: ForecastEvent[] = [];
+
+  for (const [, entries] of grouped) {
+    const yearMatch = entries.find(
+      (e) => e.year >= yearStart && e.year <= yearEnd && overlaps(e.startDate, e.endDate),
+    );
+
+    if (yearMatch) {
+      results.push(yearMatch);
+      continue;
     }
 
-    return event.startDate <= rangeEnd && event.endDate >= rangeStart;
-  });
+    let minStart = entries[0].startDate;
+    let maxEnd = entries[0].endDate;
+    let latest = entries[0];
+    for (const e of entries) {
+      if (e.startDate < minStart) minStart = e.startDate;
+      if (e.endDate > maxEnd) maxEnd = e.endDate;
+      if (e.year > latest.year) latest = e;
+    }
+
+    if (overlaps(minStart, maxEnd)) {
+      results.push({ ...latest, startDate: minStart, endDate: maxEnd, year: 0 });
+    }
+  }
+
+  return results;
 }
 `;
 }

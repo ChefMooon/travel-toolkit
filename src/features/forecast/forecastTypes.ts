@@ -48,6 +48,7 @@ export interface ForecastEvent {
   locationKey: string;
   startDate: string;
   endDate: string;
+  year: number;
   description: string;
   type: 'festival' | 'holiday' | 'conference' | 'sporting' | 'other';
 }

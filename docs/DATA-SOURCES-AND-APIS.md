@@ -81,6 +81,14 @@ The forecast tool overlays a small set of curated events from [src/features/fore
 
 The sync script validates each row, keeps only supported event types, and rewrites the checked-in TypeScript dataset.
 
+#### Syncing the dataset locally
+
+- Run `npm run sync:events` from the project root.
+- The script reads `FORECAST_SHEET_URL` from [./.env](../.env) via Node's `--env-file` support.
+- The workspace requires Node 22.12 or later.
+- The spreadsheet columns must be ordered as: ID, Name, Location Key, Start Date, End Date, Year, Description, Type.
+- Events with the same ID can appear in multiple years; runtime matching prefers a year-specific row and falls back to the widest date range.
+
 ## Browser and Runtime APIs
 
 ### Timezone and date APIs
