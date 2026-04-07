@@ -185,7 +185,7 @@ export default function GroupSetup() {
                           aria-label={`Change icon for ${couple.name}`}
                         >
                           <span className="chip-icon">
-                            {COUPLE_ICONS[couple.iconIndex]}
+                            {COUPLE_ICONS[couple.iconIndex]?.symbol}
                           </span>
                         </div>
                         <div

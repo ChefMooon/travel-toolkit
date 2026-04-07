@@ -24,7 +24,7 @@ export default function CoupleCard({ summary }: CoupleCardProps) {
   const theme = useTripStore((s) => s.theme);
 
   const ci = summary.colorIndex;
-  const icon = COUPLE_ICONS[summary.iconIndex] ?? '🧳';
+  const icon = COUPLE_ICONS[summary.iconIndex]?.symbol ?? '🧳';
   const colorDotColor = useMemo(
     () => getColorThemeValue(summary.colorIndex, theme),
     [summary.colorIndex, theme]

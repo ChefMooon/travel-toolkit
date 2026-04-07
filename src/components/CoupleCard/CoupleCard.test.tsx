@@ -299,10 +299,7 @@ describe('CoupleCard', () => {
 
   it('should use correct icon from COUPLE_ICONS array', () => {
     const iconIndices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-    const expectedIcons: string[] = [
-      '🧳', '🌿', '🗺️', '🌸', '✨',
-      '🎒', '🌊', '🏔️', '🎉', '🌙',
-    ];
+    const expectedIcons = COUPLE_ICONS.map((icon) => icon.symbol);
 
     iconIndices.forEach((idx) => {
       const summary: CoupleSummary = {

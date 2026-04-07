@@ -164,24 +164,32 @@ export function getDefaultCurrency(region: Region): string {
 }
 
 export const COUPLE_ICONS = [
-  '🧳', '🌿', '🗺️', '🌸', '✨',
-  '🎒', '🌊', '🏔️', '🎉', '🌙',
-];
+  { name: 'Suitcase', symbol: '🧳' },
+  { name: 'Leaf', symbol: '🌿' },
+  { name: 'Map', symbol: '🗺️' },
+  { name: 'Blossom', symbol: '🌸' },
+  { name: 'Sparkles', symbol: '✨' },
+  { name: 'Backpack', symbol: '🎒' },
+  { name: 'Wave', symbol: '🌊' },
+  { name: 'Mountain', symbol: '🏔️' },
+  { name: 'Celebration', symbol: '🎉' },
+  { name: 'Moon', symbol: '🌙' },
+] as const;
 
 export const COUPLE_COLORS: Record<
   number,
-  { light: string; dark: string }
+  { name: string; light: string; dark: string }
 > = {
-  1: { light: '#C4737A', dark: '#E89096' },    // rose
-  2: { light: '#6A8F7A', dark: '#86B096' },    // sage
-  3: { light: '#7B87BE', dark: '#98A8D9' },    // periwinkle
-  4: { light: '#C49A6A', dark: '#DFB885' },    // tan
-  5: { light: '#9B7BB4', dark: '#B89DCE' },    // mauve
-  6: { light: '#44798A', dark: '#67AABC' },    // lagoon
-  7: { light: '#D8724C', dark: '#F4956D' },    // coral
-  8: { light: '#A8923E', dark: '#CCB85E' },    // ochre
-  9: { light: '#2B4563', dark: '#5A7DB8' },    // navy
-  10: { light: '#8D627C', dark: '#B887A1' },   // mulberry
+  1: { name: 'Rose', light: '#C4737A', dark: '#E89096' },
+  2: { name: 'Sage', light: '#6A8F7A', dark: '#86B096' },
+  3: { name: 'Periwinkle', light: '#7B87BE', dark: '#98A8D9' },
+  4: { name: 'Tan', light: '#C49A6A', dark: '#DFB885' },
+  5: { name: 'Mauve', light: '#9B7BB4', dark: '#B89DCE' },
+  6: { name: 'Lagoon', light: '#44798A', dark: '#67AABC' },
+  7: { name: 'Coral', light: '#D8724C', dark: '#F4956D' },
+  8: { name: 'Ochre', light: '#A8923E', dark: '#CCB85E' },
+  9: { name: 'Navy', light: '#2B4563', dark: '#5A7DB8' },
+  10: { name: 'Mulberry', light: '#8D627C', dark: '#B887A1' },
 };
 
 export function getColorThemeValue(

@@ -68,7 +68,7 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
 
       // First chip should have the icon from first couple (iconIndex: 1)
       const firstChip = chips[0];
-      const expectedIcon = COUPLE_ICONS[1] || '';
+      const expectedIcon = COUPLE_ICONS[1]?.symbol || '';
       expect(firstChip).toHaveTextContent(expectedIcon);
     });
 
@@ -89,7 +89,7 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
       if (gripSpan && iconSpan) {
         expect(gripSpan).toHaveTextContent('⠿');
         expect(iconSpan).toBeTruthy();
-        expect(iconSpan).toHaveTextContent(COUPLE_ICONS[1] || '');
+        expect(iconSpan).toHaveTextContent(COUPLE_ICONS[1]?.symbol || '');
       }
     });
 
@@ -132,10 +132,10 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
       const chips = document.querySelectorAll('.chip');
 
       // First couple has iconIndex 1
-      expect(chips[0]).toHaveTextContent(COUPLE_ICONS[1] || '');
+      expect(chips[0]).toHaveTextContent(COUPLE_ICONS[1]?.symbol || '');
 
       // Second couple has iconIndex 3
-      expect(chips[1]).toHaveTextContent(COUPLE_ICONS[3] || '');
+      expect(chips[1]).toHaveTextContent(COUPLE_ICONS[3]?.symbol || '');
     });
   });
 
@@ -553,7 +553,7 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
 
       // Icon should still be visible
       const chips = document.querySelectorAll('.chip');
-      expect(chips[0]).toHaveTextContent(COUPLE_ICONS[1] || '');
+      expect(chips[0]).toHaveTextContent(COUPLE_ICONS[1]?.symbol || '');
     });
 
     it('should maintain correct visual hierarchy after interaction', () => {

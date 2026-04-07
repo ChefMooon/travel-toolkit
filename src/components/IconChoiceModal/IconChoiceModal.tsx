@@ -1,5 +1,6 @@
 import { useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { X } from 'lucide-react';
 import { COUPLE_ICONS } from '@/store/types';
 
 interface IconChoiceModalProps {
@@ -49,17 +50,26 @@ export default function IconChoiceModal({
       <div className="icon-choice-modal" onClick={(e) => e.stopPropagation()}>
         <div className="icon-modal-header">
           <h2 className="icon-modal-title">Choose an Icon</h2>
+          <button
+            type="button"
+            className="icon-modal-close"
+            onClick={onCancel}
+            aria-label="Close"
+          >
+            <X size={16} />
+          </button>
         </div>
         <div className="icon-grid">
-          {COUPLE_ICONS.map((icon, index) => (
+          {COUPLE_ICONS.map(({ name, symbol }, index) => (
             <button
               key={index}
               className={`icon-item ${index === iconIndex ? 'selected' : ''}`}
               onClick={() => handleIconClick(index)}
-              title={`Icon ${index + 1}`}
+              title={name}
+              aria-label={name}
               type="button"
             >
-              {icon}
+              {symbol}
             </button>
           ))}
         </div>

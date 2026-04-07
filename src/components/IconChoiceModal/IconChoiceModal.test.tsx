@@ -2,7 +2,7 @@
 /// <reference types="@testing-library/jest-dom" />
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, screen } from '@testing-library/react';
 import IconChoiceModal from './IconChoiceModal';
 import { COUPLE_ICONS } from '@/store/types';
 
@@ -36,9 +36,23 @@ describe('IconChoiceModal', () => {
       />
     );
 
-    COUPLE_ICONS.forEach((icon, index) => {
+    COUPLE_ICONS.forEach(({ symbol }, index) => {
       const iconItems = document.querySelectorAll('.icon-item');
-      expect(iconItems[index]).toHaveTextContent(icon);
+      expect(iconItems[index]).toHaveTextContent(symbol);
+    });
+  });
+
+  it('should use icon names for hover and accessible labels', () => {
+    render(
+      <IconChoiceModal
+        iconIndex={0}
+        onConfirm={mockOnConfirm}
+        onCancel={mockOnCancel}
+      />
+    );
+
+    COUPLE_ICONS.forEach(({ name }) => {
+      expect(screen.getByRole('button', { name })).toHaveAttribute('title', name);
     });
   });
 
@@ -87,6 +101,20 @@ describe('IconChoiceModal', () => {
     fireEvent.click(overlay!);
 
     expect(mockOnCancel).toHaveBeenCalled();
+  });
+
+  it('should close modal when close button is clicked', () => {
+    render(
+      <IconChoiceModal
+        iconIndex={0}
+        onConfirm={mockOnConfirm}
+        onCancel={mockOnCancel}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+
+    expect(mockOnCancel).toHaveBeenCalledTimes(1);
   });
 
   it('should not trigger onCancel when clicking on modal content', () => {

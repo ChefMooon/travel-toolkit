@@ -1,5 +1,6 @@
 import { useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
+import { X } from 'lucide-react';
 import { COUPLE_COLORS, getColorThemeValue } from '@/store/types';
 
 interface ColorChoiceModalProps {
@@ -55,11 +56,20 @@ export default function ColorChoiceModal({
       <div className="color-choice-modal" onClick={(e) => e.stopPropagation()}>
         <div className="color-modal-header">
           <h2 className="color-modal-title">Choose a Color</h2>
+          <button
+            type="button"
+            className="color-modal-close"
+            onClick={onCancel}
+            aria-label="Close"
+          >
+            <X size={16} />
+          </button>
         </div>
         <div className="color-grid">
-          {Object.entries(COUPLE_COLORS).map(([colorKey, _]) => {
+          {Object.entries(COUPLE_COLORS).map(([colorKey, colorEntry]) => {
             const index = parseInt(colorKey);
             const color = getColorThemeValue(index, currentTheme);
+            const colorName = colorEntry.name;
 
             return (
               <button
@@ -67,7 +77,8 @@ export default function ColorChoiceModal({
                 className={`color-swatch ${index === colorIndex ? 'selected' : ''}`}
                 onClick={() => handleColorClick(index)}
                 style={{ backgroundColor: color }}
-                title={`Color ${index}`}
+                title={colorName}
+                aria-label={colorName}
                 type="button"
               >
                 {index === colorIndex && (

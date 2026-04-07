@@ -2,7 +2,7 @@
 /// <reference types="@testing-library/jest-dom" />
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, screen } from '@testing-library/react';
 import ColorChoiceModal from './ColorChoiceModal';
 import { COUPLE_COLORS } from '../../store/types';
 
@@ -132,6 +132,20 @@ describe('ColorChoiceModal', () => {
     }
   });
 
+  it('should close modal when close button is clicked', () => {
+    render(
+      <ColorChoiceModal
+        colorIndex={1}
+        onConfirm={mockOnConfirm}
+        onCancel={mockOnCancel}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }));
+
+    expect(mockOnCancel).toHaveBeenCalledTimes(1);
+  });
+
   it('should not trigger onCancel when clicking on modal content', () => {
     render(
       <ColorChoiceModal
@@ -213,5 +227,32 @@ describe('ColorChoiceModal', () => {
     const swatchCount = Object.keys(COUPLE_COLORS).length;
     const swatches = document.querySelectorAll('.color-swatch');
     expect(swatches.length).toBe(swatchCount);
+  });
+
+  it('should show descriptive color names in swatch tooltips', () => {
+    render(
+      <ColorChoiceModal
+        colorIndex={1}
+        onConfirm={mockOnConfirm}
+        onCancel={mockOnCancel}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: 'Rose' })).toHaveAttribute('title', 'Rose');
+    expect(screen.getByRole('button', { name: 'Mulberry' })).toHaveAttribute('title', 'Mulberry');
+  });
+
+  it('should expose a tooltip name for every configured swatch', () => {
+    render(
+      <ColorChoiceModal
+        colorIndex={1}
+        onConfirm={mockOnConfirm}
+        onCancel={mockOnCancel}
+      />
+    );
+
+    Object.values(COUPLE_COLORS).forEach(({ name }) => {
+      expect(screen.getByRole('button', { name })).toHaveAttribute('title', name);
+    });
   });
 });

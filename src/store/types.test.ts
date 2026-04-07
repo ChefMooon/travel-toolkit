@@ -17,14 +17,16 @@ import { useTripStore } from './tripStore';
 describe('Extended Icons & Colors Constants', () => {
   // Test 1: Icon array has minimum 10 items
   describe('COUPLE_ICONS', () => {
-    it('should have at least 10 emoji icons', () => {
+    it('should have at least 10 icon entries', () => {
       expect(COUPLE_ICONS).toHaveLength(10);
     });
 
-    it('should contain only emoji strings', () => {
+    it('should contain icon names and emoji symbols', () => {
       COUPLE_ICONS.forEach((icon) => {
-        expect(typeof icon).toBe('string');
-        expect(icon.length).toBeGreaterThan(0);
+        expect(typeof icon.name).toBe('string');
+        expect(icon.name.length).toBeGreaterThan(0);
+        expect(typeof icon.symbol).toBe('string');
+        expect(icon.symbol.length).toBeGreaterThan(0);
       });
     });
   });
@@ -43,6 +45,7 @@ describe('Extended Icons & Colors Constants', () => {
 
     it('should have light and dark variants for each color', () => {
       Object.entries(COUPLE_COLORS).forEach(([, color]) => {
+        expect(color).toHaveProperty('name');
         expect(color).toHaveProperty('light');
         expect(color).toHaveProperty('dark');
       });
@@ -67,6 +70,14 @@ describe('Extended Icons & Colors Constants', () => {
       Object.entries(COUPLE_COLORS).forEach(([, color]) => {
         expect(color.light).not.toBe(color.dark);
       });
+    });
+
+    it('should have a display name for each color entry', () => {
+      expect(Object.keys(COUPLE_COLORS)).toHaveLength(10);
+
+      for (let i = 1; i <= 10; i++) {
+        expect(COUPLE_COLORS[i]?.name).toBeTruthy();
+      }
     });
   });
 

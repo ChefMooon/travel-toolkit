@@ -30,7 +30,7 @@ describe('Phase 6: Integration & Dark Mode Testing', () => {
       if (!couple) return;
       
       const coupleId = couple.id;
-      const initialIcon = COUPLE_ICONS[1];
+      const initialIcon = COUPLE_ICONS[1]?.symbol;
 
       // Verify icon is rendered initially
       expect(useTripStore.getState().couples[0]?.iconIndex).toBe(1);
@@ -40,7 +40,7 @@ describe('Phase 6: Integration & Dark Mode Testing', () => {
 
       // Verify icon was updated in store
       expect(useTripStore.getState().couples[0]?.iconIndex).toBe(5);
-      expect(COUPLE_ICONS[5]).not.toBe(initialIcon);
+      expect(COUPLE_ICONS[5]?.symbol).not.toBe(initialIcon);
     });
 
     it('should immediately reflect icon changes across multiple couples', async () => {
