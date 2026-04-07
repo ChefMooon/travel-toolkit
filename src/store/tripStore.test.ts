@@ -285,6 +285,31 @@ describe('tripStore — hard limits', () => {
     });
   });
 
+  describe('deleteCosts', () => {
+    it('removes all matching cost entries in one action', () => {
+      useTripStore.getState().addCost({ name: 'Hotel', currency: 'USD', value: 50, markupOverride: null, splitType: 'shared', assignedCoupleIds: [], type: null });
+      useTripStore.getState().addCost({ name: 'Taxi', currency: 'USD', value: 20, markupOverride: null, splitType: 'shared', assignedCoupleIds: [], type: null });
+      useTripStore.getState().addCost({ name: 'Lunch', currency: 'USD', value: 15, markupOverride: null, splitType: 'shared', assignedCoupleIds: [], type: null });
+
+      const costs = useTripStore.getState().costs;
+      useTripStore.getState().markClean();
+      useTripStore.getState().deleteCosts([costs[0]!.id, costs[2]!.id]);
+
+      expect(useTripStore.getState().costs.map((cost) => cost.name)).toEqual(['Taxi']);
+      expect(useTripStore.getState().isDirty).toBe(true);
+    });
+
+    it('ignores an empty bulk delete request', () => {
+      useTripStore.getState().addCost({ name: 'Hotel', currency: 'USD', value: 50, markupOverride: null, splitType: 'shared', assignedCoupleIds: [], type: null });
+      useTripStore.getState().markClean();
+
+      useTripStore.getState().deleteCosts([]);
+
+      expect(useTripStore.getState().costs).toHaveLength(1);
+      expect(useTripStore.getState().isDirty).toBe(false);
+    });
+  });
+
   describe('string length truncation', () => {
     it('setTripName truncates at MAX_TRIP_NAME_LENGTH', () => {
       const long = 'x'.repeat(MAX_TRIP_NAME_LENGTH + 20);

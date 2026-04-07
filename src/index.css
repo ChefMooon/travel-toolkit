@@ -2156,10 +2156,17 @@ body::before {
 /* ══════════════════════════════════════════ LEDGER TABLE */
 .bulk-bar {
   display: flex; align-items: center; gap: 10px;
+  flex-wrap: wrap;
   padding: 8px 20px;
   background: var(--c3);
   color: white;
   font-size: 12px; font-weight: 700;
+}
+.bulk-count {
+  white-space: nowrap;
+}
+.bulk-label {
+  font-weight: 500;
 }
 .bulk-sel {
   padding: 4px 9px;
@@ -2186,9 +2193,79 @@ body::before {
   font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800;
   cursor: pointer;
 }
+.bulk-bar-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.bulk-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 4px 10px;
+  min-height: 30px;
+  border: 1px solid color-mix(in srgb, var(--danger) 78%, black 22%);
+  border-radius: 8px;
+  background: var(--danger);
+  color: white;
+  font-family: 'Nunito', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
+}
+.bulk-delete:hover {
+  background: color-mix(in srgb, var(--danger) 88%, black 12%);
+  border-color: color-mix(in srgb, var(--danger) 64%, black 36%);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(184,92,92,0.22);
+}
+.bulk-delete:active,
+.bulk-apply:active,
+.bulk-clear:active {
+  transform: translateY(1px);
+}
 .bulk-clear {
-  margin-left: auto; cursor: pointer; opacity: 0.7; font-size: 12px;
-  background: none; border: none; color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 30px;
+  padding: 4px 10px;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.14);
+  color: white;
+  font-family: 'Nunito', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
+}
+.bulk-clear:hover {
+  background: rgba(255,255,255,0.24);
+  border-color: rgba(255,255,255,0.42);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 16px rgba(15,18,35,0.14);
+}
+.bulk-sel:focus-visible,
+.bulk-apply:focus-visible,
+.bulk-delete:focus-visible,
+.bulk-clear:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(123,135,190,0.18);
+}
+
+@media (max-width: 700px) {
+  .bulk-bar-actions {
+    width: 100%;
+    margin-left: 0;
+  }
 }
 
 table.ledger { width: 100%; border-collapse: collapse; }

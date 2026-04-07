@@ -117,6 +117,7 @@ vi.mock('@/components/BulkActionBar', () => ({
   default: ({
     selectedCount,
     onApply,
+    onDeleteSelected,
     onClear,
     bulkCurrency,
     onBulkCurrencyChange,
@@ -124,6 +125,7 @@ vi.mock('@/components/BulkActionBar', () => ({
   }: {
     selectedCount: number;
     onApply: (currency: string) => void;
+    onDeleteSelected: () => void;
     onClear: () => void;
     bulkCurrency: string;
     onBulkCurrencyChange: (currency: string) => void;
@@ -141,6 +143,7 @@ vi.mock('@/components/BulkActionBar', () => ({
         ))}
       </select>
       <button onClick={() => onApply(bulkCurrency)}>Apply Bulk</button>
+      <button onClick={onDeleteSelected}>Delete Selected</button>
       <button onClick={onClear}>Clear Bulk</button>
     </div>
   ),
@@ -196,6 +199,7 @@ const mockStoreState = {
   addCost: vi.fn(),
   editCost: vi.fn(),
   deleteCost: vi.fn(),
+  deleteCosts: vi.fn(),
   reorderCosts: vi.fn(),
   bulkSetCurrency: vi.fn(),
 };
@@ -278,6 +282,31 @@ describe('CostLedger', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Apply Bulk' }));
 
     expect(mockStoreState.bulkSetCurrency).toHaveBeenCalledWith(['cost-1'], 'EUR');
+    expect(screen.getByText('Selected Count: 0')).toBeInTheDocument();
+  });
+
+  it('FE-LED-011 deletes selected costs after bulk confirmation and clears selection', () => {
+    render(<CostLedger />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle cost-1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle cost-2' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Delete Selected' }));
+
+    expect(screen.getByText('Delete selected costs?')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm Delete' }));
+
+    expect(mockStoreState.deleteCosts).toHaveBeenCalledWith(['cost-1', 'cost-2']);
+    expect(screen.getByText('Selected Count: 0')).toBeInTheDocument();
+  });
+
+  it('FE-LED-012 clear selection does not delete selected costs', () => {
+    render(<CostLedger />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle cost-1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Clear Bulk' }));
+
+    expect(mockStoreState.deleteCosts).not.toHaveBeenCalled();
     expect(screen.getByText('Selected Count: 0')).toBeInTheDocument();
   });
 

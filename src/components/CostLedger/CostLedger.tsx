@@ -29,6 +29,7 @@ export default function CostLedger() {
   const addCost = useTripStore((s) => s.addCost);
   const editCost = useTripStore((s) => s.editCost);
   const deleteCost = useTripStore((s) => s.deleteCost);
+  const deleteCosts = useTripStore((s) => s.deleteCosts);
   const reorderCosts = useTripStore((s) => s.reorderCosts);
   const bulkSetCurrency = useTripStore((s) => s.bulkSetCurrency);
   const region = useTripStore((s) => s.region);
@@ -38,6 +39,7 @@ export default function CostLedger() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
   const [bulkCurrency, setBulkCurrency] = useState('EUR');
   const [defaultEntryCurrency, setDefaultEntryCurrency] = useState(() => getDefaultCurrency(region));
 
@@ -92,6 +94,36 @@ export default function CostLedger() {
     },
     [selectedIds, bulkSetCurrency]
   );
+
+  const handleClearSelection = useCallback(() => {
+    setSelectedIds(new Set());
+  }, []);
+
+  const handleOpenBulkDelete = useCallback(() => {
+    if (selectedIds.size === 0) return;
+    setDeletingId(null);
+    setIsBulkDeleteOpen(true);
+  }, [selectedIds]);
+
+  const handleConfirmBulkDelete = useCallback(() => {
+    const idsToDelete = [...selectedIds];
+    if (idsToDelete.length === 0) {
+      setIsBulkDeleteOpen(false);
+      return;
+    }
+
+    deleteCosts(idsToDelete);
+    setIsBulkDeleteOpen(false);
+    setSelectedIds(new Set());
+
+    if (editingId && idsToDelete.includes(editingId)) {
+      setEditingId(null);
+    }
+
+    if (deletingId && idsToDelete.includes(deletingId)) {
+      setDeletingId(null);
+    }
+  }, [deleteCosts, deletingId, editingId, selectedIds]);
 
   const handleAddSave = useCallback(
     (data: {
@@ -175,7 +207,8 @@ export default function CostLedger() {
         <BulkActionBar
           selectedCount={selectedIds.size}
           onApply={handleBulkApply}
-          onClear={() => setSelectedIds(new Set())}
+          onDeleteSelected={handleOpenBulkDelete}
+          onClear={handleClearSelection}
           bulkCurrency={bulkCurrency}
           onBulkCurrencyChange={setBulkCurrency}
           currencies={availableBulkCurrencies}
@@ -220,7 +253,10 @@ export default function CostLedger() {
                       isSelected={selectedIds.has(cost.id)}
                       onToggleSelect={() => toggleSelect(cost.id)}
                       onEdit={() => setEditingId(cost.id)}
-                      onDelete={() => setDeletingId(cost.id)}
+                      onDelete={() => {
+                        setIsBulkDeleteOpen(false);
+                        setDeletingId(cost.id);
+                      }}
                     />
                   )
                 )}
@@ -262,8 +298,27 @@ export default function CostLedger() {
               next.delete(deletingId);
               return next;
             });
+
+            if (editingId === deletingId) {
+              setEditingId(null);
+            }
           }}
           onCancel={() => setDeletingId(null)}
+        />
+      )}
+
+      {isBulkDeleteOpen && selectedIds.size > 0 && (
+        <Modal
+          icon="🗑️"
+          title={selectedIds.size === 1 ? 'Delete selected cost?' : 'Delete selected costs?'}
+          body={
+            selectedIds.size === 1
+              ? 'The selected cost entry will be permanently removed. This action cannot be undone.'
+              : `${selectedIds.size} selected cost entries will be permanently removed. This action cannot be undone.`
+          }
+          confirmLabel="Delete Selected"
+          onConfirm={handleConfirmBulkDelete}
+          onCancel={() => setIsBulkDeleteOpen(false)}
         />
       )}
     </>

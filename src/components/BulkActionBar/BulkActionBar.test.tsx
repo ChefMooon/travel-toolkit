@@ -13,6 +13,7 @@ describe('BulkActionBar', () => {
       <BulkActionBar
         selectedCount={0}
         onApply={vi.fn()}
+        onDeleteSelected={vi.fn()}
         onClear={vi.fn()}
         bulkCurrency="USD"
         onBulkCurrencyChange={vi.fn()}
@@ -28,6 +29,7 @@ describe('BulkActionBar', () => {
       <BulkActionBar
         selectedCount={3}
         onApply={vi.fn()}
+        onDeleteSelected={vi.fn()}
         onClear={vi.fn()}
         bulkCurrency="USD"
         onBulkCurrencyChange={vi.fn()}
@@ -45,6 +47,7 @@ describe('BulkActionBar', () => {
       <BulkActionBar
         selectedCount={2}
         onApply={vi.fn()}
+        onDeleteSelected={vi.fn()}
         onClear={vi.fn()}
         bulkCurrency="USD"
         onBulkCurrencyChange={onBulkCurrencyChange}
@@ -64,6 +67,7 @@ describe('BulkActionBar', () => {
       <BulkActionBar
         selectedCount={2}
         onApply={onApply}
+        onDeleteSelected={vi.fn()}
         onClear={vi.fn()}
         bulkCurrency="MXN"
         onBulkCurrencyChange={vi.fn()}
@@ -83,6 +87,7 @@ describe('BulkActionBar', () => {
       <BulkActionBar
         selectedCount={2}
         onApply={vi.fn()}
+        onDeleteSelected={vi.fn()}
         onClear={onClear}
         bulkCurrency="USD"
         onBulkCurrencyChange={vi.fn()}
@@ -95,11 +100,37 @@ describe('BulkActionBar', () => {
     expect(onClear).toHaveBeenCalledTimes(1);
   });
 
-  it('FE-BULK-006 renders only provided currency options', () => {
+  it('FE-BULK-006 shows Delete Selected before Clear and fires delete callback', () => {
+    const onDeleteSelected = vi.fn();
+
     render(
       <BulkActionBar
         selectedCount={2}
         onApply={vi.fn()}
+        onDeleteSelected={onDeleteSelected}
+        onClear={vi.fn()}
+        bulkCurrency="USD"
+        onBulkCurrencyChange={vi.fn()}
+        currencies={TEST_CURRENCIES}
+      />
+    );
+
+    const deleteButton = screen.getByRole('button', { name: /Delete Selected/i });
+    const clearButton = screen.getByRole('button', { name: /Clear/i });
+
+    expect(deleteButton.compareDocumentPosition(clearButton) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+
+    fireEvent.click(deleteButton);
+
+    expect(onDeleteSelected).toHaveBeenCalledTimes(1);
+  });
+
+  it('FE-BULK-007 renders only provided currency options', () => {
+    render(
+      <BulkActionBar
+        selectedCount={2}
+        onApply={vi.fn()}
+        onDeleteSelected={vi.fn()}
         onClear={vi.fn()}
         bulkCurrency="EUR"
         onBulkCurrencyChange={vi.fn()}

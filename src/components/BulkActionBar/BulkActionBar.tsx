@@ -1,6 +1,9 @@
+import { Trash2 } from 'lucide-react';
+
 interface BulkActionBarProps {
   selectedCount: number;
   onApply: (currency: string) => void;
+  onDeleteSelected: () => void;
   onClear: () => void;
   bulkCurrency: string;
   onBulkCurrencyChange: (currency: string) => void;
@@ -10,6 +13,7 @@ interface BulkActionBarProps {
 export default function BulkActionBar({
   selectedCount,
   onApply,
+  onDeleteSelected,
   onClear,
   bulkCurrency,
   onBulkCurrencyChange,
@@ -19,8 +23,8 @@ export default function BulkActionBar({
 
   return (
     <div className="bulk-bar">
-      <span>{selectedCount} selected —</span>
-      <span style={{ fontWeight: 500 }}>Bulk currency:</span>
+      <span className="bulk-count">{selectedCount} selected</span>
+      <span className="bulk-label">Bulk currency:</span>
       <select
         className="bulk-sel"
         value={bulkCurrency}
@@ -33,7 +37,13 @@ export default function BulkActionBar({
       <button className="bulk-apply" onClick={() => onApply(bulkCurrency)}>
         Apply
       </button>
-      <button className="bulk-clear" onClick={onClear}>✕ Clear</button>
+      <div className="bulk-bar-actions">
+        <button className="bulk-delete" onClick={onDeleteSelected}>
+          <Trash2 size={13} aria-hidden="true" />
+          <span>Delete Selected</span>
+        </button>
+        <button className="bulk-clear" onClick={onClear}>✕ Clear</button>
+      </div>
     </div>
   );
 }

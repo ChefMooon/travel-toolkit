@@ -61,6 +61,7 @@ interface TripStore {
   addCost: (cost: Omit<CostEntry, 'id' | 'sortOrder'>) => void;
   editCost: (id: string, updates: Partial<Omit<CostEntry, 'id'>>) => void;
   deleteCost: (id: string) => void;
+  deleteCosts: (costIds: string[]) => void;
   reorderCosts: (orderedIds: string[]) => void;
   bulkSetCurrency: (costIds: string[], currency: string) => void;
 
@@ -279,6 +280,18 @@ export const useTripStore = create<TripStore>()(
           costs: state.costs.filter((c) => c.id !== id),
           isDirty: true,
         })),
+
+      deleteCosts: (costIds) => {
+        if (costIds.length === 0) {
+          return;
+        }
+
+        const costIdSet = new Set(costIds);
+        set((state) => ({
+          costs: state.costs.filter((c) => !costIdSet.has(c.id)),
+          isDirty: true,
+        }));
+      },
 
       reorderCosts: (orderedIds) =>
         set((state) => {
