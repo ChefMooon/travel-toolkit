@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [1.3.0] - 2026-04-07
+
+### Added
+
+- Bulk delete workflow for selected cost entries, including a confirmation step in the Cost Ledger
+- Close buttons in the color and icon selection modals for faster dismissal
+- Year-aware forecast events, including event-year display in the Destination Forecast tool
+
+### Changed
+
+- Group theme palette values refined for improved visual balance across the trip UI
+- Cost rows, edit rows, and split-assignment surfaces now use theme-aware group colors for more consistent rendering
+- Forecast event matching now prefers year-specific results and falls back more cleanly across multi-year date ranges
+- Color and icon picker options now expose clearer tooltip and accessibility labels
+
+### Fixed
+
+- Bulk delete now clears stale selection and edit state after removing costs
+- Group color rendering no longer depends on fixed CSS values that could drift from the active theme
+
 ## [1.2.0] - 2026-03-30
 
 ### Added
@@ -138,7 +158,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - Start New Trip action with confirmation prompt; clears all `localStorage` data and resets to initial state
 - Light and dark theme with toggle; theme preference persisted to `localStorage`
 
-[Unreleased]: https://github.com/ChefMooon/mkt/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/ChefMooon/mkt/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/ChefMooon/mkt/compare/v1.2.0...v1.3.0
+[1.2.0]: https://github.com/ChefMooon/mkt/compare/v1.1.0...v1.2.0
 [1.1.0]: https://github.com/ChefMooon/mkt/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/ChefMooon/mkt/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/ChefMooon/mkt/compare/v1.0.0...v1.0.1
