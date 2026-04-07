@@ -90,11 +90,11 @@ Primary group colors (1-5) are implemented as CSS variables and soft/border vari
 | 3 | #7B87BE | #98A8D9 |
 | 4 | #C49A6A | #DFB885 |
 | 5 | #9B7BB4 | #B89DCE |
-| 6 | #4A8A99 | #6DB5C6 |
+| 6 | #44798A | #67AABC |
 | 7 | #D8724C | #F4956D |
-| 8 | #C9A941 | #E5C565 |
+| 8 | #A8923E | #CCB85E |
 | 9 | #2B4563 | #5A7DB8 |
-| 10 | #B85A7E | #D887A8 |
+| 10 | #8D627C | #B887A1 |
 
 ### 4.3 Typography
 

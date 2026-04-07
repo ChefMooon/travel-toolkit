@@ -4,7 +4,7 @@ import { getEffectiveMarkup, getCostWithMarkup, formatCurrency, validateCost } f
 import { createPortal } from 'react-dom';
 import { Pencil, Trash2, GripVertical, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
 import type { CostEntry, SplitType } from '@/store/types';
-import { getAvailableCurrencies, COST_ENTRY_TYPES } from '@/store/types';
+import { getAvailableCurrencies, getColorThemeValue, COST_ENTRY_TYPES } from '@/store/types';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import SplitAssignmentModal from '../SplitAssignmentModal';
@@ -20,6 +20,7 @@ interface CostRowProps {
 export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDelete }: CostRowProps) {
   const globalMarkup = useTripStore((s) => s.globalMarkup);
   const region = useTripStore((s) => s.region);
+  const theme = useTripStore((s) => s.theme);
   const couples = useTripStore((s) => s.couples);
   const editCost = useTripStore((s) => s.editCost);
   const addCouple = useTripStore((s) => s.addCouple);
@@ -503,7 +504,7 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
                 <span
                   key={c!.id}
                   className="who-dot"
-                  style={{ background: `var(--c${c!.colorIndex})` }}
+                  style={{ backgroundColor: getColorThemeValue(c!.colorIndex, theme) }}
                   title={c!.name}
                 />
               ))}

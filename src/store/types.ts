@@ -177,11 +177,11 @@ export const COUPLE_COLORS: Record<
   3: { light: '#7B87BE', dark: '#98A8D9' },    // periwinkle
   4: { light: '#C49A6A', dark: '#DFB885' },    // tan
   5: { light: '#9B7BB4', dark: '#B89DCE' },    // mauve
-  6: { light: '#4A8A99', dark: '#6DB5C6' },    // teal
+  6: { light: '#44798A', dark: '#67AABC' },    // lagoon
   7: { light: '#D8724C', dark: '#F4956D' },    // coral
-  8: { light: '#C9A941', dark: '#E5C565' },    // gold
+  8: { light: '#A8923E', dark: '#CCB85E' },    // ochre
   9: { light: '#2B4563', dark: '#5A7DB8' },    // navy
-  10: { light: '#B85A7E', dark: '#D887A8' },   // berry
+  10: { light: '#8D627C', dark: '#B887A1' },   // mulberry
 };
 
 export function getColorThemeValue(

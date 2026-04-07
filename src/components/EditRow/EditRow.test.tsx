@@ -4,7 +4,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import EditRow from '@/components/EditRow';
-import type { Couple, Region } from '@/store/types';
+import { getColorThemeValue, type Couple, type Region } from '@/store/types';
 
 vi.mock('@/store/tripStore', () => ({
   useTripStore: vi.fn(),
@@ -27,11 +27,13 @@ const mockStoreState: {
   couples: Couple[];
   globalMarkup: number;
   region: Region;
+  theme: 'light' | 'dark';
   addCouple: ReturnType<typeof vi.fn>;
 } = {
   couples: mockCouples,
   globalMarkup: 66,
   region: 'Europe',
+  theme: 'light',
   addCouple: vi.fn(() => 'c4'),
 };
 
@@ -61,6 +63,7 @@ describe('EditRow', () => {
     mockStoreState.couples = mockCouples;
     mockStoreState.globalMarkup = 66;
     mockStoreState.region = 'Europe';
+    mockStoreState.theme = 'light';
     mockStoreState.addCouple = vi.fn(() => 'c4');
 
     (useTripStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(
@@ -348,8 +351,8 @@ describe('EditRow', () => {
     const dots = selectButton.querySelectorAll('.who-dot');
     expect(dots).toHaveLength(2);
 
-    expect(dots[0]).toHaveStyle('background: var(--c1)');
-    expect(dots[1]).toHaveStyle('background: var(--c2)');
+    expect(dots[0]).toHaveStyle({ backgroundColor: getColorThemeValue(1, 'light') });
+    expect(dots[1]).toHaveStyle({ backgroundColor: getColorThemeValue(2, 'light') });
 
     expect(dots[0]).toHaveAttribute('title', 'Group 1');
     expect(dots[1]).toHaveAttribute('title', 'Group 2');

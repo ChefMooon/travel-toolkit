@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useTripStore } from '@/store/tripStore';
 import { useToastStore } from '@/store/toastStore';
-import { getAvailableCurrencies, getDefaultCurrency, COST_ENTRY_TYPES, MAX_COST_NAME_LENGTH } from '@/store/types';
+import { getAvailableCurrencies, getDefaultCurrency, getColorThemeValue, COST_ENTRY_TYPES, MAX_COST_NAME_LENGTH } from '@/store/types';
 import type { SplitType } from '@/store/types';
 import SplitAssignmentModal from '../SplitAssignmentModal';
 
@@ -33,6 +33,7 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
   const couples = useTripStore((s) => s.couples);
   const globalMarkup = useTripStore((s) => s.globalMarkup);
   const region = useTripStore((s) => s.region);
+  const theme = useTripStore((s) => s.theme);
   const addCouple = useTripStore((s) => s.addCouple);
   const pushToast = useToastStore((s) => s.pushToast);
 
@@ -377,7 +378,7 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
                           <span
                             key={c.id}
                             className="who-dot"
-                            style={{ background: `var(--c${c.colorIndex})` }}
+                            style={{ backgroundColor: getColorThemeValue(c.colorIndex, theme) }}
                             title={c.name}
                           />
                         ))}

@@ -1,7 +1,8 @@
 import { useRef, useEffect, useCallback, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Plus } from 'lucide-react';
-import { MAX_GROUPS, type Couple, type SplitType } from '@/store/types';
+import { MAX_GROUPS, getColorThemeValue, type Couple, type SplitType } from '@/store/types';
+import { useTripStore } from '@/store/tripStore';
 
 interface SplitAssignmentModalProps {
   open: boolean;
@@ -26,6 +27,7 @@ export default function SplitAssignmentModal({
   onClose,
   onCreateGroup,
 }: SplitAssignmentModalProps) {
+  const theme = useTripStore((s) => s.theme);
   const dialogRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<Element | null>(null);
   const titleId = useId();
@@ -161,7 +163,7 @@ export default function SplitAssignmentModal({
                   <span className="split-modal-radio" aria-hidden="true">
                     {isSelected ? '◉' : '◯'}
                   </span>
-                  <span style={{ color: `var(--c${couple.colorIndex})`, fontWeight: 700 }}>
+                  <span style={{ color: getColorThemeValue(couple.colorIndex, theme), fontWeight: 700 }}>
                     ● {couple.name}
                   </span>
                 </button>
@@ -175,7 +177,7 @@ export default function SplitAssignmentModal({
                   checked={isSelected}
                   onChange={() => onToggleCouple(couple.id)}
                 />
-                <span style={{ color: `var(--c${couple.colorIndex})`, fontWeight: 700 }}>
+                <span style={{ color: getColorThemeValue(couple.colorIndex, theme), fontWeight: 700 }}>
                   ● {couple.name}
                 </span>
               </label>
