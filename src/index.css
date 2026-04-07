@@ -143,12 +143,15 @@ body::before {
 
 .app-shell {
   min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
 }
 
 .route-body {
   max-width: 1440px;
   margin: 0 auto;
   width: 100%;
+  min-width: 0;
 }
 
 .navbar {
@@ -709,6 +712,66 @@ body::before {
 .tool-page h1 {
   font-size: 28px;
   line-height: 1.2;
+}
+
+.site-footer {
+  border-top: 1.5px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 90%, var(--bg-2) 10%);
+  transition: background 0.4s, border-color 0.4s;
+}
+
+.site-footer-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 16px 24px 18px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.site-footer-link {
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.site-footer-link:hover {
+  color: var(--c3);
+}
+
+.site-footer-link:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.site-footer-meta {
+  color: var(--text-2);
+  font-size: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 10px;
+  text-align: center;
+}
+
+.site-footer-separator {
+  color: var(--text-3);
+}
+
+@media (min-width: 480px) and (max-width: 767px) {
+  .site-footer-inner {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 479px) {
+  .site-footer-inner {
+    padding: 16px 14px 18px;
+  }
 }
 
 .tool-list {

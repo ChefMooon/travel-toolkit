@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Outlet, createRootRoute } from '@tanstack/react-router';
+import { Outlet, createRootRoute, useLocation } from '@tanstack/react-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { createQueryClient } from '@/lib/queryClient';
+import Footer from '@/components/Footer';
+import { NON_DESKTOP_MAX_WIDTH, shouldShowFooter } from '@/components/Footer/footerVisibility';
 import { useTripStore } from '@/store/tripStore';
 import Navbar from '@/components/Navbar';
 import ToastViewport from '@/components/ToastViewport';
@@ -25,8 +27,36 @@ function ThemeSync() {
   return null;
 }
 
+function getViewportWidth() {
+  if (typeof window === 'undefined') {
+    return NON_DESKTOP_MAX_WIDTH + 1;
+  }
+
+  return window.innerWidth;
+}
+
+function useFooterVisibility() {
+  const { pathname } = useLocation();
+  const [viewportWidth, setViewportWidth] = useState(getViewportWidth);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setViewportWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  return shouldShowFooter(pathname, viewportWidth);
+}
+
 export default function RootLayout() {
   const [queryClient] = useState(() => createQueryClient());
+  const showFooter = useFooterVisibility();
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -37,6 +67,7 @@ export default function RootLayout() {
         <div className="route-body">
           <Outlet />
         </div>
+        {showFooter ? <Footer /> : null}
       </div>
       {import.meta.env.DEV ? <ReactQueryDevtools initialIsOpen={false} /> : null}
       {import.meta.env.DEV ? <TanStackRouterDevtools position="bottom-right" /> : null}
