@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, fireEvent, waitFor, screen } from '@testing-library/react';
 import { useTripStore } from '../../store/tripStore';
 import CoupleCard from './CoupleCard';
-import type { CoupleSummary } from '../../store/types';
+import { COUPLE_ICONS, type CoupleSummary } from '../../store/types';
 
 // Mock the modals
 vi.mock('../IconChoiceModal', () => ({

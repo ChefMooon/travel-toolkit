@@ -1,0 +1,9 @@
+#!/bin/sh
+
+set -eu
+
+echo "Running typecheck before push..."
+npm run typecheck
+
+echo "Running full test suite before push..."
+npm run test -- --run

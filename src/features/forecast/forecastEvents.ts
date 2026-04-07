@@ -85,9 +85,14 @@ export function getEventsForRange(locationName: string, dateFrom: string, dateTo
       continue;
     }
 
-    let minStart = entries[0].startDate;
-    let maxEnd = entries[0].endDate;
-    let latest = entries[0];
+    const firstEntry = entries[0];
+    if (!firstEntry) {
+      continue;
+    }
+
+    let minStart = firstEntry.startDate;
+    let maxEnd = firstEntry.endDate;
+    let latest: ForecastEvent = firstEntry;
     for (const e of entries) {
       if (e.startDate < minStart) minStart = e.startDate;
       if (e.endDate > maxEnd) maxEnd = e.endDate;
