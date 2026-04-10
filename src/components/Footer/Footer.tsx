@@ -1,5 +1,5 @@
 const CLOUDFLARE_URL = 'https://www.cloudflare.com/';
-const SOURCE_URL = 'https://github.com/ChefMooon/mkt';
+// const SOURCE_URL = 'https://github.com/ChefMooon/mkt';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -8,17 +8,16 @@ export default function Footer() {
     <footer className="site-footer" aria-label="Site footer">
       <div className="site-footer-inner">
         <p className="site-footer-meta">
-          <span>Built with &lt;3</span>
-          <span className="site-footer-separator" aria-hidden="true">|</span>
+          <span>Hosted on</span>
           <a
             className="site-footer-link"
             href={CLOUDFLARE_URL}
             target="_blank"
             rel="noreferrer"
           >
-            Cloudflare
+          Cloudflare
           </a>
-          <span className="site-footer-separator" aria-hidden="true">|</span>
+          {/* <span className="site-footer-separator" aria-hidden="true">|</span>
           <a
             className="site-footer-link"
             href={SOURCE_URL}
@@ -26,7 +25,7 @@ export default function Footer() {
             rel="noreferrer"
           >
             Source
-          </a>
+          </a> */}
           <span className="site-footer-separator" aria-hidden="true">|</span>
           <span>&copy; {currentYear} Travel Toolkit</span>
         </p>

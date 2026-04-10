@@ -754,7 +754,7 @@ body::before {
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
-  gap: 6px 10px;
+  gap: 6px 6px;
   text-align: center;
 }
 
