@@ -17,6 +17,16 @@ describe('Footer', () => {
     expect(screen.getByRole('button', { name: 'Privacy Preferences' })).toBeInTheDocument();
   });
 
+  it('shows the source repository link', () => {
+    render(<Footer />);
+
+    const sourceLink = screen.getByRole('link', { name: 'Source' });
+
+    expect(sourceLink).toHaveAttribute('href', 'https://github.com/ChefMooon/mkt');
+    expect(sourceLink).toHaveAttribute('target', '_blank');
+    expect(sourceLink).toHaveAttribute('rel', 'noreferrer');
+  });
+
   it('resets consent state when privacy preferences is clicked', () => {
     useConsentStore.getState().acceptAll();
     expect(useConsentStore.getState().consentChoice).toBe('accepted');

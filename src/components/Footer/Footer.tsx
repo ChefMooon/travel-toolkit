@@ -1,7 +1,7 @@
 import { useConsentStore } from '@/store/consentStore';
 
 const CLOUDFLARE_URL = 'https://www.cloudflare.com/';
-// const SOURCE_URL = 'https://github.com/ChefMooon/mkt';
+const SOURCE_URL = 'https://github.com/ChefMooon/mkt';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -20,7 +20,7 @@ export default function Footer() {
           >
           Cloudflare
           </a>
-          {/* <span className="site-footer-separator" aria-hidden="true">|</span>
+          <span className="site-footer-separator" aria-hidden="true">|</span>
           <a
             className="site-footer-link"
             href={SOURCE_URL}
@@ -28,7 +28,7 @@ export default function Footer() {
             rel="noreferrer"
           >
             Source
-          </a> */}
+          </a>
           <span className="site-footer-separator" aria-hidden="true">|</span>
           <button
             type="button"
