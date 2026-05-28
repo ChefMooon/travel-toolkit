@@ -44,6 +44,29 @@ npm run dev
 
 The development server runs at `http://localhost:5173`.
 
+## Analytics and Consent
+
+Configure Google Analytics in `.env`:
+
+```dotenv
+VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
+```
+
+Behavior in the app:
+
+- Analytics is only enabled in production builds.
+- A cookie consent banner is shown on first visit.
+- GA initialization and `page_view` events are blocked until analytics consent is accepted.
+- Rejecting consent keeps analytics disabled.
+
+Exclude internal/admin traffic in GA4:
+
+1. Open **Admin** in Google Analytics.
+2. Go to **Data Streams** for your web stream.
+3. Create internal traffic rules for office/home public IP addresses.
+4. In GA4 report filters, set internal traffic to **Exclude**.
+5. Keep IP rules updated if your public IP changes.
+
 ## Basic Usage
 
 1. Start the app and open the home page.
