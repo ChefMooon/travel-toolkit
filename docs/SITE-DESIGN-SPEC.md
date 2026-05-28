@@ -427,8 +427,8 @@ No destructive action may execute without explicit confirmation.
 ## 11. Logo, Iconography, and Imagery
 
 Logo:
-- SVG loaded from public/logo.svg and injected into top bar logo container
-- Logo path styling is theme-aware through CSS class styling
+- Shared app icon rendered directly in the top bar logo container
+- Logo presentation is controlled by the brand logo container styling rather than runtime SVG path injection
 
 Iconography:
 - Lucide React icons used for utility controls and navigation
