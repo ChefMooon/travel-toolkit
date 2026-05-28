@@ -1,8 +1,11 @@
+import { useConsentStore } from '@/store/consentStore';
+
 const CLOUDFLARE_URL = 'https://www.cloudflare.com/';
 // const SOURCE_URL = 'https://github.com/ChefMooon/mkt';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const resetConsent = useConsentStore((s) => s.resetConsent);
 
   return (
     <footer className="site-footer" aria-label="Site footer">
@@ -26,6 +29,14 @@ export default function Footer() {
           >
             Source
           </a> */}
+          <span className="site-footer-separator" aria-hidden="true">|</span>
+          <button
+            type="button"
+            className="site-footer-link site-footer-button"
+            onClick={resetConsent}
+          >
+            Privacy Preferences
+          </button>
           <span className="site-footer-separator" aria-hidden="true">|</span>
           <span>&copy; {currentYear} Travel Toolkit</span>
         </p>

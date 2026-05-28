@@ -4,11 +4,15 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { createQueryClient } from '@/lib/queryClient';
+import { initializeAnalytics, trackPageView } from '@/lib/analytics';
+import { getRouteTitle } from '@/lib/routeTitles';
 import Footer from '@/components/Footer';
 import { NON_DESKTOP_MAX_WIDTH, shouldShowFooter } from '@/components/Footer/footerVisibility';
 import { useTripStore } from '@/store/tripStore';
+import { useConsentStore } from '@/store/consentStore';
 import Navbar from '@/components/Navbar';
 import ToastViewport from '@/components/ToastViewport';
+import ConsentBanner from '@/components/ConsentBanner';
 
 function ThemeSync() {
   const theme = useTripStore((s) => s.theme);
@@ -54,6 +58,55 @@ function useFooterVisibility() {
   return shouldShowFooter(pathname, viewportWidth);
 }
 
+function AnalyticsBridge() {
+  const { pathname, searchStr } = useLocation();
+  const consentChoice = useConsentStore((s) => s.consentChoice);
+  const analyticsConsent = useConsentStore((s) => s.analyticsConsent);
+  const [analyticsReady, setAnalyticsReady] = useState(false);
+  const pageTitle = getRouteTitle(pathname);
+
+  useEffect(() => {
+    document.title = pageTitle;
+  }, [pageTitle]);
+
+  useEffect(() => {
+    if (consentChoice !== 'accepted' || !analyticsConsent) {
+      setAnalyticsReady(false);
+      return;
+    }
+
+    let cancelled = false;
+
+    void initializeAnalytics()
+      .then((initialized) => {
+        if (cancelled || !initialized) {
+          return;
+        }
+        setAnalyticsReady(true);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setAnalyticsReady(false);
+        }
+        // Ignore init failures to avoid impacting navigation/rendering.
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [analyticsConsent, consentChoice]);
+
+  useEffect(() => {
+    if (consentChoice !== 'accepted' || !analyticsConsent || !analyticsReady) {
+      return;
+    }
+
+    trackPageView(`${pathname}${searchStr}`, pageTitle);
+  }, [analyticsConsent, consentChoice, analyticsReady, pageTitle, pathname, searchStr]);
+
+  return null;
+}
+
 export default function RootLayout() {
   const [queryClient] = useState(() => createQueryClient());
   const showFooter = useFooterVisibility();
@@ -61,9 +114,11 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeSync />
+      <AnalyticsBridge />
       <div className="app-shell">
         <Navbar />
         <ToastViewport />
+        <ConsentBanner />
         <div className="route-body">
           <Outlet />
         </div>
@@ -76,6 +131,10 @@ export default function RootLayout() {
 }
 
 function NotFoundRoute() {
+  useEffect(() => {
+    document.title = getRouteTitle('/__not-found');
+  }, []);
+
   return (
     <section className="tool-page" aria-label="Page not found">
       <h1>Page not found</h1>
@@ -85,6 +144,10 @@ function NotFoundRoute() {
 }
 
 function RouteError() {
+  useEffect(() => {
+    document.title = getRouteTitle('/__route-error');
+  }, []);
+
   return (
     <section className="tool-page" aria-label="Route error">
       <h1>Something went wrong</h1>
