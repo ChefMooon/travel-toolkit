@@ -3,7 +3,7 @@ import { useConsentStore } from '@/store/consentStore';
 
 describe('consentStore', () => {
   beforeEach(() => {
-    localStorage.removeItem('mkt-consent-data');
+    localStorage.removeItem('travel-toolkit-consent-data');
     useConsentStore.getState().resetConsent();
   });
 

@@ -1,7 +1,7 @@
 import { useConsentStore } from '@/store/consentStore';
 
 const CLOUDFLARE_URL = 'https://www.cloudflare.com/';
-const SOURCE_URL = 'https://github.com/ChefMooon/mkt';
+const SOURCE_URL = 'https://github.com/ChefMooon/travel-toolkit';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();

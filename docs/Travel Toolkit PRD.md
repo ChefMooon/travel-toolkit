@@ -1,4 +1,4 @@
-# MKT PRD
+# Travel Toolkit PRD
 
 **Product Requirements Document**
 
@@ -10,7 +10,7 @@ _Version 2.0 | March 2026 | Status: Draft_
 
 | Field | Value |
 |---|---|
-| Product Name | MKT |
+| Product Name | Travel Toolkit |
 | Product Positioning | Travel Toolkit |
 | Version | 2.0 |
 | Status | Draft |
@@ -22,7 +22,7 @@ _Version 2.0 | March 2026 | Status: Draft_
 
 ## 1. Overview
 
-MKT is a browser-based travel toolkit that brings together four planning utilities in one product:
+Travel Toolkit is a browser-based travel toolkit that brings together four planning utilities in one product:
 
 - **Trip Cost** to calculate shared and split costs across trip groups
 - **Currency Converter** to convert between currencies with live rates
@@ -45,7 +45,7 @@ This is especially painful when:
 - The trip depends on seasonal conditions or known local events
 - The user wants lightweight planning help without accounts, syncing, or a full itinerary platform
 
-MKT solves this by packaging the most common pre-trip planning utilities into one lightweight web app.
+Travel Toolkit solves this by packaging the most common pre-trip planning utilities into one lightweight web app.
 
 ---
 
@@ -300,4 +300,4 @@ The product will be considered successful for the current scope when:
 | 1.1 | March 2026 | TBD | Clarified trip cost splitting, markup behavior, and currency workflow. |
 | 1.2 | March 2026 | TBD | Added persistence, deletion confirmation, and drag-and-drop support to scope. |
 | 1.3 | March 2026 | TBD | Added trip reset workflow and related UX requirements. |
-| 2.0 | March 2026 | TBD | Reframed MKT as a travel toolkit covering Trip Cost, Currency Converter, Timezone Tracker, and Destination Forecast. Aligned product naming and tool descriptions to the current source of truth in `src/lib/tools.ts`, and added core use cases, success criteria, cross-tool scope, and current product constraints. |
+| 2.0 | March 2026 | TBD | Reframed Travel Toolkit as a travel toolkit covering Trip Cost, Currency Converter, Timezone Tracker, and Destination Forecast. Aligned product naming and tool descriptions to the current source of truth in `src/lib/tools.ts`, and added core use cases, success criteria, cross-tool scope, and current product constraints. |

@@ -24,9 +24,9 @@ describe('useCurrencyStore', () => {
     }
   });
 
-  it('persists state to localStorage under mkt-currency-data', () => {
+  it('persists state to localStorage under travel-toolkit-currency-data', () => {
     useCurrencyStore.getState().setRegion('Oceania');
-    const stored = JSON.parse(localStorage.getItem('mkt-currency-data') ?? '{}') as {
+    const stored = JSON.parse(localStorage.getItem('travel-toolkit-currency-data') ?? '{}') as {
       state?: { region?: string };
     };
     expect(stored.state?.region).toBe('Oceania');
@@ -39,7 +39,7 @@ describe('useCurrencyStore', () => {
   it('setAmount updates amount and persists to localStorage', () => {
     useCurrencyStore.getState().setAmount('250');
     expect(useCurrencyStore.getState().amount).toBe('250');
-    const stored = JSON.parse(localStorage.getItem('mkt-currency-data') ?? '{}') as {
+    const stored = JSON.parse(localStorage.getItem('travel-toolkit-currency-data') ?? '{}') as {
       state?: { amount?: string };
     };
     expect(stored.state?.amount).toBe('250');
@@ -52,7 +52,7 @@ describe('useCurrencyStore', () => {
   it('setBaseCurrency updates baseCurrency and persists to localStorage', () => {
     useCurrencyStore.getState().setBaseCurrency('GBP');
     expect(useCurrencyStore.getState().baseCurrency).toBe('GBP');
-    const stored = JSON.parse(localStorage.getItem('mkt-currency-data') ?? '{}') as {
+    const stored = JSON.parse(localStorage.getItem('travel-toolkit-currency-data') ?? '{}') as {
       state?: { baseCurrency?: string };
     };
     expect(stored.state?.baseCurrency).toBe('GBP');
@@ -65,7 +65,7 @@ describe('useCurrencyStore', () => {
   it('setTargetCurrency updates targetCurrency and persists to localStorage', () => {
     useCurrencyStore.getState().setTargetCurrency('JPY');
     expect(useCurrencyStore.getState().targetCurrency).toBe('JPY');
-    const stored = JSON.parse(localStorage.getItem('mkt-currency-data') ?? '{}') as {
+    const stored = JSON.parse(localStorage.getItem('travel-toolkit-currency-data') ?? '{}') as {
       state?: { targetCurrency?: string };
     };
     expect(stored.state?.targetCurrency).toBe('JPY');

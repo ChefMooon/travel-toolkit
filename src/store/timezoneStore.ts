@@ -58,6 +58,6 @@ export const useTimezoneStore = create<TimezoneStore>()(
           return { trackedZones: reordered };
         }),
     }),
-    { name: 'mkt-timezone-data' }
+    { name: 'travel-toolkit-timezone-data' }
   )
 );

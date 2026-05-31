@@ -1,8 +1,8 @@
-# MKT
+# Travel Toolkit
 
-MKT is a travel planning toolkit built with TanStack Start and deployed to Cloudflare Workers. It combines four focused tools in one app: a trip cost splitter, a currency converter, a timezone tracker, and a destination forecast planner.
+Travel Toolkit is a travel planning toolkit built with TanStack Start and deployed to Cloudflare Workers. It combines four focused tools in one app: a trip cost splitter, a currency converter, a timezone tracker, and a destination forecast planner.
 
-## What MKT Includes
+## What Travel Toolkit Includes
 
 - **Trip Cost** — split shared, subset, or individual expenses across trip groups with multi-currency entries and USD rollups
 - **Currency Converter** — compare exchange-rate snapshots across supported currencies
@@ -100,7 +100,7 @@ src/
   lib/             Shared helpers, tool metadata, and core calculations
 docs/
   ARCHITECTURE.md       Technical architecture reference
-  MKT PRD.md            Product requirements document
+  Travel Toolkit PRD.md Product requirements document
   SITE-DESIGN-SPEC.md   UI and design system reference
 ```
 
@@ -137,7 +137,7 @@ Deployment uses the TanStack Start server entry configured in [wrangler.toml](wr
 ## Further Documentation
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- [docs/MKT PRD.md](docs/MKT%20PRD.md)
+- [docs/Travel Toolkit PRD.md](docs/Travel%20Toolkit%20PRD.md)
 - [docs/SITE-DESIGN-SPEC.md](docs/SITE-DESIGN-SPEC.md)
 
 ## License

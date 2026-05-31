@@ -281,7 +281,7 @@ export const useSaveSlotStore = create<SaveSlotStore>()(
       },
     }),
     {
-      name: 'mkt-save-slots',
+      name: 'travel-toolkit-save-slots',
       version: 1,
       migrate: (persistedState) => normalizePersistedSaveSlotState(persistedState as PersistedSaveSlotStore),
       merge: (persistedState, currentState) => ({

@@ -88,7 +88,7 @@ useQuery({
 
 ### Component Logic (`CurrencyTool`)
 
-Three pieces of persisted state (Zustand `useCurrencyStore`, `mkt-currency-data`):
+Three pieces of persisted state (Zustand `useCurrencyStore`, `travel-toolkit-currency-data`):
 
 | State | Initial | Controls |
 |---|---|---|

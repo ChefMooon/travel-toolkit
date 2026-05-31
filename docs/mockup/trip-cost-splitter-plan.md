@@ -13,7 +13,7 @@ Elegant and playful at once — a "Pressed Flowers" pastel palette of dusty rose
 
 **One unforgettable thing:** The group colors are muted pastels that feel like a curated travel mood board — soft but unmistakably intentional. In dark mode the same hues glow warmly against a near-black background.
 
-**Title:** `MKT` — displayed in `Fraunces` italic with the last letter accented in coral.
+**Title:** `Travel Toolkit` — displayed in `Fraunces` italic with the final word accented in coral.
 
 ---
 
@@ -67,7 +67,7 @@ Elegant and playful at once — a "Pressed Flowers" pastel palette of dusty rose
 #### Typography
 | Role | Font | Weight | Notes |
 |---|---|---|---|
-| Brand / Display | `Fraunces` (Google Fonts) | 700 italic | Logo, wordmark "MKT", modal titles |
+| Brand / Display | `Fraunces` (Google Fonts) | 700 italic | Logo, wordmark "Travel Toolkit", modal titles |
 | Body / UI | `Nunito` (Google Fonts) | 400/600/700/800 | All labels, buttons, chips |
 | **All numbers** | `JetBrains Mono` (Google Fonts) | 400/600 | Every currency value, amount, total |
 
@@ -198,7 +198,7 @@ On mobile (<768px): Panels stack vertically; Summary panel moves below Cost Ledg
 
 #### A. Topbar
 - White/dark surface with 2px border-bottom
-- Left: Rotated rounded logo square (coral bg, `Fraunces` italic "M") + wordmark "MKT" (last letter coral)
+- Left: Rotated rounded logo square (coral bg, `Fraunces` italic "TT") + wordmark "Travel Toolkit" (final word coral)
 - Center: Editable trip name in a rounded pill with ✈️ emoji prefix
 - Right: Global markup pill · sun/moon theme toggle · "↺ New Trip" button (ghost, turns red on hover)
 

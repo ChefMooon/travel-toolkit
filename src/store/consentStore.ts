@@ -21,7 +21,7 @@ export const useConsentStore = create<ConsentStore>()(
       resetConsent: () => set({ consentChoice: 'unset', analyticsConsent: false }),
     }),
     {
-      name: 'mkt-consent-data',
+      name: 'travel-toolkit-consent-data',
     },
   ),
 );

@@ -2,7 +2,7 @@
 
 ## Overview
 
-MKT is a travel-focused web app built as a set of routed tools under one shared TanStack Start shell. The current app includes a trip cost splitter, a currency converter, a timezone tracker, and a destination forecast tool. Persistent client state is stored locally with Zustand where appropriate, while async feature data is handled through TanStack Query.
+Travel Toolkit is a travel-focused web app built as a set of routed tools under one shared TanStack Start shell. The current app includes a trip cost splitter, a currency converter, a timezone tracker, and a destination forecast tool. Persistent client state is stored locally with Zustand where appropriate, while async feature data is handled through TanStack Query.
 
 ## Runtime Model
 
@@ -119,9 +119,9 @@ Forecast data is a mixed model:
 
 | Store | Storage key | Purpose |
 |---|---|---|
-| `src/store/tripStore.ts` | `mkt-trip-data` | Trip cost data, theme, exchange rates, and region selection |
-| `src/store/timezoneStore.ts` | `mkt-timezone-data` | Local timezone preference and tracked timezone cards |
-| `src/store/currencyStore.ts` | `mkt-currency-data` | Selected region, last-used amount, base currency, and target currency for the currency converter |
+| `src/store/tripStore.ts` | `travel-toolkit-trip-data` | Trip cost data, theme, exchange rates, and region selection |
+| `src/store/timezoneStore.ts` | `travel-toolkit-timezone-data` | Local timezone preference and tracked timezone cards |
+| `src/store/currencyStore.ts` | `travel-toolkit-currency-data` | Selected region, last-used amount, base currency, and target currency for the currency converter |
 
 ### Ephemeral stores
 
@@ -192,10 +192,10 @@ The repo uses Vitest and React Testing Library for unit, component, and integrat
 
 ## Deployment
 
-MKT is deployed to Cloudflare Workers through the TanStack Start server entry configured in `wrangler.toml`:
+Travel Toolkit is deployed to Cloudflare Workers through the TanStack Start server entry configured in `wrangler.toml`:
 
 ```toml
-name = "mkt"
+name = "travel-toolkit"
 compatibility_date = "2025-09-02"
 compatibility_flags = ["nodejs_compat"]
 main = "@tanstack/react-start/server-entry"

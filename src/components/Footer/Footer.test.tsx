@@ -22,7 +22,7 @@ describe('Footer', () => {
 
     const sourceLink = screen.getByRole('link', { name: 'Source' });
 
-    expect(sourceLink).toHaveAttribute('href', 'https://github.com/ChefMooon/mkt');
+    expect(sourceLink).toHaveAttribute('href', 'https://github.com/ChefMooon/travel-toolkit');
     expect(sourceLink).toHaveAttribute('target', '_blank');
     expect(sourceLink).toHaveAttribute('rel', 'noreferrer');
   });

@@ -391,7 +391,7 @@ export const useTripStore = create<TripStore>()(
         }),
     }),
     {
-      name: 'mkt-trip-data',
+      name: 'travel-toolkit-trip-data',
       partialize: (state) => ({
         tripId: state.tripId,
         tripName: state.tripName,

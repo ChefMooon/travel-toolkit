@@ -1,6 +1,6 @@
 import { TOOLS } from '@/lib/tools';
 
-const APP_TITLE = 'MKT';
+const APP_TITLE = 'Travel Toolkit';
 const ROUTE_TITLES: Record<string, string> = Object.fromEntries(
   TOOLS.map((tool) => [tool.route, tool.label]),
 );

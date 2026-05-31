@@ -166,7 +166,7 @@ Extract a shared Frankfurter fetch layer, add a `useTripRates` hook for trip cos
 - `rateToUSD` field name retained in `ExchangeRate`; conversion to any target T uses `amount * rateToUSD[C] / rateToUSD[T]`
 - Rates fetched **base=USD** always for Trip Cost; inverting Frankfurter response values to get rateToUSD
 - Query key matches `useCurrencySnapshot('USD', region)` for TanStack Query cache sharing
-- `isOverridden?: boolean` optional to maintain backward compat with existing persisted `mkt-trip-data` localStorage entries
+- `isOverridden?: boolean` optional to maintain backward compat with existing persisted trip localStorage entries
 - Target currency available options = `getAvailableCurrencies(region)` (USD always present)
 - `resetTrip` resets `targetCurrency` to `'USD'`
 

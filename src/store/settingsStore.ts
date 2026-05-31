@@ -28,7 +28,7 @@ export const useSettingsStore = create<SettingsStore>()(
       setImportExchangeRateMode: (importExchangeRateMode) => set({ importExchangeRateMode }),
     }),
     {
-      name: 'mkt-settings-data',
+      name: 'travel-toolkit-settings-data',
     },
   ),
 );

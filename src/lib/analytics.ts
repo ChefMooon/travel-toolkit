@@ -4,11 +4,11 @@ declare global {
   interface Window {
     dataLayer?: unknown[];
     gtag?: GtagCommand;
-    __mktGaInitialized?: boolean;
+    __travelToolkitGaInitialized?: boolean;
   }
 }
 
-const GA_SCRIPT_ID = 'mkt-ga-script';
+const GA_SCRIPT_ID = 'travel-toolkit-ga-script';
 const MEASUREMENT_ID = import.meta.env.VITE_GA_MEASUREMENT_ID?.trim() ?? '';
 
 export function isAnalyticsConfigured(): boolean {
@@ -44,7 +44,7 @@ export async function initializeAnalytics(): Promise<boolean> {
     return false;
   }
 
-  if (window.__mktGaInitialized) {
+  if (window.__travelToolkitGaInitialized) {
     return true;
   }
 
@@ -59,12 +59,12 @@ export async function initializeAnalytics(): Promise<boolean> {
   gtag('js', new Date());
   gtag('config', MEASUREMENT_ID, { send_page_view: false });
 
-  window.__mktGaInitialized = true;
+  window.__travelToolkitGaInitialized = true;
   return true;
 }
 
 export function trackPageView(pagePath: string, pageTitle = document.title): void {
-  if (!window.__mktGaInitialized || !window.gtag) {
+  if (!window.__travelToolkitGaInitialized || !window.gtag) {
     return;
   }
 

@@ -3,9 +3,9 @@ import { loadAnalyticsScript, trackPageView } from '@/lib/analytics';
 
 describe('analytics helpers', () => {
   beforeEach(() => {
-    document.head.querySelector('#mkt-ga-script')?.remove();
+    document.head.querySelector('#travel-toolkit-ga-script')?.remove();
     delete window.gtag;
-    delete window.__mktGaInitialized;
+    delete window.__travelToolkitGaInitialized;
   });
 
   it('loads analytics script once for a provided measurement id', async () => {
@@ -18,27 +18,27 @@ describe('analytics helpers', () => {
 
     await loadAnalyticsScript('G-TEST1234');
 
-    const script = document.getElementById('mkt-ga-script') as HTMLScriptElement | null;
+    const script = document.getElementById('travel-toolkit-ga-script') as HTMLScriptElement | null;
     expect(script).toBeTruthy();
     expect(script?.src).toContain('googletagmanager.com/gtag/js?id=G-TEST1234');
 
     await loadAnalyticsScript('G-TEST1234');
-    expect(document.querySelectorAll('#mkt-ga-script')).toHaveLength(1);
+    expect(document.querySelectorAll('#travel-toolkit-ga-script')).toHaveLength(1);
 
     appendSpy.mockRestore();
   });
 
   it('does not add a script element when id is missing', async () => {
     await loadAnalyticsScript('');
-    expect(document.getElementById('mkt-ga-script')).toBeNull();
+    expect(document.getElementById('travel-toolkit-ga-script')).toBeNull();
   });
 
   it('dispatches page_view when initialized', () => {
     const gtagSpy = vi.fn();
     window.gtag = gtagSpy;
-    window.__mktGaInitialized = true;
+    window.__travelToolkitGaInitialized = true;
 
-    trackPageView('/trip?currency=EUR', 'MKT - Trip Cost');
+    trackPageView('/trip?currency=EUR', 'Travel Toolkit - Trip Cost');
 
     expect(gtagSpy).toHaveBeenCalledTimes(1);
     expect(gtagSpy).toHaveBeenCalledWith(
@@ -46,7 +46,7 @@ describe('analytics helpers', () => {
       'page_view',
       expect.objectContaining({
         page_path: '/trip?currency=EUR',
-        page_title: 'MKT - Trip Cost',
+        page_title: 'Travel Toolkit - Trip Cost',
       }),
     );
   });
@@ -54,7 +54,7 @@ describe('analytics helpers', () => {
   it('does not dispatch page_view before initialization', () => {
     const gtagSpy = vi.fn();
     window.gtag = gtagSpy;
-    window.__mktGaInitialized = false;
+    window.__travelToolkitGaInitialized = false;
 
     trackPageView('/trip');
 

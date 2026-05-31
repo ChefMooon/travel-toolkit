@@ -26,7 +26,7 @@ export const useCurrencyStore = create<CurrencyStore>()(
       setTargetCurrency: (targetCurrency) => set({ targetCurrency }),
     }),
     {
-      name: 'mkt-currency-data',
+      name: 'travel-toolkit-currency-data',
     },
   ),
 );

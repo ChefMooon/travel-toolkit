@@ -14,6 +14,6 @@ export const useForecastStore = create<ForecastStore>()(
       dailyBreakdownView: 'table',
       setDailyBreakdownView: (dailyBreakdownView) => set({ dailyBreakdownView }),
     }),
-    { name: 'mkt-forecast-data' },
+    { name: 'travel-toolkit-forecast-data' },
   ),
 );

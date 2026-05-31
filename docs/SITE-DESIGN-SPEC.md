@@ -1,8 +1,8 @@
-# MKT Site Design Specification
+# Travel Toolkit Site Design Specification
 
 ## 1. Purpose
 
-This document is the canonical design source of truth for the MKT web application UI.
+This document is the canonical design source of truth for the Travel Toolkit web application UI.
 
 It defines:
 - Visual language (color, typography, spacing, elevation, motion)
@@ -11,7 +11,7 @@ It defines:
 - Component behavior and interaction states
 - Accessibility and error-state requirements for user-facing UI
 
-For product scope and business rules, refer to [MKT PRD.md](./MKT%20PRD.md). For technical implementation details, refer to [ARCHITECTURE.md](./ARCHITECTURE.md).
+For product scope and business rules, refer to [Travel Toolkit PRD.md](./Travel%20Toolkit%20PRD.md). For technical implementation details, refer to [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 ## 2. Scope and Source Hierarchy
 
@@ -26,7 +26,7 @@ Source precedence for design decisions:
 1. This document
 2. Implemented design tokens and rules in [src/index.css](../src/index.css)
 3. Component behavior in [src/components](../src/components)
-4. Product constraints in [MKT PRD.md](./MKT%20PRD.md)
+4. Product constraints in [Travel Toolkit PRD.md](./Travel%20Toolkit%20PRD.md)
 
 If implementation diverges from this document, update this document in the same change set as the UI update.
 
@@ -137,7 +137,7 @@ Animation should never block input and should remain under ~420ms for core UI tr
 Theme is controlled by data-theme on the html element.
 
 Current behavior:
-- Initial theme bootstraps before React mount via inline script in [index.html](../index.html), reading localStorage key mkt-trip-data
+- Initial theme bootstraps before React mount via inline script in [index.html](../index.html), reading localStorage key travel-toolkit-trip-data
 - Store theme state persists via Zustand in [src/store/tripStore.ts](../src/store/tripStore.ts)
 - Toggling theme updates both store state and html[data-theme]
 - Reset-trip keeps current theme, even while resetting trip data

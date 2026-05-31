@@ -1,7 +1,7 @@
 # Test Maintenance Guide
 
 ## Objective
-Define a repeatable process for maintaining and adding tests in MKT so quality stays high as features evolve.
+Define a repeatable process for maintaining and adding tests in Travel Toolkit so quality stays high as features evolve.
 
 ## Project Testing Stack
 - Test runner: Vitest
