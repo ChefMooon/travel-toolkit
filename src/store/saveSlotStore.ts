@@ -59,6 +59,31 @@ export function findRelatedOlderSlotIndex(
   );
 }
 
+export type TripSaveStatus =
+  | { type: 'saved'; slotIndex: number }
+  | { type: 'unsaved-changes'; slotIndex: number }
+  | { type: 'not-saved'; hasUnsavedChanges: boolean };
+
+export function getTripSaveStatus(
+  slots: Array<SaveSlot | null>,
+  tripSnapshot: TripSnapshot,
+  isDirty: boolean
+): TripSaveStatus {
+  const relatedSlotIndex = findRelatedOlderSlotIndex(slots, tripSnapshot);
+  if (relatedSlotIndex >= 0) {
+    return { type: 'unsaved-changes', slotIndex: relatedSlotIndex };
+  }
+
+  const currentSlotIndex = ensureSlotArrayLength(slots).findIndex(
+    (slot) => slot?.tripId === tripSnapshot.tripId
+  );
+  if (currentSlotIndex >= 0) {
+    return { type: 'saved', slotIndex: currentSlotIndex };
+  }
+
+  return { type: 'not-saved', hasUnsavedChanges: isDirty };
+}
+
 function normalizePersistedSlot(
   rawSlot: unknown,
   slotIndex: number,

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import {
   findRelatedOlderSlotIndex,
+  getTripSaveStatus,
   normalizePersistedSaveSlotState,
   useSaveSlotStore,
 } from './saveSlotStore';
@@ -69,6 +70,38 @@ describe('saveSlotStore', () => {
     };
     const relatedIndex = findRelatedOlderSlotIndex(slots, changedSnapshot);
     expect(relatedIndex).toBe(0);
+  });
+
+  it('reports saved when the active snapshot exactly matches a slot, even when dirty', () => {
+    useSaveSlotStore.getState().saveToSlot(0, baseSnapshot);
+
+    expect(getTripSaveStatus(useSaveSlotStore.getState().slots, baseSnapshot, true)).toEqual({
+      type: 'saved',
+      slotIndex: 0,
+    });
+  });
+
+  it('reports unsaved changes and the prior slot when the active snapshot differs', () => {
+    useSaveSlotStore.getState().saveToSlot(0, baseSnapshot);
+    const changedSnapshot = { ...baseSnapshot, tripName: 'Trip One Revised' };
+
+    expect(getTripSaveStatus(useSaveSlotStore.getState().slots, changedSnapshot, false)).toEqual({
+      type: 'unsaved-changes',
+      slotIndex: 0,
+    });
+  });
+
+  it('reports when there is no saved slot and preserves dirty context', () => {
+    const slots = useSaveSlotStore.getState().slots;
+
+    expect(getTripSaveStatus(slots, baseSnapshot, false)).toEqual({
+      type: 'not-saved',
+      hasUnsavedChanges: false,
+    });
+    expect(getTripSaveStatus(slots, baseSnapshot, true)).toEqual({
+      type: 'not-saved',
+      hasUnsavedChanges: true,
+    });
   });
 
   it('supports slot rename with trim and fallback', () => {

@@ -19,6 +19,8 @@ import CogIcon from '@/components/ImportExportSettingsModal/CogIcon';
 interface SaveDataPanelProps {
   open: boolean;
   onClose: () => void;
+  onSaveComplete?: () => void;
+  onCancelSaveContinuation?: () => void;
 }
 
 type ConfirmIntent =
@@ -75,7 +77,12 @@ function ExportIcon() {
   );
 }
 
-export default function SaveDataPanel({ open, onClose }: SaveDataPanelProps) {
+export default function SaveDataPanel({
+  open,
+  onClose,
+  onSaveComplete,
+  onCancelSaveContinuation,
+}: SaveDataPanelProps) {
   const slots = useSaveSlotStore((s) => s.slots);
   const labels = useSaveSlotStore((s) => s.labels ?? []);
   const saveToSlot = useSaveSlotStore((s) => s.saveToSlot);
@@ -114,6 +121,8 @@ export default function SaveDataPanel({ open, onClose }: SaveDataPanelProps) {
   const [isImporting, setIsImporting] = useState(false);
   const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const saveContinuationCancelledRef = useRef(false);
+  const wasOpenRef = useRef(false);
 
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const titleId = useId();
@@ -136,6 +145,8 @@ export default function SaveDataPanel({ open, onClose }: SaveDataPanelProps) {
 
   useEffect(() => {
     if (!open) {
+      wasOpenRef.current = false;
+      saveContinuationCancelledRef.current = false;
       setConfirmIntent(null);
       setSelectedForSwap([]);
       setEditingSlotIndex(null);
@@ -145,6 +156,11 @@ export default function SaveDataPanel({ open, onClose }: SaveDataPanelProps) {
       setSourceDropdownOpen(false);
       setNamePresetDropdownOpen(false);
       return;
+    }
+
+    if (!wasOpenRef.current) {
+      saveContinuationCancelledRef.current = false;
+      wasOpenRef.current = true;
     }
 
     const s = useSettingsStore.getState();
@@ -210,14 +226,24 @@ export default function SaveDataPanel({ open, onClose }: SaveDataPanelProps) {
       }
 
       markClean();
+      if (onSaveComplete && !saveContinuationCancelledRef.current) {
+        onSaveComplete();
+        return;
+      }
+
       pushToast({
         type: 'success',
         title: 'Trip saved',
         message: `Saved to ${displayLabels[slotIndex]}.`,
       });
     },
-    [displayLabels, getSnapshot, markClean, pushToast, saveToSlot]
+    [displayLabels, getSnapshot, markClean, onSaveComplete, pushToast, saveToSlot]
   );
+
+  const cancelSaveContinuation = useCallback(() => {
+    saveContinuationCancelledRef.current = true;
+    onCancelSaveContinuation?.();
+  }, [onCancelSaveContinuation]);
 
   const runLoad = useCallback(
     (slotIndex: number) => {
@@ -234,6 +260,7 @@ export default function SaveDataPanel({ open, onClose }: SaveDataPanelProps) {
         return;
       }
 
+      cancelSaveContinuation();
       loadSnapshot(snapshot);
       markClean();
       pushToast({
@@ -242,7 +269,7 @@ export default function SaveDataPanel({ open, onClose }: SaveDataPanelProps) {
         message: `Loaded ${snapshot.tripName || displayLabels[slotIndex]}.`,
       });
     },
-    [displayLabels, loadFromSlot, loadSnapshot, markClean, pushToast, slots]
+    [cancelSaveContinuation, displayLabels, loadFromSlot, loadSnapshot, markClean, pushToast, slots]
   );
 
   const runClear = useCallback(
@@ -333,6 +360,7 @@ export default function SaveDataPanel({ open, onClose }: SaveDataPanelProps) {
 
         const theme = useTripStore.getState().theme ?? 'dark';
         const full = toFullSnapshot(adjustedExportable, theme);
+        cancelSaveContinuation();
         loadSnapshot(full);
         markClean();
 
@@ -359,7 +387,7 @@ export default function SaveDataPanel({ open, onClose }: SaveDataPanelProps) {
         setIsImporting(false);
       }
     },
-    [importRateMode, loadSnapshot, markClean, pushToast],
+    [cancelSaveContinuation, importRateMode, loadSnapshot, markClean, pushToast],
   );
 
   // ── Import handler ──

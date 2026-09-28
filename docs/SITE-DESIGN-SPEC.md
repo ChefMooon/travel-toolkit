@@ -214,7 +214,8 @@ Core flows:
 3. Enter costs: create/edit/delete entries, assign split mode, apply markup override, set currency
 4. Optimize bulk edits: multi-select ledger rows and bulk assign currency
 5. Convert totals: enter exchange rates in summary cards and review USD totals
-6. Reset trip: confirm destructive modal before clearing data
+6. Start a new trip: review the active trip's save status, then save changes
+   through Save Data Slots or start a new trip from its existing saved state
 
 ## 8. Component Behavior Specification
 
@@ -229,7 +230,42 @@ States:
 - Theme toggle: binary light/dark state
 - Trip name field on Trip Cost: idle, focus, clear-action visible when focused and non-empty
 - Global markup on Trip Cost: display mode, inline input mode, validation fallback to prior value on invalid blur
-- New Trip on Trip Cost: opens destructive confirmation modal
+- New Trip on Trip Cost: opens a decision showing whether the active trip is
+  already saved, has changes since its last save, or has no saved slot
+
+New Trip flow:
+1. The decision identifies the active trip's save status:
+   - If the active snapshot exactly matches a saved slot, the dialog names that
+     slot and states there are no unsaved changes. **Save & Start New Trip** is
+     hidden because another save is unnecessary; **Start New Trip** resets the
+     active trip without replacing the existing saved copy. **Cancel** leaves
+     the trip intact.
+   - If the active snapshot differs from a saved version with the same trip ID,
+     the dialog identifies the unsaved changes and last saved slot.
+   - If no slot contains the active trip, the dialog states that it has not
+     been saved and indicates when it has unsaved changes.
+2. When a save is needed, **Save & Start New Trip** closes the decision modal
+   and opens the existing Save Data Slots manager. The two dialogs are not
+   shown together. **Start Fresh Without Saving** remains the explicit
+   destructive choice.
+3. Saving to an empty slot saves immediately. An occupied slot requires
+   **Overwrite** and confirmation. Cancelling an overwrite or a rejected save
+   leaves the active trip unchanged and the manager open.
+4. After a successful save, the manager closes, the active trip resets, and one
+   contextual **Saved and started new trip** success notification is shown.
+5. Closing the manager without a successful save returns to the New Trip
+   decision with the active trip intact. Closing the manager or cancelling that
+   decision clears the one-shot continuation; saving and starting later
+   requires choosing **Save & Start New Trip** again.
+6. **Start Fresh Without Saving** resets only when explicitly selected and does
+   not write to a save slot. The toolbar's ordinary **Save Data Slots** action
+   opens the manager without a continuation; successful saves remain save-only.
+7. Loading or successfully importing a trip in the manager cancels the pending
+   continuation before replacing the active trip. If the current trip has
+   unsaved changes, the existing replacement confirmation appears first. The
+   manager stays open after replacement; later saves do not reset the
+   replacement trip. Closing the manager returns to the New Trip decision,
+   where a new continuation can be explicitly armed.
 
 ### 8.2 Grid Navigation Panel
 
@@ -423,6 +459,22 @@ Confirmation modal required for:
 - Start new trip reset
 
 No destructive action may execute without explicit confirmation.
+
+### 10.4 Save Data Slots and Import Feedback
+
+- Saving a trip whose ID is already present in another slot shows a
+  **Duplicate trip ID** warning and does not save or reset the trip.
+- Loading an empty slot shows a **Slot is empty** warning. An unsupported saved
+  format shows an **Unsupported save format** error; neither replaces the
+  active trip.
+- A failed import shows an **Import failed** error with the parser message, or
+  “Could not read the file.” when no message is available. The active trip
+  remains unchanged.
+- A successful import with warnings shows **Imported with warnings**.
+  Successful Load and Import replace the active trip and cancel any pending
+  save-and-start continuation.
+- Cancelling an overwrite is not an error: the manager remains open and neither
+  the slot nor active trip is changed.
 
 ## 11. Logo, Iconography, and Imagery
 

@@ -1,12 +1,39 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { RotateCcw } from 'lucide-react';
 import { useTripStore } from '@/store/tripStore';
-import { findRelatedOlderSlotIndex, useSaveSlotStore } from '@/store/saveSlotStore';
 import { useToastStore } from '@/store/toastStore';
 import Modal from '@/components/Modal';
-import { MAX_TRIP_NAME_LENGTH, getDefaultSlotLabel } from '@/store/types';
+import { getDefaultSlotLabel, MAX_TRIP_NAME_LENGTH } from '@/store/types';
+import {
+  getTripSaveStatus,
+  useSaveSlotStore,
+  type TripSaveStatus,
+} from '@/store/saveSlotStore';
 import SaveDataPanel from '@/components/SaveDataPanel';
 import Tooltip from '@/components/Tooltip';
+
+function getTripSaveStatusMessage(
+  status: TripSaveStatus,
+  slots: ReturnType<typeof useSaveSlotStore.getState>['slots'],
+  labels: ReturnType<typeof useSaveSlotStore.getState>['labels']
+): string {
+  if (status.type === 'not-saved') {
+    return status.hasUnsavedChanges
+      ? 'This trip has unsaved changes and has not been saved to a slot.'
+      : 'This trip has not been saved to a slot.';
+  }
+
+  const slotLabel =
+    slots[status.slotIndex]?.label ??
+    labels[status.slotIndex] ??
+    getDefaultSlotLabel(status.slotIndex);
+
+  if (status.type === 'saved') {
+    return `This trip is saved in ${slotLabel}. There are no unsaved changes.`;
+  }
+
+  return `This trip has unsaved changes. The last saved version is in ${slotLabel}.`;
+}
 
 export default function TripToolbar() {
   const tripId = useTripStore((s) => s.tripId);
@@ -20,15 +47,18 @@ export default function TripToolbar() {
   const resetTrip = useTripStore((s) => s.resetTrip);
   const slots = useSaveSlotStore((s) => s.slots);
   const labels = useSaveSlotStore((s) => s.labels);
-  const saveToSlot = useSaveSlotStore((s) => s.saveToSlot);
   const pushToast = useToastStore((s) => s.pushToast);
 
   const [showReset, setShowReset] = useState(false);
+  const [tripSaveStatus, setTripSaveStatus] = useState<TripSaveStatus | null>(null);
   const [showSavePanel, setShowSavePanel] = useState(false);
+  const [saveContinuationArmed, setSaveContinuationArmed] = useState(false);
   const [tripNameFocused, setTripNameFocused] = useState(false);
   const [tripIdInput, setTripIdInput] = useState(tripId);
   const [editingMarkup, setEditingMarkup] = useState(false);
   const [markupInput, setMarkupInput] = useState(String(globalMarkup));
+  const saveContinuationArmedRef = useRef(false);
+  const savePanelOpenedFromNewTripRef = useRef(false);
 
   useEffect(() => {
     setTripIdInput(tripId);
@@ -55,28 +85,81 @@ export default function TripToolbar() {
     }
   }, [tripId, tripIdInput, setTripId]);
 
-  const currentSnapshot = getSnapshot();
-  const relatedSlotIndex = findRelatedOlderSlotIndex(slots, currentSnapshot);
+  const handleOpenNewTripDecision = useCallback(() => {
+    setTripSaveStatus(getTripSaveStatus(slots, getSnapshot(), isDirty));
+    setShowReset(true);
+  }, [getSnapshot, isDirty, slots]);
 
-  const handleSaveThenReset = useCallback(() => {
-    if (relatedSlotIndex < 0) {
+  const clearSaveContinuation = useCallback(() => {
+    saveContinuationArmedRef.current = false;
+    setSaveContinuationArmed(false);
+  }, []);
+
+  const handleSaveAndStartNewTrip = useCallback(() => {
+    saveContinuationArmedRef.current = true;
+    setSaveContinuationArmed(true);
+    savePanelOpenedFromNewTripRef.current = true;
+    setShowReset(false);
+    setShowSavePanel(true);
+  }, []);
+
+  const handleSaveComplete = useCallback(() => {
+    if (!saveContinuationArmedRef.current) {
       return;
     }
 
-    const ok = saveToSlot(relatedSlotIndex, currentSnapshot);
-    if (!ok) {
-      return;
-    }
-
-    const slotLabel = labels[relatedSlotIndex] ?? getDefaultSlotLabel(relatedSlotIndex);
+    saveContinuationArmedRef.current = false;
+    setSaveContinuationArmed(false);
+    savePanelOpenedFromNewTripRef.current = false;
+    setShowSavePanel(false);
+    setShowReset(false);
+    resetTrip();
     pushToast({
       type: 'success',
       title: 'Saved and started new trip',
-      message: `Updated ${slotLabel} and cleared the current trip.`,
+      message: 'Your current trip was saved before starting a new one.',
     });
+  }, [pushToast, resetTrip]);
+
+  const handleCancelSaveContinuation = useCallback(() => {
+    clearSaveContinuation();
+  }, [clearSaveContinuation]);
+
+  const handleSavePanelClose = useCallback(() => {
+    const returnToNewTripDecision = savePanelOpenedFromNewTripRef.current;
+    savePanelOpenedFromNewTripRef.current = false;
+    clearSaveContinuation();
+    setShowSavePanel(false);
+    setShowReset(returnToNewTripDecision);
+  }, [clearSaveContinuation]);
+
+  const handleOpenSavePanel = useCallback(() => {
+    savePanelOpenedFromNewTripRef.current = false;
+    clearSaveContinuation();
+    setShowSavePanel(true);
+  }, [clearSaveContinuation]);
+
+  const handleStartFreshWithoutSaving = useCallback(() => {
+    savePanelOpenedFromNewTripRef.current = false;
+    clearSaveContinuation();
     resetTrip();
     setShowReset(false);
-  }, [currentSnapshot, labels, pushToast, relatedSlotIndex, resetTrip, saveToSlot]);
+  }, [clearSaveContinuation, resetTrip]);
+
+  const handleCancelNewTripDecision = useCallback(() => {
+    savePanelOpenedFromNewTripRef.current = false;
+    clearSaveContinuation();
+    setShowReset(false);
+  }, [clearSaveContinuation]);
+
+  const tripSaveStatusMessage = tripSaveStatus
+    ? getTripSaveStatusMessage(tripSaveStatus, slots, labels)
+    : '';
+  const currentTripIsSaved = tripSaveStatus?.type === 'saved';
+  const newTripDialogBody =
+    currentTripIsSaved
+      ? `${tripSaveStatusMessage} You can start a new trip without saving again.`
+      : `${tripSaveStatusMessage} Save the current trip before starting a new one, or start fresh without saving. Starting fresh permanently deletes the current trip data.`;
 
   return (
     <>
@@ -159,7 +242,7 @@ export default function TripToolbar() {
             <button
               type="button"
               className="btn-new-trip"
-              onClick={() => setShowReset(true)}
+              onClick={handleOpenNewTripDecision}
               aria-label="Start new trip"
             >
               <RotateCcw size={12} /> <span>New Trip</span>
@@ -171,7 +254,7 @@ export default function TripToolbar() {
               type="button"
               className="btn-save-panel"
               data-dirty={isDirty ? 'true' : 'false'}
-              onClick={() => setShowSavePanel(true)}
+              onClick={handleOpenSavePanel}
               aria-label="Open save slots"
             >
               <img src="/save.svg" alt="" aria-hidden="true" />
@@ -184,19 +267,23 @@ export default function TripToolbar() {
         <Modal
           icon="🗑️"
           title="Start a new trip?"
-          body="This will permanently delete all current trip data including couples, costs, and exchange rates. This action cannot be undone."
-          secondaryActionLabel={relatedSlotIndex >= 0 ? 'Update Save & Start Fresh' : undefined}
-          onSecondaryAction={relatedSlotIndex >= 0 ? handleSaveThenReset : undefined}
-          confirmLabel="Delete & Start Fresh"
-          onConfirm={() => {
-            resetTrip();
-            setShowReset(false);
-          }}
-          onCancel={() => setShowReset(false)}
+          body={newTripDialogBody}
+          secondaryActionLabel={currentTripIsSaved ? undefined : 'Save & Start New Trip'}
+          onSecondaryAction={currentTripIsSaved ? undefined : handleSaveAndStartNewTrip}
+          confirmLabel={currentTripIsSaved ? 'Start New Trip' : 'Start Fresh Without Saving'}
+          onConfirm={handleStartFreshWithoutSaving}
+          onCancel={handleCancelNewTripDecision}
         />
       ) : null}
 
-      <SaveDataPanel open={showSavePanel} onClose={() => setShowSavePanel(false)} />
+      <SaveDataPanel
+        open={showSavePanel}
+        onClose={handleSavePanelClose}
+        onSaveComplete={saveContinuationArmed ? handleSaveComplete : undefined}
+        onCancelSaveContinuation={
+          saveContinuationArmed ? handleCancelSaveContinuation : undefined
+        }
+      />
     </>
   );
 }
