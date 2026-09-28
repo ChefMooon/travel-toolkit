@@ -136,7 +136,11 @@ describe('TripToolbar', () => {
   it('FE-TBR-006 clicking New Trip button opens reset confirmation modal', () => {
     render(<TripToolbar />);
 
-    fireEvent.click(screen.getByRole('button', { name: /New Trip/i }));
+    const newTripButton = screen.getByRole('button', { name: 'Start new trip' });
+    expect(newTripButton).not.toHaveAttribute('title');
+    fireEvent.focus(newTripButton);
+    expect(screen.getByRole('tooltip')).toHaveTextContent('New Trip');
+    fireEvent.click(newTripButton);
 
     expect(screen.getByText('Start a new trip?')).toBeInTheDocument();
   });

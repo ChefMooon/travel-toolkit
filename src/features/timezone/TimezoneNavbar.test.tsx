@@ -37,7 +37,11 @@ describe('TimezoneNavbar', () => {
 
     expect(screen.queryByTestId('config-modal')).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Manage tracked timezones' }));
+    const settingsButton = screen.getByRole('button', { name: 'Manage tracked timezones' });
+    expect(settingsButton).not.toHaveAttribute('title');
+    fireEvent.focus(settingsButton);
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Manage tracked timezones');
+    fireEvent.click(settingsButton);
 
     expect(await screen.findByTestId('config-modal')).toBeInTheDocument();
   });
@@ -52,7 +56,10 @@ describe('TimezoneNavbar', () => {
 
     render(<TimezoneNavbar />);
 
-    fireEvent.click(screen.getByLabelText('Detect my timezone'));
+    const detectButton = screen.getByLabelText('Detect my timezone');
+    fireEvent.focus(detectButton);
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Use browser timezone');
+    fireEvent.click(detectButton);
 
     expect(mockState.setLocalTz).toHaveBeenCalledWith('Europe/Paris');
   });

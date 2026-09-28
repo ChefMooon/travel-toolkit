@@ -146,6 +146,11 @@ describe('Topbar', () => {
   it('FE-TOP-006 opens reset modal and confirms reset', () => {
     render(<Topbar />);
 
+    const saveSlotsButton = screen.getByRole('button', { name: 'Open save slots' });
+    expect(saveSlotsButton).not.toHaveAttribute('title');
+    fireEvent.focus(saveSlotsButton);
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Save slots');
+
     fireEvent.click(screen.getByRole('button', { name: /New Trip/i }));
     expect(screen.getByText('Start a new trip?')).toBeInTheDocument();
 

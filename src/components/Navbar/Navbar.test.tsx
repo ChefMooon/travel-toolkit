@@ -38,8 +38,44 @@ describe('Navbar', () => {
   it('toggles theme from light to dark', () => {
     render(<Navbar />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Toggle theme' }));
+    const trigger = screen.getByRole('button', { name: 'Toggle theme' });
+    fireEvent.pointerEnter(trigger, { pointerType: 'mouse' });
 
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Switch to dark theme');
+    expect(trigger).toHaveAccessibleName('Toggle theme');
+
+    fireEvent.click(trigger);
+
+    expect(mockState.setTheme).toHaveBeenCalledWith('dark');
+  });
+
+  it('describes the theme action from its current state without changing its accessible name', () => {
+    mockState.theme = 'dark';
+    render(<Navbar />);
+
+    const trigger = screen.getByRole('button', { name: 'Toggle theme' });
+    fireEvent.focus(trigger);
+
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Switch to light theme');
+    expect(trigger).toHaveAccessibleName('Toggle theme');
+
+    fireEvent.click(trigger);
+    expect(mockState.setTheme).toHaveBeenCalledWith('light');
+  });
+
+  it('keeps both actions available on the same touch tap that opens their tooltips', () => {
+    render(<Navbar />);
+
+    const gridTrigger = screen.getByRole('button', { name: 'Open tool navigation' });
+    fireEvent.pointerDown(gridTrigger, { pointerType: 'touch' });
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Open tool navigation');
+    fireEvent.click(gridTrigger);
+    expect(screen.getByTestId('grid-panel-state')).toHaveTextContent('open');
+
+    const themeTrigger = screen.getByRole('button', { name: 'Toggle theme' });
+    fireEvent.pointerDown(themeTrigger, { pointerType: 'touch' });
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Switch to dark theme');
+    fireEvent.click(themeTrigger);
     expect(mockState.setTheme).toHaveBeenCalledWith('dark');
   });
 
@@ -47,11 +83,16 @@ describe('Navbar', () => {
     render(<Navbar />);
 
     const trigger = screen.getByRole('button', { name: 'Open tool navigation' });
+    fireEvent.pointerEnter(trigger, { pointerType: 'mouse' });
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Open tool navigation');
+    expect(trigger).toHaveAccessibleName('Open tool navigation');
     expect(screen.getByTestId('grid-panel-state')).toHaveTextContent('closed');
 
     fireEvent.click(trigger);
 
     expect(screen.getByTestId('grid-panel-state')).toHaveTextContent('open');
-    expect(screen.getByRole('button', { name: 'Close tool navigation' })).toHaveAttribute('aria-expanded', 'true');
+    const closeTrigger = screen.getByRole('button', { name: 'Close tool navigation' });
+    expect(closeTrigger).toHaveAttribute('aria-expanded', 'true');
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Close tool navigation');
   });
 });

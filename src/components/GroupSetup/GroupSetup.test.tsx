@@ -483,6 +483,9 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
       expect(firstGrip).toBeTruthy();
       expect(firstGroup).not.toHaveAttribute('draggable');
       expect(firstGrip).toHaveAttribute('draggable', 'true');
+      expect(firstGrip).not.toHaveAttribute('title');
+      fireEvent.focus(firstGrip as Element);
+      expect(document.querySelector('[role="tooltip"]')).toHaveTextContent('Drag to reorder group');
     });
 
     it('should have proper spacing between icon and dot', () => {

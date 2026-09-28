@@ -354,8 +354,9 @@ describe('EditRow', () => {
     expect(dots[0]).toHaveStyle({ backgroundColor: getColorThemeValue(1, 'light') });
     expect(dots[1]).toHaveStyle({ backgroundColor: getColorThemeValue(2, 'light') });
 
-    expect(dots[0]).toHaveAttribute('title', 'Group 1');
-    expect(dots[1]).toHaveAttribute('title', 'Group 2');
+    expect(selectButton).not.toHaveAttribute('title');
+    fireEvent.focus(selectButton);
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Group 1, Group 2');
   });
 
   it('FE-EDT-014 reverts to solo when subset modal is dismissed after switching from solo', () => {

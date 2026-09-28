@@ -147,7 +147,11 @@ describe('CurrencyTool', () => {
     expect(selects[0]).toHaveValue('CAD');
     expect(selects[1]).toHaveValue('USD');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Swap from and to currencies' }));
+    const swapButton = screen.getByRole('button', { name: 'Swap from and to currencies' });
+    expect(swapButton).not.toHaveAttribute('title');
+    fireEvent.focus(swapButton);
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Swap currencies');
+    fireEvent.click(swapButton);
 
     expect(selects[0]).toHaveValue('USD');
     expect(selects[1]).toHaveValue('CAD');

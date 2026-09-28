@@ -7,6 +7,7 @@ import Modal from '../Modal';
 import IconChoiceModal from '../IconChoiceModal';
 import ColorChoiceModal from '../ColorChoiceModal';
 import RegionSelector from '../RegionSelector';
+import Tooltip from '@/components/Tooltip';
 
 export default function GroupSetup() {
   const couples = useTripStore((s) => s.couples);
@@ -162,16 +163,18 @@ export default function GroupSetup() {
                           color: coupleColor,
                         }}
                       >
-                        <span
-                          className="chip-grip"
-                          draggable
-                          onDragStart={() => handleDragStart(couple.id)}
-                          onDragEnd={handleDragEnd}
-                          title="Drag to reorder group"
-                          aria-label={`Drag to reorder ${couple.name}`}
-                        >
-                          ⠿
-                        </span>
+                        <Tooltip content="Drag to reorder group">
+                          <span
+                            className="chip-grip"
+                            draggable
+                            onDragStart={() => handleDragStart(couple.id)}
+                            onDragEnd={handleDragEnd}
+                            tabIndex={0}
+                            aria-label={`Drag to reorder ${couple.name}`}
+                          >
+                            ⠿
+                          </span>
+                        </Tooltip>
                         <div
                           className="icon-interactive"
                           onClick={() => {

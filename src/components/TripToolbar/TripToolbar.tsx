@@ -6,6 +6,7 @@ import { useToastStore } from '@/store/toastStore';
 import Modal from '@/components/Modal';
 import { MAX_TRIP_NAME_LENGTH, getDefaultSlotLabel } from '@/store/types';
 import SaveDataPanel from '@/components/SaveDataPanel';
+import Tooltip from '@/components/Tooltip';
 
 export default function TripToolbar() {
   const tripId = useTripStore((s) => s.tripId);
@@ -154,26 +155,28 @@ export default function TripToolbar() {
             </button>
           )}
 
-          <button
-            type="button"
-            className="btn-new-trip"
-            onClick={() => setShowReset(true)}
-            aria-label="Start new trip"
-            title="New Trip"
-          >
-            <RotateCcw size={12} /> <span>New Trip</span>
-          </button>
+          <Tooltip content="New Trip">
+            <button
+              type="button"
+              className="btn-new-trip"
+              onClick={() => setShowReset(true)}
+              aria-label="Start new trip"
+            >
+              <RotateCcw size={12} /> <span>New Trip</span>
+            </button>
+          </Tooltip>
 
-          <button
-            type="button"
-            className="btn-save-panel"
-            data-dirty={isDirty ? 'true' : 'false'}
-            onClick={() => setShowSavePanel(true)}
-            aria-label="Open save slots"
-            title="Save slots"
-          >
-            <img src="/save.svg" alt="" aria-hidden="true" />
-          </button>
+          <Tooltip content="Save slots">
+            <button
+              type="button"
+              className="btn-save-panel"
+              data-dirty={isDirty ? 'true' : 'false'}
+              onClick={() => setShowSavePanel(true)}
+              aria-label="Open save slots"
+            >
+              <img src="/save.svg" alt="" aria-hidden="true" />
+            </button>
+          </Tooltip>
         </div>
       </header>
 

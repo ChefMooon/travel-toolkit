@@ -4,6 +4,7 @@ import { useToastStore } from '@/store/toastStore';
 import { getAvailableCurrencies, getDefaultCurrency, getColorThemeValue, COST_ENTRY_TYPES, MAX_COST_NAME_LENGTH } from '@/store/types';
 import type { SplitType } from '@/store/types';
 import SplitAssignmentModal from '../SplitAssignmentModal';
+import Tooltip from '@/components/Tooltip';
 
 interface EditRowProps {
   initial?: {
@@ -364,29 +365,35 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
                 }}>
                   {splitType === 'individual' ? 'Assigned group:' : 'Included groups:'}
                 </span>
-                <button
-                  type="button"
-                  className={`split-select-inline-btn${assignedCoupleIds.length > 0 ? ' with-dots' : ''}`}
-                  onClick={() => openSplitModalFor(splitType)}
-                  aria-label={splitType === 'individual' ? 'Change assigned group' : 'Change included groups'}
+                <Tooltip
+                  content={couples
+                    .filter((couple) => assignedCoupleIds.includes(couple.id))
+                    .map((couple) => couple.name)
+                    .join(', ')}
                 >
-                  {assignedCoupleIds.length > 0 ? (
-                    <div className="who-dots" style={{ margin: 0 }}>
-                      {couples
-                        .filter((c) => assignedCoupleIds.includes(c.id))
-                        .map((c) => (
-                          <span
-                            key={c.id}
-                            className="who-dot"
-                            style={{ backgroundColor: getColorThemeValue(c.colorIndex, theme) }}
-                            title={c.name}
-                          />
-                        ))}
-                    </div>
-                  ) : (
-                    'Select groups'
-                  )}
-                </button>
+                  <button
+                    type="button"
+                    className={`split-select-inline-btn${assignedCoupleIds.length > 0 ? ' with-dots' : ''}`}
+                    onClick={() => openSplitModalFor(splitType)}
+                    aria-label={splitType === 'individual' ? 'Change assigned group' : 'Change included groups'}
+                  >
+                    {assignedCoupleIds.length > 0 ? (
+                      <div className="who-dots" style={{ margin: 0 }}>
+                        {couples
+                          .filter((c) => assignedCoupleIds.includes(c.id))
+                          .map((c) => (
+                            <span
+                              key={c.id}
+                              className="who-dot"
+                              style={{ backgroundColor: getColorThemeValue(c.colorIndex, theme) }}
+                            />
+                          ))}
+                      </div>
+                    ) : (
+                      'Select groups'
+                    )}
+                  </button>
+                </Tooltip>
               </div>
             )}
           </div>

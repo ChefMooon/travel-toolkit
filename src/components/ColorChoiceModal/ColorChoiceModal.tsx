@@ -2,6 +2,7 @@ import { useEffect, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { COUPLE_COLORS, getColorThemeValue } from '@/store/types';
+import Tooltip from '@/components/Tooltip';
 
 interface ColorChoiceModalProps {
   colorIndex: number;
@@ -72,19 +73,19 @@ export default function ColorChoiceModal({
             const colorName = colorEntry.name;
 
             return (
-              <button
-                key={index}
-                className={`color-swatch ${index === colorIndex ? 'selected' : ''}`}
-                onClick={() => handleColorClick(index)}
-                style={{ backgroundColor: color }}
-                title={colorName}
-                aria-label={colorName}
-                type="button"
-              >
-                {index === colorIndex && (
-                  <span className="color-indicator">✓</span>
-                )}
-              </button>
+              <Tooltip key={index} content={colorName}>
+                <button
+                  className={`color-swatch ${index === colorIndex ? 'selected' : ''}`}
+                  onClick={() => handleColorClick(index)}
+                  style={{ backgroundColor: color }}
+                  aria-label={colorName}
+                  type="button"
+                >
+                  {index === colorIndex && (
+                    <span className="color-indicator">✓</span>
+                  )}
+                </button>
+              </Tooltip>
             );
           })}
         </div>

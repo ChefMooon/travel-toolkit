@@ -8,6 +8,7 @@ import { getAvailableCurrencies, getColorThemeValue, COST_ENTRY_TYPES } from '@/
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import SplitAssignmentModal from '../SplitAssignmentModal';
+import Tooltip from '@/components/Tooltip';
 
 interface CostRowProps {
   cost: CostEntry;
@@ -69,7 +70,6 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
   const totalWithMarkup = getCostWithMarkup(cost, globalMarkup);
   const isCustomMarkup = cost.markupOverride !== null;
   const validation = validateCost(cost);
-  const [showErrorTooltip, setShowErrorTooltip] = useState(false);
 
   const getSoloFallbackAssignment = (preferredIds: string[], fallbackIds: string[]) => {
     const fallbackId = preferredIds[0] ?? fallbackIds[0] ?? couples[0]?.id;
@@ -333,7 +333,9 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
             onKeyDown={handleNameKeyDown}
           />
         ) : (
-          <span className="cost-name" title={cost.name}>{cost.name}</span>
+          <Tooltip content={cost.name}>
+            <span className="cost-name" tabIndex={0} aria-label={cost.name}>{cost.name}</span>
+          </Tooltip>
         )}
       </td>
       <td>
@@ -366,100 +368,88 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
       </td>
       <td>
         <div className="markup-inline">
-          <button
-            className="arrow-btn left"
-            onClick={() => handleMarkupArrow('left')}
-            title="Decrease markup"
-          >
-            <ChevronLeft size={12} />
-          </button>
-          <input
-            className="markup-input mono"
-            type="number"
-            step="1"
-            min="0"
-            value={effectiveMarkup}
-            onChange={(e) => {
-              const val = parseFloat(e.target.value);
-              if (!isNaN(val)) handleMarkupChange(val);
-            }}
-            title={`${isCustomMarkup ? 'Custom' : 'Global'} markup: ${effectiveMarkup}%`}
-            style={{
-              backgroundColor: 
-                effectiveMarkup < globalMarkup
-                  ? 'var(--markup-below)'
-                  : effectiveMarkup > globalMarkup
-                  ? 'var(--markup-above)'
-                  : 'var(--markup-equal)',
-            }}
-          />
-          <button
-            className="arrow-btn right"
-            onClick={() => handleMarkupArrow('right')}
-            title="Increase markup"
-          >
-            <ChevronRight size={12} />
-          </button>
-          <button
-            className="reset-markup-btn"
-            onClick={() => handleMarkupChange(globalMarkup)}
-            title="Reset to global markup"
-          >
-            r
-          </button>
+          <Tooltip content="Decrease markup">
+            <button
+              className="arrow-btn left"
+              onClick={() => handleMarkupArrow('left')}
+              aria-label="Decrease markup"
+            >
+              <ChevronLeft size={12} />
+            </button>
+          </Tooltip>
+          <Tooltip content={`${isCustomMarkup ? 'Custom' : 'Global'} markup: ${effectiveMarkup}%`}>
+            <input
+              className="markup-input mono"
+              type="number"
+              step="1"
+              min="0"
+              value={effectiveMarkup}
+              aria-label={`${isCustomMarkup ? 'Custom' : 'Global'} markup: ${effectiveMarkup}%`}
+              onChange={(e) => {
+                const val = parseFloat(e.target.value);
+                if (!isNaN(val)) handleMarkupChange(val);
+              }}
+              style={{
+                backgroundColor:
+                  effectiveMarkup < globalMarkup
+                    ? 'var(--markup-below)'
+                    : effectiveMarkup > globalMarkup
+                    ? 'var(--markup-above)'
+                    : 'var(--markup-equal)',
+              }}
+            />
+          </Tooltip>
+          <Tooltip content="Increase markup">
+            <button
+              className="arrow-btn right"
+              onClick={() => handleMarkupArrow('right')}
+              aria-label="Increase markup"
+            >
+              <ChevronRight size={12} />
+            </button>
+          </Tooltip>
+          <Tooltip content="Reset to global markup">
+            <button
+              className="reset-markup-btn"
+              onClick={() => handleMarkupChange(globalMarkup)}
+            >
+              r
+            </button>
+          </Tooltip>
         </div>
       </td>
       <td>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           {!validation.isValid && (
-            <div
-              style={{ position: 'relative', display: 'flex', alignItems: 'center', flexShrink: 0 }}
-              onMouseEnter={() => setShowErrorTooltip(true)}
-              onMouseLeave={() => setShowErrorTooltip(false)}
-            >
-              <AlertCircle size={16} color="#f97316" style={{ cursor: 'help', display: 'block' }} />
-              {showErrorTooltip && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    bottom: '100%',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    zIndex: 1000,
-                    marginBottom: '8px',
-                    padding: '6px 10px',
-                    backgroundColor: '#1f2937',
-                    color: '#f97316',
-                    fontSize: '11px',
-                    fontWeight: 500,
-                    borderRadius: '4px',
-                    whiteSpace: 'nowrap',
-                    border: '1px solid #f97316',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.3)',
-                  }}
-                >
-                  {validation.errorMessage}
-                </div>
-              )}
-            </div>
+            <Tooltip content={validation.errorMessage ?? 'Invalid cost'}>
+              <span
+                role="img"
+                aria-label="Invalid cost"
+                tabIndex={0}
+                style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}
+              >
+                <AlertCircle size={16} color="#f97316" style={{ cursor: 'help', display: 'block' }} />
+              </span>
+            </Tooltip>
           )}
           <div className="split-popover-container" ref={splitPopoverRef}>
-            <button
-              ref={splitBtnRef}
-              className={`split split-${cost.splitType}`}
-              onClick={() => {
-                if (!splitPopoverOpen && splitBtnRef.current) {
-                  const rect = splitBtnRef.current.getBoundingClientRect();
-                  setSplitPopoverPos({ top: rect.bottom + 4, left: rect.left });
-                }
-                setSplitPopoverOpen(!splitPopoverOpen);
-              }}
-              title="Change split type"
-            >
-              {cost.splitType === 'shared' && '◆ Shared'}
-              {cost.splitType === 'subset' && '◑ Subset'}
-              {cost.splitType === 'individual' && '◉ Solo'}
-            </button>
+            <Tooltip content="Change split type">
+              <button
+                ref={splitBtnRef}
+                className={`split split-${cost.splitType}`}
+                onClick={() => {
+                  if (!splitPopoverOpen && splitBtnRef.current) {
+                    const rect = splitBtnRef.current.getBoundingClientRect();
+                    setSplitPopoverPos({ top: rect.bottom + 4, left: rect.left });
+                  }
+                  setSplitPopoverOpen(!splitPopoverOpen);
+                }}
+              >
+                {cost.splitType === 'shared' && '◆ Shared'}
+                {cost.splitType === 'subset' && '◑ Subset'}
+                {cost.splitType === 'individual' && '◉ Solo'}
+              </button>
+            </Tooltip>
           </div>
           {splitPopoverOpen && splitPopoverPos && createPortal(
             <div
@@ -501,12 +491,14 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
               style={{ cursor: (cost.splitType === 'subset' || cost.splitType === 'individual') ? 'pointer' : 'auto' }}
             >
               {assignedDots?.map((c) => (
-                <span
-                  key={c!.id}
-                  className="who-dot"
-                  style={{ backgroundColor: getColorThemeValue(c!.colorIndex, theme) }}
-                  title={c!.name}
-                />
+                <Tooltip key={c!.id} content={c!.name}>
+                  <span
+                    className="who-dot"
+                    tabIndex={0}
+                    aria-label={c!.name}
+                    style={{ backgroundColor: getColorThemeValue(c!.colorIndex, theme) }}
+                  />
+                </Tooltip>
               ))}
             </div>
           )}
@@ -514,20 +506,21 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
       </td>
       <td>
         <div className="type-popover-container">
-          <button
-            ref={typeBtnRef}
-            className="type-trigger-btn"
-            onClick={() => {
-              if (!typePopoverOpen && typeBtnRef.current) {
-                const rect = typeBtnRef.current.getBoundingClientRect();
-                setTypePopoverPos({ top: rect.bottom + 4, left: Math.max(8, rect.left - 60) });
-              }
-              setTypePopoverOpen(!typePopoverOpen);
-            }}
-            title="Change type"
-          >
-            {typeEntry ? typeEntry.symbol : '·'}
-          </button>
+          <Tooltip content="Change type">
+            <button
+              ref={typeBtnRef}
+              className="type-trigger-btn"
+              onClick={() => {
+                if (!typePopoverOpen && typeBtnRef.current) {
+                  const rect = typeBtnRef.current.getBoundingClientRect();
+                  setTypePopoverPos({ top: rect.bottom + 4, left: Math.max(8, rect.left - 60) });
+                }
+                setTypePopoverOpen(!typePopoverOpen);
+              }}
+            >
+              {typeEntry ? typeEntry.symbol : '·'}
+            </button>
+          </Tooltip>
         </div>
         {typePopoverOpen && typePopoverPos && createPortal(
           <div

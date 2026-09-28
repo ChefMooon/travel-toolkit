@@ -238,11 +238,13 @@ describe('ColorChoiceModal', () => {
       />
     );
 
-    expect(screen.getByRole('button', { name: 'Rose' })).toHaveAttribute('title', 'Rose');
-    expect(screen.getByRole('button', { name: 'Mulberry' })).toHaveAttribute('title', 'Mulberry');
+    const rose = screen.getByRole('button', { name: 'Rose' });
+    expect(rose).not.toHaveAttribute('title');
+    fireEvent.focus(rose);
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Rose');
   });
 
-  it('should expose a tooltip name for every configured swatch', () => {
+  it('preserves the accessible name of every configured swatch without native title hints', () => {
     render(
       <ColorChoiceModal
         colorIndex={1}
@@ -252,7 +254,7 @@ describe('ColorChoiceModal', () => {
     );
 
     Object.values(COUPLE_COLORS).forEach(({ name }) => {
-      expect(screen.getByRole('button', { name })).toHaveAttribute('title', name);
+      expect(screen.getByRole('button', { name })).not.toHaveAttribute('title');
     });
   });
 });

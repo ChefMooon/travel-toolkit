@@ -5,6 +5,7 @@ import { useCurrencySnapshot } from './useCurrencySnapshot';
 import { useCurrencyMetadata } from './useCurrencyMetadata';
 import { useCurrencyProviders } from './useCurrencyProviders';
 import CurrencyRegionSelector from './CurrencyRegionSelector';
+import Tooltip from '@/components/Tooltip';
 
 function formatRateDate(dateStr: string) {
   // API date is YYYY-MM-DD (UTC); parse as UTC to avoid day-offset in negative-offset timezones
@@ -110,15 +111,16 @@ export default function CurrencyTool() {
       <div className="card">
         <div className="card-header">
           <p className="card-title">Conversion Inputs</p>
-          <button
-            type="button"
-            className="currency-reset-button"
-            onClick={handleReset}
-            aria-label="Reset conversion inputs"
-            title="Reset to defaults"
-          >
-            Reset
-          </button>
+          <Tooltip content="Reset to defaults">
+            <button
+              type="button"
+              className="currency-reset-button"
+              onClick={handleReset}
+              aria-label="Reset conversion inputs"
+            >
+              Reset
+            </button>
+          </Tooltip>
         </div>
         <div className="card-body currency-controls">
           <label className="tool-field">
@@ -154,15 +156,16 @@ export default function CurrencyTool() {
             </select>
           </label>
 
-          <button
-            type="button"
-            className="currency-swap-button"
-            onClick={handleSwapCurrencies}
-            aria-label="Swap from and to currencies"
-            title="Swap currencies"
-          >
-            ↔
-          </button>
+          <Tooltip content="Swap currencies">
+            <button
+              type="button"
+              className="currency-swap-button"
+              onClick={handleSwapCurrencies}
+              aria-label="Swap from and to currencies"
+            >
+              ↔
+            </button>
+          </Tooltip>
 
           <label className="tool-field">
             <span className="tool-label">To</span>

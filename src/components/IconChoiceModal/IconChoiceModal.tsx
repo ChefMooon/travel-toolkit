@@ -2,6 +2,7 @@ import { useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { COUPLE_ICONS } from '@/store/types';
+import Tooltip from '@/components/Tooltip';
 
 interface IconChoiceModalProps {
   iconIndex: number;
@@ -61,16 +62,16 @@ export default function IconChoiceModal({
         </div>
         <div className="icon-grid">
           {COUPLE_ICONS.map(({ name, symbol }, index) => (
-            <button
-              key={index}
-              className={`icon-item ${index === iconIndex ? 'selected' : ''}`}
-              onClick={() => handleIconClick(index)}
-              title={name}
-              aria-label={name}
-              type="button"
-            >
-              {symbol}
-            </button>
+            <Tooltip key={index} content={name}>
+              <button
+                className={`icon-item ${index === iconIndex ? 'selected' : ''}`}
+                onClick={() => handleIconClick(index)}
+                aria-label={name}
+                type="button"
+              >
+                {symbol}
+              </button>
+            </Tooltip>
           ))}
         </div>
       </div>

@@ -3,6 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ChevronUp, GripVertical, Settings2, X } from 'lucide-react';
 import { useTimezoneStore, type DetailLevel, type DisplayMode, type TrackedZone } from '@/store/timezoneStore';
+import Tooltip from '@/components/Tooltip';
 
 interface ZoneConfigRowProps {
   zone: TrackedZone;
@@ -39,16 +40,17 @@ export default function ZoneConfigRow({ zone }: ZoneConfigRowProps) {
       style={style}
     >
       <div className="timezone-config-row-summary">
-        <button
-          type="button"
-          className="ibtn timezone-row-drag"
-          aria-label={`Reorder ${zone.label}`}
-          title={`Reorder ${zone.label}`}
-          {...attributes}
-          {...listeners}
-        >
-          <GripVertical size={14} />
-        </button>
+        <Tooltip content={`Reorder ${zone.label}`}>
+          <button
+            type="button"
+            className="ibtn timezone-row-drag"
+            aria-label={`Reorder ${zone.label}`}
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical size={14} />
+          </button>
+        </Tooltip>
 
         <div className="timezone-config-row-title">
           <span className="timezone-config-row-label">{zone.label}</span>

@@ -86,6 +86,52 @@ beforeEach(() => {
 });
 
 describe('CostRow - Who Field Clickability', () => {
+  it('uses a shared tooltip for the cost name without losing its accessible name', () => {
+    const { container } = render(
+      <table>
+        <tbody>
+          <CostRow
+            cost={mockCostShared}
+            isSelected={false}
+            onToggleSelect={vi.fn()}
+            onEdit={vi.fn()}
+            onDelete={vi.fn()}
+          />
+        </tbody>
+      </table>
+    );
+
+    const name = container.querySelector('.cost-name')!;
+    expect(name).toHaveAttribute('aria-label', 'Shared');
+    expect(name).not.toHaveAttribute('title');
+    fireEvent.focus(name);
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Shared');
+    expect(name).toHaveAttribute('aria-describedby', screen.getByRole('tooltip').id);
+  });
+
+  it('keeps invalid-cost feedback in the shared tooltip description', () => {
+    const invalidCost = { ...mockCostIndividual, assignedCoupleIds: [] };
+    render(
+      <table>
+        <tbody>
+          <CostRow
+            cost={invalidCost}
+            isSelected={false}
+            onToggleSelect={vi.fn()}
+            onEdit={vi.fn()}
+            onDelete={vi.fn()}
+          />
+        </tbody>
+      </table>
+    );
+
+    const error = screen.getByRole('img', { name: 'Invalid cost' });
+    fireEvent.focus(error);
+    const tooltip = screen.getByRole('tooltip');
+    expect(tooltip).toHaveTextContent('Solo cost must have 1 person assigned');
+    expect(error).toHaveAttribute('aria-describedby', tooltip.id);
+  });
+
   describe('Subset split type', () => {
     it('should have pointer cursor on who-dots for subset type', () => {
       const { container } = render(
@@ -371,7 +417,7 @@ describe('CostRow - Who Field Clickability', () => {
     });
 
     it('reverts to solo when subset modal is dismissed after switching from solo', async () => {
-      render(
+      const { container } = render(
         <table>
           <tbody>
             <CostRow
@@ -385,7 +431,7 @@ describe('CostRow - Who Field Clickability', () => {
         </table>
       );
 
-      fireEvent.click(screen.getByTitle('Change split type'));
+      fireEvent.click(container.querySelector('.split')!);
       fireEvent.click(screen.getByRole('button', { name: /Subset/i }));
       await screen.findByText(/Select Groups/i);
       fireEvent.click(screen.getByLabelText('Close'));
@@ -397,7 +443,7 @@ describe('CostRow - Who Field Clickability', () => {
     });
 
     it('reverts to solo when confirming subset with only one selected group after switching from solo', async () => {
-      render(
+      const { container } = render(
         <table>
           <tbody>
             <CostRow
@@ -411,7 +457,7 @@ describe('CostRow - Who Field Clickability', () => {
         </table>
       );
 
-      fireEvent.click(screen.getByTitle('Change split type'));
+      fireEvent.click(container.querySelector('.split')!);
       fireEvent.click(screen.getByRole('button', { name: /Subset/i }));
       await screen.findByText(/Select Groups/i);
       fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));

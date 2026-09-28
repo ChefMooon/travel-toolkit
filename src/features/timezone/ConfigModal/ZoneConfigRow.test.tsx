@@ -37,6 +37,11 @@ describe('ZoneConfigRow', () => {
     const removeButton = screen.getByRole('button', { name: 'Remove Zone 1' });
     expect(removeButton).toHaveClass('ibtn', 'del');
     expect(screen.getByRole('button', { name: 'Show settings for Zone 1' })).toHaveAttribute('aria-expanded', 'false');
+
+    const reorderButton = screen.getByRole('button', { name: 'Reorder Zone 1' });
+    expect(reorderButton).not.toHaveAttribute('title');
+    fireEvent.focus(reorderButton);
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Reorder Zone 1');
   });
 
   it('expands settings and updates the zone label', () => {

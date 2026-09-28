@@ -1,6 +1,7 @@
 import { Suspense, lazy, useState } from 'react';
 import { LocateFixed, Settings } from 'lucide-react';
 import { useTimezoneStore } from '@/store/timezoneStore';
+import Tooltip from '@/components/Tooltip';
 import TimezoneSelect from './TimezoneSelect';
 
 const ConfigModal = lazy(() => import('./ConfigModal/ConfigModal'));
@@ -9,8 +10,6 @@ export default function TimezoneNavbar() {
   const localTz = useTimezoneStore((state) => state.localTz);
   const setLocalTz = useTimezoneStore((state) => state.setLocalTz);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
-  const [detectTooltipVisible, setDetectTooltipVisible] = useState(false);
-
   const handleDetect = () => {
     setLocalTz(Intl.DateTimeFormat().resolvedOptions().timeZone);
   };
@@ -29,39 +28,27 @@ export default function TimezoneNavbar() {
               searchable={false}
             />
 
-            <div style={{ position: 'relative' }}>
+            <Tooltip content="Use browser timezone">
               <button
                 className="btn-add"
                 onClick={handleDetect}
                 aria-label="Detect my timezone"
-                onMouseEnter={() => setDetectTooltipVisible(true)}
-                onMouseLeave={() => setDetectTooltipVisible(false)}
-                onFocus={() => setDetectTooltipVisible(true)}
-                onBlur={() => setDetectTooltipVisible(false)}
                 style={{ paddingInline: 14, minWidth: 44 }}
               >
                 <LocateFixed size={14} />
               </button>
-              {detectTooltipVisible && (
-                <div
-                  className="affordance-tooltip"
-                  role="tooltip"
-                  style={{ bottom: 'calc(100% + 6px)', right: 0 }}
-                >
-                  Use browser timezone
-                </div>
-              )}
-            </div>
+            </Tooltip>
 
-            <button
-              className="btn-add tz-settings-btn"
-              onClick={() => setIsConfigOpen(true)}
-              aria-label="Manage tracked timezones"
-              title="Manage tracked timezones"
-            >
-              <Settings size={14} />
-              <span className="tz-settings-label">Tracked Timezones</span>
-            </button>
+            <Tooltip content="Manage tracked timezones">
+              <button
+                className="btn-add tz-settings-btn"
+                onClick={() => setIsConfigOpen(true)}
+                aria-label="Manage tracked timezones"
+              >
+                <Settings size={14} />
+                <span className="tz-settings-label">Tracked Timezones</span>
+              </button>
+            </Tooltip>
           </div>
         </div>
       </div>

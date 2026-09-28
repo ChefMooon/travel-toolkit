@@ -42,7 +42,7 @@ describe('IconChoiceModal', () => {
     });
   });
 
-  it('should use icon names for hover and accessible labels', () => {
+  it('should use shared tooltips and preserve icon accessible labels', () => {
     render(
       <IconChoiceModal
         iconIndex={0}
@@ -52,8 +52,12 @@ describe('IconChoiceModal', () => {
     );
 
     COUPLE_ICONS.forEach(({ name }) => {
-      expect(screen.getByRole('button', { name })).toHaveAttribute('title', name);
+      expect(screen.getByRole('button', { name })).not.toHaveAttribute('title');
     });
+
+    const firstIcon = screen.getByRole('button', { name: COUPLE_ICONS[0]!.name });
+    fireEvent.focus(firstIcon);
+    expect(screen.getByRole('tooltip')).toHaveTextContent(COUPLE_ICONS[0]!.name);
   });
 
   it('should call onConfirm with correct iconIndex when icon is clicked', () => {

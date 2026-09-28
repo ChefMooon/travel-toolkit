@@ -7,6 +7,7 @@ import Modal from '../Modal';
 import Logo from '../Logo';
 import SaveDataPanel from '@/components/SaveDataPanel';
 import { getDefaultSlotLabel } from '@/store/types';
+import Tooltip from '@/components/Tooltip';
 
 export default function Topbar() {
   const tripName = useTripStore((s) => s.tripName);
@@ -121,16 +122,17 @@ export default function Topbar() {
             <RotateCcw size={12} /> <span>New Trip</span>
           </button>
 
-          <button
-            type="button"
-            className="btn-save-panel"
-            data-dirty={isDirty ? 'true' : 'false'}
-            onClick={() => setShowSavePanel(true)}
-            aria-label="Open save slots"
-            title="Save slots"
-          >
-            <img src="/save.svg" alt="" aria-hidden="true" />
-          </button>
+          <Tooltip content="Save slots">
+            <button
+              type="button"
+              className="btn-save-panel"
+              data-dirty={isDirty ? 'true' : 'false'}
+              onClick={() => setShowSavePanel(true)}
+              aria-label="Open save slots"
+            >
+              <img src="/save.svg" alt="" aria-hidden="true" />
+            </button>
+          </Tooltip>
 
           <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
             <div className="toggle-knob">
