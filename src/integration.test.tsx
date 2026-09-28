@@ -3,8 +3,33 @@
 // @ts-nocheck
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { render, waitFor } from '@testing-library/react';
 import { useTripStore } from './store/tripStore';
 import { getColorThemeValue, COUPLE_ICONS } from './store/types';
+import { useConsentStore } from './store/consentStore';
+import RootLayout from './routes/__root';
+
+const { initializeAnalyticsMock, trackPageViewMock, useLocationMock } = vi.hoisted(() => ({
+  initializeAnalyticsMock: vi.fn(),
+  trackPageViewMock: vi.fn(),
+  useLocationMock: vi.fn(() => ({ pathname: '/trip', searchStr: '' })),
+}));
+
+vi.mock('@/lib/analytics', () => ({
+  initializeAnalytics: initializeAnalyticsMock,
+  trackPageView: trackPageViewMock,
+}));
+
+vi.mock('@tanstack/react-router', () => ({
+  Outlet: () => null,
+  createRootRoute: (options: unknown) => options,
+  useLocation: useLocationMock,
+}));
+
+vi.mock('@/components/Footer', () => ({ default: () => null }));
+vi.mock('@/components/Navbar', () => ({ default: () => null }));
+vi.mock('@/components/ToastViewport', () => ({ default: () => null }));
+vi.mock('@/components/ConsentBanner', () => ({ default: () => null }));
 
 describe('Phase 6: Integration & Dark Mode Testing', () => {
   beforeEach(() => {
@@ -472,5 +497,54 @@ describe('Phase 6: Integration & Dark Mode Testing', () => {
       expect(useTripStore.getState().couples[0].iconIndex).toBe(10);
       expect(useTripStore.getState().couples[0].colorIndex).toBe(10);
     });
+  });
+});
+
+describe('Root analytics consent bridge', () => {
+  beforeEach(() => {
+    vi.stubEnv('PROD', true);
+    vi.clearAllMocks();
+    useConsentStore.getState().resetConsent();
+    initializeAnalyticsMock.mockResolvedValue(true);
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
+  it('does not initialize analytics or send page views while consent is unset', () => {
+    render(<RootLayout />);
+
+    expect(initializeAnalyticsMock).not.toHaveBeenCalled();
+    expect(trackPageViewMock).not.toHaveBeenCalled();
+  });
+
+  it('initializes analytics and sends page views with accepted consent in production', async () => {
+    useConsentStore.getState().acceptAll();
+    render(<RootLayout />);
+
+    await waitFor(() => expect(trackPageViewMock).toHaveBeenCalledTimes(1));
+    expect(initializeAnalyticsMock).toHaveBeenCalledTimes(1);
+    await expect(initializeAnalyticsMock.mock.results[0]?.value).resolves.toBe(true);
+    expect(trackPageViewMock).toHaveBeenCalledWith('/trip', expect.any(String));
+  });
+
+  it('does not initialize analytics or send page views with rejected consent', () => {
+    useConsentStore.getState().rejectAll();
+    render(<RootLayout />);
+
+    expect(initializeAnalyticsMock).not.toHaveBeenCalled();
+    expect(trackPageViewMock).not.toHaveBeenCalled();
+  });
+
+  it('does not send page views when accepted consent is outside production', async () => {
+    vi.stubEnv('PROD', false);
+    initializeAnalyticsMock.mockResolvedValue(false);
+    useConsentStore.getState().acceptAll();
+    render(<RootLayout />);
+
+    await waitFor(() => expect(initializeAnalyticsMock).toHaveBeenCalledTimes(1));
+    await expect(initializeAnalyticsMock.mock.results[0]?.value).resolves.toBe(false);
+    expect(trackPageViewMock).not.toHaveBeenCalled();
   });
 });

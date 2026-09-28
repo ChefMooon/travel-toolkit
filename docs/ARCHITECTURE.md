@@ -9,7 +9,7 @@ Travel Toolkit is a travel-focused web app built as a set of routed tools under 
 - **Framework**: TanStack Start with React and file-based routing
 - **Shared shell**: The root route provides the HTML document, theme bootstrap script, navigation, toast viewport, and route outlet
 - **Async data**: TanStack Query manages remote and query-backed feature data
-- **Client state**: Zustand stores persist trip data and timezone configuration to `localStorage`
+- **Client state**: Zustand stores persist trip data, timezone configuration, and currency converter preferences to `localStorage`
 - **Deployment target**: Cloudflare Workers using the TanStack Start server entry
 
 The app has no project-owned backend or database. Some features fetch third-party data directly from the client, while others use in-repo datasets.
@@ -49,7 +49,7 @@ Key responsibilities:
 - Manage trip groups, including non-paying travellers
 - Record cost entries with shared, subset, or individual assignment
 - Support per-trip and per-entry markup
-- Group totals by original currency and compute USD totals from user-entered exchange rates
+- Group totals by original currency and compute totals in the selected target currency (USD by default) using auto-hydrated live rates, while preserving user overrides
 - Persist trip state between sessions
 
 Primary modules:
@@ -62,7 +62,7 @@ Primary modules:
 
 ### Currency Converter
 
-The `/currency` route renders `CurrencyTool`, a focused converter for six supported currencies.
+The `/currency` route renders `CurrencyTool`, a region-aware converter for 14 supported currencies. Each region exposes a subset, with USD and CAD always available.
 
 Key responsibilities:
 
@@ -134,6 +134,7 @@ Forecast data is a mixed model:
 TanStack Query handles feature data that does not belong in a persisted store:
 
 - Currency snapshot queries
+- Currency metadata and provider queries
 - Forecast geocoding lookups
 - Forecast climate queries
 
@@ -161,8 +162,8 @@ finalCost = baseValue × (1 + effectiveMarkup / 100)
 ### Currency handling inside the trip tool
 
 - Cost entries retain their original currency code
-- USD totals are computed only after the user supplies exchange rates for each currency in the trip ledger
-- Grand USD totals appear only when all currencies in scope have rates
+- Live USD exchange rates are auto-hydrated for the trip region; user-entered overrides are preserved
+- Grand totals in the selected target currency appear only when all currencies in scope have rates
 
 ### Rounding
 
@@ -172,14 +173,14 @@ Half-up rounding is used for per-group cost allocation. Any remainder introduced
 
 | Feature | Data source | Notes |
 |---|---|---|
-| Currency converter | Local snapshot dataset | Simulated rate snapshots shipped with the app |
+| Currency converter | Frankfurter v2 API | Live exchange rates; metadata and provider information are also fetched from the API |
 | Forecast geocoding | Open-Meteo geocoding API | Direct client fetch |
 | Forecast climate | Open-Meteo climate API | Direct client fetch using selected location and date range |
 | Forecast events | Local generated dataset | Refreshed through `scripts/sync-forecast-events.mjs` |
 
 ## Persistence and Storage
 
-- Zustand `persist` rehydrates trip and timezone state automatically on page load
+- Zustand `persist` rehydrates trip, timezone, and currency converter preferences automatically on page load
 - Theme is restored before hydration through an inline bootstrap script in the root route
 - Toasts are intentionally not persisted
 - Query results are cached in memory by TanStack Query according to feature-specific query settings
@@ -213,6 +214,6 @@ wrangler deploy
 ## Architecture Boundaries
 
 - No first-party backend API or database is defined in this repo
-- Remote data access is limited to direct client fetches for forecast data
-- The currency converter currently uses shipped snapshot data rather than a live rates service
+- Remote data access uses direct client fetches for currency rates, metadata, and providers, plus forecast data
+- The currency converter fetches live rates, metadata, and provider information from the Frankfurter v2 API
 - The trip and timezone tools are fully client-side and persist locally in the browser

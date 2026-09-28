@@ -1,7 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { loadAnalyticsScript, trackPageView } from '@/lib/analytics';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { initializeAnalytics, loadAnalyticsScript, trackPageView } from '@/lib/analytics';
 
 describe('analytics helpers', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   beforeEach(() => {
     document.head.querySelector('#travel-toolkit-ga-script')?.remove();
     delete window.gtag;
@@ -31,6 +35,14 @@ describe('analytics helpers', () => {
   it('does not add a script element when id is missing', async () => {
     await loadAnalyticsScript('');
     expect(document.getElementById('travel-toolkit-ga-script')).toBeNull();
+  });
+
+  it('does not initialize analytics outside production', async () => {
+    vi.stubEnv('PROD', false);
+
+    await expect(initializeAnalytics()).resolves.toBe(false);
+    expect(document.getElementById('travel-toolkit-ga-script')).toBeNull();
+    expect(window.__travelToolkitGaInitialized).toBeUndefined();
   });
 
   it('dispatches page_view when initialized', () => {

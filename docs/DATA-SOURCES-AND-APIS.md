@@ -6,10 +6,10 @@ This project does not use a project-owned backend or database. All runtime data 
 
 | Surface | Source | Type | Used by | Notes |
 |---|---|---|---|---|
-| Currency exchange rates | Frankfurter v2 API (`/v2/rates`) | External HTTP API | `CurrencyTool` via `useCurrencySnapshot` | Fetches live rates for the selected base currency scoped to region-visible currencies. Cached 5 minutes and auto-refetched while the page is open; also refetched on base or region change. |
-| Trip Cost exchange rates | Frankfurter v2 API (`/v2/rates`) | External HTTP API | `CostSummary` via `useTripRates` | Fetches live rates base=USD for the trip region currencies. Shares TanStack Query cache with `useCurrencySnapshot('USD', region)`. Cached 5 minutes; auto-refetched on window focus. |
-| Currency metadata | Frankfurter v2 API (`/v2/currencies`) | External HTTP API | `CurrencyTool` via `useCurrencyMetadata` | Full currency names and symbols used in dropdowns. Cached 24 hours; fetched once per session. |
-| Currency providers | Frankfurter v2 API (`/v2/providers`) | External HTTP API | `CurrencyTool` via `useCurrencyProviders` | Provider list with source links and per-provider currency coverage. Filtered client-side to show providers relevant to the selected pair. Cached 24 hours. |
+| Currency exchange rates | Frankfurter v2 API (`/v2/rates`) | External HTTP API | `CurrencyTool` via `useCurrencySnapshot` | Fetches live rates for the selected base currency scoped to region-visible currencies. Results are fresh for 5 minutes; polls every 5 minutes while the page is open, pauses in hidden tabs, and refetches stale data on window focus. Changing base or region selects a keyed query that may reuse a fresh cached result. |
+| Trip Cost exchange rates | Frankfurter v2 API (`/v2/rates`) | External HTTP API | `CostSummary` via `useTripRates` | Fetches live rates base=USD for the trip region currencies. Shares TanStack Query cache with `useCurrencySnapshot('USD', region)`. Results are fresh for 5 minutes; polls every 5 minutes while active, pauses in hidden tabs, and refetches stale data on window focus. Changing region selects a keyed query that may reuse a fresh cached result. |
+| Currency metadata | Frankfurter v2 API (`/v2/currencies`) | External HTTP API | `CurrencyTool` via `useCurrencyMetadata` | Fetches full currency names and symbols; dropdown labels use the names. Results are fresh for 24 hours; inactive cache entries may be removed earlier, so this is not a once-per-session guarantee. |
+| Currency providers | Frankfurter v2 API (`/v2/providers`) | External HTTP API | `CurrencyTool` via `useCurrencyProviders` | Provider list with source links and per-provider currency coverage. Filtered client-side to show providers relevant to the selected pair. Results are fresh for 24 hours; inactive cache entries may be removed earlier. |
 | Currency converter state | Browser `localStorage` via Zustand `persist` | Browser storage | [src/store/currencyStore.ts](../src/store/currencyStore.ts) | Persists the selected region, last-used amount, base currency, and target currency under `travel-toolkit-currency-data`. On page reload the converter restores exactly where the user left off. When the region changes, any stored currency not available in the new region is reset to a valid default. |
 | Destination search | Open-Meteo geocoding API | External HTTP API | Forecast destination search in [src/features/forecast/forecastData.ts](../src/features/forecast/forecastData.ts) | Called with the user’s search query to resolve candidate destinations, coordinates, timezone, and population. |
 | Climate summary | Open-Meteo climate API | External HTTP API | Forecast climate lookup in [src/features/forecast/forecastData.ts](../src/features/forecast/forecastData.ts) | Called with destination coordinates and the selected date range. The implementation requests daily climate variables and averages them across matching month/day windows. |
@@ -28,7 +28,7 @@ This project does not use a project-owned backend or database. All runtime data 
 - Purpose: Fetch live exchange rates for the currency converter
 - Input: `base` (selected base currency ISO code), `quotes` (comma-separated region-scoped target currencies)
 - Output used: `date` (mapped to `updatedAt`), `quote` and `rate` pairs from the response array
-- Cache: `staleTime: 5 minutes`; refetched every 5 minutes while the currency page is mounted, paused in hidden tabs, and refetched when base currency or region changes (`queryKey` includes both)
+- Freshness: `staleTime: 5 minutes`; polls every 5 minutes while the currency page is mounted, pauses polling in hidden tabs, and refetches stale data on window focus. Changing base or region selects a keyed query that may reuse a fresh cached result.
 
 #### Trip Cost Exchange Rates (`useTripRates`)
 
@@ -37,16 +37,16 @@ This project does not use a project-owned backend or database. All runtime data 
 - Purpose: Auto-hydrate live exchange rates for the Trip Cost tool (base=USD, region currencies)
 - Input: `base=USD`, `quotes` = region currencies minus USD
 - Output used: `rates` Record inverted to `rateToUSD` (e.g. `rates['EUR'] = 0.91` → stored `rateToUSD = 1/0.91`)
-- Cache: `queryKey: ['currency', 'snapshot', 'USD', region]` — intentionally matches `useCurrencySnapshot('USD', region)` so the TanStack Query cache is shared when the currency page also has base=USD; `staleTime: 5 minutes`, refetched every 5 minutes on window focus
+- Freshness: `queryKey: ['currency', 'snapshot', 'USD', region]` — intentionally matches `useCurrencySnapshot('USD', region)` so the TanStack Query cache is shared when the currency page also has base=USD; `staleTime: 5 minutes`, polls every 5 minutes while active (not in background), and refetches stale data on window focus
 
 #### Currency Metadata
 
 - Endpoint: `https://api.frankfurter.dev/v2/currencies`
 - Location: [src/features/currency/currencyData.ts](../src/features/currency/currencyData.ts)
-- Purpose: Fetch full currency names and symbols for display in dropdowns
+- Purpose: Fetch full currency names and symbols for the converter; dropdown labels use the names
 - Input: None
-- Output used: `iso_code`, `name`, `symbol`
-- Cache: `staleTime: 24 hours`; fetched once per session
+- Response fields: `iso_code`, `name`, `symbol` (currency names are used in dropdown labels)
+- Freshness: `staleTime: 24 hours`; this marks results fresh when present in cache, but does not guarantee retention or a single fetch per session
 
 #### Currency Providers
 
@@ -55,7 +55,7 @@ This project does not use a project-owned backend or database. All runtime data 
 - Purpose: List all data sources behind the Frankfurter rates; displayed in the Data Sources section of the currency page
 - Input: None
 - Output used: `key`, `name`, `data_url`, `currencies` (used client-side to filter providers that cover the selected base and target currency)
-- Cache: `staleTime: 24 hours`; fetched once per session
+- Freshness: `staleTime: 24 hours`; this marks results fresh when present in cache, but does not guarantee retention or a single fetch per session
 
 ### Open-Meteo Geocoding API
 
@@ -99,7 +99,7 @@ The sync script validates each row, keeps only supported event types, and rewrit
 
 ### Storage and IDs
 
-- Zustand `persist` writes trip and timezone state to `localStorage`
+- Zustand `persist` writes trip, timezone, and currency converter preferences to `localStorage`
 - `crypto.randomUUID()` is used for generated IDs in [src/store/tripStore.ts](../src/store/tripStore.ts), [src/store/timezoneStore.ts](../src/store/timezoneStore.ts), and [src/features/timezone/timezones.ts](../src/features/timezone/timezones.ts)
 
 ### Network requests
@@ -110,8 +110,9 @@ The sync script validates each row, keeps only supported event types, and rewrit
 
 ## Summary
 
-- Currency conversion uses live rates from the Frankfurter v2 API; metadata and providers are cached for 24 hours, and rates refresh every 5 minutes while the currency page is open
+- Currency conversion uses live rates from the Frankfurter v2 API; metadata and providers use a 24-hour `staleTime`, and rate queries poll every 5 minutes while active and refetch on window focus
 - Forecast search and climate data are fetched live from Open-Meteo
 - Forecast events are sourced externally but committed into the repo as generated data
 - Trip, timezone, and currency region tools persist only in the browser
+- Trip data, timezone settings, and currency converter preferences persist in browser storage only
 - There is no first-party API server in this repository
