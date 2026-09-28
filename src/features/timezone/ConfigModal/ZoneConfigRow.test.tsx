@@ -25,7 +25,7 @@ describe('ZoneConfigRow', () => {
     });
   });
 
-  it('renders remove button in top-right position without changing button style class', () => {
+  it('renders an accessible remove button and compact settings disclosure', () => {
     render(
       <DndContext>
         <SortableContext items={[zone.id]} strategy={verticalListSortingStrategy}>
@@ -34,9 +34,45 @@ describe('ZoneConfigRow', () => {
       </DndContext>
     );
 
-    const removeButton = screen.getByRole('button', { name: 'Remove timezone' });
+    const removeButton = screen.getByRole('button', { name: 'Remove Zone 1' });
     expect(removeButton).toHaveClass('ibtn', 'del');
-    expect(removeButton).toHaveStyle({ position: 'absolute', top: '10px', right: '12px' });
+    expect(screen.getByRole('button', { name: 'Show settings for Zone 1' })).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('expands settings and updates the zone label', () => {
+    render(
+      <DndContext>
+        <SortableContext items={[zone.id]} strategy={verticalListSortingStrategy}>
+          <ZoneConfigRow zone={zone} />
+        </SortableContext>
+      </DndContext>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show settings for Zone 1' }));
+    fireEvent.change(screen.getByRole('textbox', { name: 'Timezone label for America/New_York' }), {
+      target: { value: 'New York' },
+    });
+
+    expect(useTimezoneStore.getState().trackedZones[0]?.label).toBe('New York');
+  });
+
+  it('updates display mode and visibility controls while expanded', () => {
+    render(
+      <DndContext>
+        <SortableContext items={[zone.id]} strategy={verticalListSortingStrategy}>
+          <ZoneConfigRow zone={zone} />
+        </SortableContext>
+      </DndContext>
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Show settings for Zone 1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Analog' }));
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Show Date' }));
+
+    expect(useTimezoneStore.getState().trackedZones[0]).toMatchObject({
+      displayMode: 'analog',
+      showDate: false,
+    });
   });
 
   it('removes the zone when the remove button is clicked', () => {
@@ -48,7 +84,7 @@ describe('ZoneConfigRow', () => {
       </DndContext>
     );
 
-    const removeButton = screen.getByRole('button', { name: 'Remove timezone' });
+    const removeButton = screen.getByRole('button', { name: 'Remove Zone 1' });
     fireEvent.click(removeButton);
 
     expect(useTimezoneStore.getState().trackedZones).toHaveLength(0);

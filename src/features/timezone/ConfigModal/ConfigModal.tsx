@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Plus, X } from 'lucide-react';
+import { useEffect, useId, useRef } from 'react';
+import { X } from 'lucide-react';
 import { useTimezoneStore } from '@/store/timezoneStore';
 import TimezoneSelect from '../TimezoneSelect';
 import { createTrackedZone } from '../timezones';
@@ -10,20 +10,17 @@ interface ConfigModalProps {
 }
 
 export default function ConfigModal({ onClose }: ConfigModalProps) {
-  const [addTz, setAddTz] = useState('');
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const titleId = useId();
   const trackedZones = useTimezoneStore((state) => state.trackedZones);
   const addZone = useTimezoneStore((state) => state.addZone);
 
-  const nextOrder = useMemo(() => trackedZones.length, [trackedZones.length]);
-
   useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
+    const previouslyFocused = document.activeElement as HTMLElement | null;
+    dialogRef.current?.querySelector<HTMLInputElement>('[aria-label="Search timezones"]')?.focus();
 
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [onClose]);
+    return () => previouslyFocused?.focus();
+  }, []);
 
   useEffect(() => {
     const previousBodyOverflow = document.body.style.overflow;
@@ -38,25 +35,55 @@ export default function ConfigModal({ onClose }: ConfigModalProps) {
     };
   }, []);
 
-  const handleAddZone = () => {
-    if (!addTz) return;
-    const fallbackLabel = addTz.split('/').pop()?.replace(/_/g, ' ') ?? addTz;
-    addZone(createTrackedZone(addTz, fallbackLabel, nextOrder));
-    setAddTz('');
+  const handleAddZone = (tz: string) => {
+    if (trackedZones.some((zone) => zone.tz === tz)) return;
+    const fallbackLabel = tz.split('/').pop()?.replace(/_/g, ' ') ?? tz;
+    const nextOrder = trackedZones.reduce((maximum, zone) => Math.max(maximum, zone.order), -1) + 1;
+    addZone(createTrackedZone(tz, fallbackLabel, nextOrder));
+  };
+
+  const handleDialogKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      onClose();
+      return;
+    }
+
+    if (event.key !== 'Tab') return;
+
+    const focusable = dialog.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    const first = focusable.item(0);
+    const last = focusable.item(focusable.length - 1);
+    if (!first || !last) return;
+
+    if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    } else if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    }
   };
 
   return (
     <div className="modal-bd" onClick={(event) => event.target === event.currentTarget && onClose()}>
       <div
+        ref={dialogRef}
         className="modal timezone-config-modal"
         role="dialog"
         aria-modal="true"
-        aria-label="Configure timezone cards"
-        style={{ width: 'min(92vw, 760px)', maxWidth: 'none', textAlign: 'left', gap: 14 }}
+        aria-labelledby={titleId}
+        tabIndex={-1}
+        onKeyDown={handleDialogKeyDown}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div className="modal-title" style={{ marginBottom: 0 }}>
-            Configure Timezones
+        <div className="timezone-config-header">
+          <div className="modal-title" id={titleId}>
+            Timezone Settings
           </div>
           <button className="ibtn" onClick={onClose} aria-label="Close settings">
             <X size={14} />
@@ -64,25 +91,23 @@ export default function ConfigModal({ onClose }: ConfigModalProps) {
         </div>
 
         <div className="timezone-config-modal-scroll">
-          <div style={{ display: 'grid', gap: 10 }}>
-            <div className="card-title" style={{ marginBottom: 0 }}>Add Timezone</div>
+          <section className="timezone-config-section" aria-labelledby={`${titleId}-add`}>
+            <h2 className="timezone-config-section-title" id={`${titleId}-add`}>Add Timezone</h2>
             <TimezoneSelect
-              value={addTz}
-              onChange={setAddTz}
+              value=""
+              onChange={handleAddZone}
               placeholder="Select timezone to add"
-              action={(
-                <button className="btn-add" onClick={handleAddZone} disabled={!addTz}>
-                  <Plus size={14} /> Add
-                </button>
-              )}
+              addedTimezones={trackedZones.map((zone) => zone.tz)}
             />
-          </div>
+          </section>
 
-          <div style={{ display: 'grid', gap: 10, marginTop: 14 }}>
-            <div className="card-title" style={{ marginBottom: 0 }}>Tracked Zones</div>
+          <section className="timezone-config-section" aria-labelledby={`${titleId}-tracked`}>
+            <div className="timezone-config-section-heading">
+              <h2 className="timezone-config-section-title" id={`${titleId}-tracked`}>Tracked Timezones</h2>
+              <span className="timezone-config-count">{trackedZones.length}</span>
+            </div>
             <ZoneList />
-          </div>
-
+          </section>
         </div>
       </div>
     </div>
