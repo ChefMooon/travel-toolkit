@@ -262,6 +262,27 @@ describe('CoupleCard', () => {
     expect(screen.getAllByText('$175.00').length).toBeGreaterThan(0);
   });
 
+  it('should display the derived group share beside the grand total', () => {
+    render(<CoupleCard summary={mockSummary} share={0.3333} />);
+
+    expect(screen.getByTestId('group-share')).toHaveTextContent('33.3%');
+    expect(screen.getByTestId('s-card').querySelector('.s-grand-num')).toHaveTextContent('$175.00');
+  });
+
+  it('should display a zero share for a zero-total group', () => {
+    render(<CoupleCard summary={{ ...mockSummary, grandTotal: 0 }} share={0} />);
+
+    expect(screen.getByTestId('group-share')).toHaveTextContent('0%');
+    expect(screen.getByTestId('s-card').querySelector('.s-grand-num')).toHaveTextContent('$0.00');
+  });
+
+  it('should omit an unavailable share and preserve the grand-total dash', () => {
+    render(<CoupleCard summary={{ ...mockSummary, grandTotal: null }} />);
+
+    expect(screen.queryByTestId('group-share')).not.toBeInTheDocument();
+    expect(screen.getByText('—')).toBeInTheDocument();
+  });
+
   it('should apply correct card styling class', () => {
     render(<CoupleCard summary={mockSummary} />);
     const card = screen.getByTestId('s-card');

@@ -12,8 +12,13 @@ vi.mock('@/store/tripStore', () => ({
 }));
 
 vi.mock('@/components/CoupleCard', () => ({
-  default: ({ summary }: { summary: { coupleId: string; coupleName: string } }) => (
-    <div data-testid="couple-card">{summary.coupleName}:{summary.coupleId}</div>
+  default: ({ summary, share }: {
+    summary: { coupleId: string; coupleName: string };
+    share?: number;
+  }) => (
+    <div data-testid="couple-card" data-share={share === undefined ? 'unavailable' : share}>
+      {summary.coupleName}:{summary.coupleId}
+    </div>
   ),
 }));
 
@@ -71,6 +76,190 @@ describe('CostSummary', () => {
 
     expect(screen.getByText('No summary yet')).toBeInTheDocument();
     expect(screen.getByText('Add groups and costs to see the breakdown')).toBeInTheDocument();
+    expect(screen.queryByTestId('trip-total')).not.toBeInTheDocument();
+  });
+
+  it('renders the combined group totals formatted in the selected target currency', () => {
+    mockStoreState.couples = [
+      { id: 'c1', name: 'Group 1', colorIndex: 1, iconIndex: 1, sortOrder: 0 },
+      { id: 'c2', name: 'Group 2', colorIndex: 2, iconIndex: 2, sortOrder: 1 },
+    ];
+    mockStoreState.costs = [
+      {
+        id: 'cost-usd',
+        name: 'Hotel',
+        currency: 'USD',
+        value: 100,
+        markupOverride: null,
+        splitType: 'individual',
+        assignedCoupleIds: ['c1'],
+        sortOrder: 0,
+      },
+      {
+        id: 'cost-eur',
+        name: 'Dinner',
+        currency: 'EUR',
+        value: 40,
+        markupOverride: null,
+        splitType: 'individual',
+        assignedCoupleIds: ['c2'],
+        sortOrder: 1,
+      },
+    ];
+    mockStoreState.globalMarkup = 0;
+    mockStoreState.exchangeRates = [
+      { currency: 'USD', rateToUSD: 1 },
+      { currency: 'EUR', rateToUSD: 0.8 },
+    ];
+    mockStoreState.targetCurrency = 'EUR';
+
+    render(<CostSummary />);
+
+    expect(screen.getAllByTestId('couple-card')).toHaveLength(2);
+    expect(screen.getByTestId('trip-total')).toHaveTextContent('Trip total€165.00');
+    expect(screen.getAllByTestId('couple-card').map((card) => card.getAttribute('data-share')))
+      .toEqual([String(125 / 165), String(40 / 165)]);
+  });
+
+  it('updates the derived trip total when the target currency changes and rerenders', () => {
+    mockStoreState.couples = [
+      { id: 'c1', name: 'Group 1', colorIndex: 1, iconIndex: 1, sortOrder: 0 },
+    ];
+    mockStoreState.costs = [
+      {
+        id: 'cost-usd',
+        name: 'Hotel',
+        currency: 'USD',
+        value: 100,
+        markupOverride: null,
+        splitType: 'individual',
+        assignedCoupleIds: ['c1'],
+        sortOrder: 0,
+      },
+    ];
+    mockStoreState.globalMarkup = 0;
+    mockStoreState.exchangeRates = [
+      { currency: 'USD', rateToUSD: 1 },
+      { currency: 'EUR', rateToUSD: 0.8 },
+    ];
+    mockStoreState.targetCurrency = 'USD';
+
+    const { rerender } = render(<CostSummary />);
+    expect(screen.getByTestId('trip-total')).toHaveTextContent('Trip total$100.00');
+
+    mockStoreState.targetCurrency = 'EUR';
+    rerender(<CostSummary />);
+
+    expect(screen.getByTestId('trip-total')).toHaveTextContent('Trip total€125.00');
+  });
+
+  it('shows a formatted zero trip total when groups have no costs', () => {
+    mockStoreState.couples = [
+      { id: 'c1', name: 'Group 1', colorIndex: 1, iconIndex: 1, sortOrder: 0 },
+      { id: 'c2', name: 'Group 2', colorIndex: 2, iconIndex: 2, sortOrder: 1 },
+    ];
+
+    render(<CostSummary />);
+
+    expect(screen.getByTestId('trip-total')).toHaveTextContent('Trip total$0.00');
+    expect(screen.getAllByTestId('couple-card').map((card) => card.getAttribute('data-share')))
+      .toEqual(['unavailable', 'unavailable']);
+  });
+
+  it('passes each group share as its fraction of the complete trip total', () => {
+    mockStoreState.couples = [
+      { id: 'c1', name: 'Group 1', colorIndex: 1, iconIndex: 1, sortOrder: 0 },
+      { id: 'c2', name: 'Group 2', colorIndex: 2, iconIndex: 2, sortOrder: 1 },
+    ];
+    mockStoreState.costs = [
+      {
+        id: 'cost-1',
+        name: 'Hotel',
+        currency: 'USD',
+        value: 25,
+        markupOverride: null,
+        splitType: 'individual',
+        assignedCoupleIds: ['c1'],
+        sortOrder: 0,
+      },
+      {
+        id: 'cost-2',
+        name: 'Dinner',
+        currency: 'USD',
+        value: 75,
+        markupOverride: null,
+        splitType: 'individual',
+        assignedCoupleIds: ['c2'],
+        sortOrder: 1,
+      },
+    ];
+    mockStoreState.globalMarkup = 0;
+
+    render(<CostSummary />);
+
+    expect(screen.getAllByTestId('couple-card').map((card) => card.getAttribute('data-share')))
+      .toEqual(['0.25', '0.75']);
+  });
+
+  it('passes a zero share for a zero-total group when the trip total is nonzero', () => {
+    mockStoreState.couples = [
+      { id: 'c1', name: 'Group 1', colorIndex: 1, iconIndex: 1, sortOrder: 0 },
+      { id: 'c2', name: 'Group 2', colorIndex: 2, iconIndex: 2, sortOrder: 1 },
+    ];
+    mockStoreState.costs = [
+      {
+        id: 'cost-1',
+        name: 'Hotel',
+        currency: 'USD',
+        value: 100,
+        markupOverride: null,
+        splitType: 'individual',
+        assignedCoupleIds: ['c1'],
+        sortOrder: 0,
+      },
+    ];
+    mockStoreState.globalMarkup = 0;
+
+    render(<CostSummary />);
+
+    expect(screen.getAllByTestId('couple-card').map((card) => card.getAttribute('data-share')))
+      .toEqual(['1', '0']);
+  });
+
+  it('withholds the trip total when any group total is unavailable', () => {
+    mockStoreState.couples = [
+      { id: 'c1', name: 'Group 1', colorIndex: 1, iconIndex: 1, sortOrder: 0 },
+      { id: 'c2', name: 'Group 2', colorIndex: 2, iconIndex: 2, sortOrder: 1 },
+    ];
+    mockStoreState.costs = [
+      {
+        id: 'cost-gbp',
+        name: 'Train',
+        currency: 'GBP',
+        value: 100,
+        markupOverride: null,
+        splitType: 'individual',
+        assignedCoupleIds: ['c1'],
+        sortOrder: 0,
+      },
+      {
+        id: 'cost-usd',
+        name: 'Hotel',
+        currency: 'USD',
+        value: 100,
+        markupOverride: null,
+        splitType: 'individual',
+        assignedCoupleIds: ['c2'],
+        sortOrder: 1,
+      },
+    ];
+    mockStoreState.globalMarkup = 0;
+
+    render(<CostSummary />);
+
+    expect(screen.queryByTestId('trip-total')).not.toBeInTheDocument();
+    expect(screen.getAllByTestId('couple-card').map((card) => card.getAttribute('data-share')))
+      .toEqual(['unavailable', 'unavailable']);
   });
 
   it('FE-SUM-002 renders group and currency counts in the header', () => {

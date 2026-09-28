@@ -3326,15 +3326,17 @@ tr.add-row td { padding: 0; border: none; }
 
 .sdivider { border: none; border-top: 1px solid var(--border); margin: 9px 0; }
 
-.s-grand { display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; }
+.s-grand { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 15px; }
 .s-card-c1 .s-grand { background: var(--c1-soft); }
 .s-card-c2 .s-grand { background: var(--c2-soft); }
 .s-card-c3 .s-grand { background: var(--c3-soft); }
 .s-card-c4 .s-grand { background: var(--c4-soft); }
 .s-card-c5 .s-grand { background: var(--c5-soft); }
 
-.s-grand-lbl { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; color: var(--text-2); }
-.s-grand-num { font-family: 'JetBrains Mono', monospace; font-size: 19px; font-weight: 600; }
+.s-grand-lbl { flex: 1 1 auto; min-width: 0; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .07em; color: var(--text-2); }
+.s-grand-values { display: flex; flex: 0 0 auto; align-items: center; justify-content: flex-end; flex-wrap: nowrap; gap: 0 7px; min-width: 0; }
+.s-grand-num { font-family: 'JetBrains Mono', monospace; font-size: 19px; font-weight: 600; white-space: nowrap; }
+.s-grand-share { color: var(--text-2); font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; white-space: nowrap; }
 .s-card-c1 .s-grand-num { color: var(--c1); }
 .s-card-c2 .s-grand-num { color: var(--c2); }
 .s-card-c3 .s-grand-num { color: var(--c3); }

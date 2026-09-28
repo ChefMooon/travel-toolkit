@@ -8,9 +8,10 @@ import type { CoupleSummary } from '@/store/types';
 
 interface CoupleCardProps {
   summary: CoupleSummary;
+  share?: number;
 }
 
-export default function CoupleCard({ summary }: CoupleCardProps) {
+export default function CoupleCard({ summary, share }: CoupleCardProps) {
   const [iconModalOpen, setIconModalOpen] = useState(false);
   const [colorModalOpen, setColorModalOpen] = useState(false);
   const [editingCurrency, setEditingCurrency] = useState<string | null>(null);
@@ -245,8 +246,15 @@ export default function CoupleCard({ summary }: CoupleCardProps) {
               <span className="s-grand-lbl-sub"> ({targetSymbol})</span>
             )}
           </span>
-          <span className="s-grand-num" style={{ color: colorDotColor }}>
-            {summary.grandTotal !== null ? `${targetSymbol}${summary.grandTotal.toFixed(2)}` : '—'}
+          <span className="s-grand-values">
+            <span className="s-grand-num" style={{ color: colorDotColor }}>
+              {summary.grandTotal !== null ? `${targetSymbol}${summary.grandTotal.toFixed(2)}` : '—'}
+            </span>
+            {share !== undefined && summary.grandTotal !== null && (
+              <span className="s-grand-share" data-testid="group-share">
+                {new Intl.NumberFormat('en-US', { style: 'percent', maximumFractionDigits: 1 }).format(share)}
+              </span>
+            )}
           </span>
         </div>
       </div>

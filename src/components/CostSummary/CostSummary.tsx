@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTripStore } from '@/store/tripStore';
-import { buildSummary } from '@/lib/calculations';
+import { buildSummary, formatCurrency } from '@/lib/calculations';
 import { getAvailableCurrencies } from '@/store/types';
 import { useTripRates } from '@/features/currency/useTripRates';
 import CoupleCard from '../CoupleCard';
@@ -40,6 +40,10 @@ export default function CostSummary() {
     () => buildSummary(couples, costs, globalMarkup, exchangeRates, targetCurrency),
     [couples, costs, globalMarkup, exchangeRates, targetCurrency]
   );
+
+  const tripTotal = summaries.length > 0 && summaries.every((summary) => summary.grandTotal !== null)
+    ? summaries.reduce((total, summary) => total + (summary.grandTotal ?? 0), 0)
+    : null;
 
   const currenciesUsed = useMemo(
     () => new Set(costs.map((c) => c.currency)).size,
@@ -90,8 +94,30 @@ export default function CostSummary() {
         ) : (
           <div className="s-cards">
             {summaries.map((summary) => (
-              <CoupleCard key={summary.coupleId} summary={summary} />
+              <CoupleCard
+                key={summary.coupleId}
+                summary={summary}
+                share={tripTotal !== null && tripTotal !== 0 && summary.grandTotal !== null
+                  ? summary.grandTotal / tripTotal
+                  : undefined}
+              />
             ))}
+          </div>
+        )}
+
+        {tripTotal !== null && (
+          <div
+            data-testid="trip-total"
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              borderTop: '1px solid var(--border)',
+              marginTop: 12,
+              paddingTop: 10,
+            }}
+          >
+            <span>Trip total</span>
+            <strong>{formatCurrency(tripTotal, targetCurrency)}</strong>
           </div>
         )}
 
