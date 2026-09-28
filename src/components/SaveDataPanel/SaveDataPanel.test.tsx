@@ -149,6 +149,22 @@ describe('SaveDataPanel', () => {
     expect(useToastStore.getState().toasts.map((toast) => toast.title)).toEqual(['Trip saved']);
   });
 
+  it('clears the current swap selection', () => {
+    renderPanel();
+
+    expect(screen.queryByRole('button', { name: 'Clear Swap Selection' })).not.toBeInTheDocument();
+    fireEvent.click(getSlotActions(0).getByRole('button', { name: 'Select for swap' }));
+    expect(screen.getByRole('button', { name: 'Clear Swap Selection' })).toBeInTheDocument();
+    fireEvent.click(getSlotActions(1).getByRole('button', { name: 'Select for swap' }));
+
+    fireEvent.click(screen.getByRole('button', { name: 'Clear Swap Selection' }));
+
+    expect(screen.queryByRole('button', { name: 'Clear Swap Selection' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Swap Selected Slots' })).not.toBeInTheDocument();
+    expect(getSlotActions(0).getByRole('button', { name: 'Select for swap' })).toBeInTheDocument();
+    expect(getSlotActions(1).getByRole('button', { name: 'Select for swap' })).toBeInTheDocument();
+  });
+
   it.each(['load', 'import'] as const)(
     'cancels the pending continuation before %s replaces the workspace and keeps it cancelled for later saves',
     async (replacementAction) => {

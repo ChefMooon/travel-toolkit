@@ -4450,6 +4450,55 @@ tr.add-row td { padding: 0; border: none; }
   border-color: var(--danger);
   color: var(--danger);
 }
+.save-data-panel-swap-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid var(--c1-border);
+  border-radius: 11px;
+  background: var(--accent-soft);
+}
+.save-slot-swap-action {
+  height: 30px;
+  padding: 0 10px;
+  border: 1.5px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+.save-slot-swap-action svg {
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+.save-slot-swap-action.is-primary {
+  border-color: var(--accent);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+.save-slot-swap-action.is-primary:hover {
+  background: var(--surface-2);
+}
+.save-slot-swap-action.is-clear:hover {
+  border-color: var(--c1-border);
+  background: var(--surface);
+  color: var(--text);
+}
+.save-slot-swap-action:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
 .save-slot-swap-btn {
   height: 32px;
   padding: 0 10px;

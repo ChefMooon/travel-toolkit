@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Edit2, X, ChevronDown } from 'lucide-react';
+import { ArrowLeftRight, ChevronDown, Edit2, RotateCcw, X } from 'lucide-react';
 import Modal from '@/components/Modal';
 import { useSaveSlotStore } from '@/store/saveSlotStore';
 import { useToastStore } from '@/store/toastStore';
@@ -563,20 +563,37 @@ export default function SaveDataPanel({
               </p>
             </div>
             <div className="save-data-panel-header-actions">
-              {canSwap ? (
-                <button
-                  type="button"
-                  className="save-slot-btn"
-                  onClick={() => {
-                    setConfirmIntent({
-                      type: 'swap',
-                      firstSlotIndex: selectedForSwap[0]!,
-                      secondSlotIndex: selectedForSwap[1]!,
-                    });
-                  }}
+              {selectedForSwap.length > 0 ? (
+                <div
+                  className="save-data-panel-swap-actions"
+                  role="group"
+                  aria-label="Swap selection actions"
                 >
-                  Swap Selected Slots
-                </button>
+                  {canSwap ? (
+                    <button
+                      type="button"
+                      className="save-slot-swap-action is-primary"
+                      onClick={() => {
+                        setConfirmIntent({
+                          type: 'swap',
+                          firstSlotIndex: selectedForSwap[0]!,
+                          secondSlotIndex: selectedForSwap[1]!,
+                        });
+                      }}
+                    >
+                      <ArrowLeftRight size={14} aria-hidden="true" />
+                      Swap Selected Slots
+                    </button>
+                  ) : null}
+                  <button
+                    type="button"
+                    className="save-slot-swap-action is-clear"
+                    onClick={() => setSelectedForSwap([])}
+                  >
+                    <RotateCcw size={13} aria-hidden="true" />
+                    Clear Swap Selection
+                  </button>
+                </div>
               ) : null}
               <button type="button" className="save-data-panel-close" onClick={onClose} aria-label="Close save data panel">
                 <X size={16} />
