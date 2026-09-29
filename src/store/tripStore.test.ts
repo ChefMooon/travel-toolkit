@@ -285,6 +285,94 @@ describe('tripStore — hard limits', () => {
     });
   });
 
+  describe('duplicateCost', () => {
+    it('copies a cost with a fresh ID and inserts it after the source', () => {
+      const addCost = useTripStore.getState().addCost;
+      addCost({
+        name: 'Before',
+        currency: 'USD',
+        value: 10,
+        markupOverride: null,
+        splitType: 'shared',
+        assignedCoupleIds: [],
+      });
+      addCost({
+        name: 'Stay',
+        currency: 'EUR',
+        value: 120.5,
+        markupOverride: 17,
+        splitType: 'subset',
+        assignedCoupleIds: ['couple-a', 'couple-b'],
+        type: 'accommodation',
+      });
+      addCost({
+        name: 'After',
+        currency: 'JPY',
+        value: 50,
+        markupOverride: null,
+        splitType: 'individual',
+        assignedCoupleIds: ['couple-c'],
+      });
+
+      const originalCosts = useTripStore.getState().costs;
+      const source = originalCosts[1]!;
+      const originalOrder = originalCosts.map((cost) => cost.id);
+      useTripStore.getState().markClean();
+
+      useTripStore.getState().duplicateCost(source.id);
+
+      const state = useTripStore.getState();
+      const orderedCosts = [...state.costs].sort((a, b) => a.sortOrder - b.sortOrder);
+      const duplicate = orderedCosts[2]!;
+      expect(duplicate).toMatchObject({
+        name: 'Stay',
+        currency: 'EUR',
+        value: 120.5,
+        markupOverride: 17,
+        splitType: 'subset',
+        assignedCoupleIds: ['couple-a', 'couple-b'],
+        type: 'accommodation',
+      });
+      expect(duplicate.id).not.toBe(source.id);
+      expect(duplicate.assignedCoupleIds).not.toBe(source.assignedCoupleIds);
+      expect(orderedCosts.map((cost) => cost.id)).toEqual([
+        originalOrder[0],
+        source.id,
+        duplicate.id,
+        originalOrder[2],
+      ]);
+      expect(orderedCosts.map((cost) => cost.sortOrder)).toEqual([0, 1, 2, 3]);
+      expect(state.isDirty).toBe(true);
+    });
+
+    it('does not duplicate beyond MAX_COST_ENTRIES and emits the existing warning', () => {
+      const cost = {
+        name: 'Test',
+        currency: 'USD',
+        value: 10,
+        markupOverride: null,
+        splitType: 'shared' as const,
+        assignedCoupleIds: [],
+      };
+      for (let i = 0; i < MAX_COST_ENTRIES; i++) {
+        useTripStore.getState().addCost(cost);
+      }
+      useTripStore.getState().markClean();
+
+      const sourceId = useTripStore.getState().costs[0]!.id;
+      useTripStore.getState().duplicateCost(sourceId);
+
+      expect(useTripStore.getState().costs).toHaveLength(MAX_COST_ENTRIES);
+      expect(useTripStore.getState().isDirty).toBe(false);
+      expect(useToastStore.getState().toasts).toMatchObject([
+        {
+          type: 'warning',
+          title: 'Cost entry limit reached',
+        },
+      ]);
+    });
+  });
+
   describe('deleteCosts', () => {
     it('removes all matching cost entries in one action', () => {
       useTripStore.getState().addCost({ name: 'Hotel', currency: 'USD', value: 50, markupOverride: null, splitType: 'shared', assignedCoupleIds: [], type: null });

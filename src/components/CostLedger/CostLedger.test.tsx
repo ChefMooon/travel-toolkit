@@ -44,12 +44,14 @@ vi.mock('@/components/CostRow', () => ({
     isSelected,
     onToggleSelect,
     onEdit,
+    onDuplicate,
     onDelete,
   }: {
     cost: CostEntry;
     isSelected: boolean;
     onToggleSelect: () => void;
     onEdit: () => void;
+    onDuplicate: () => void;
     onDelete: () => void;
   }) => (
     <tr data-testid={`cost-row-${cost.id}`}>
@@ -57,6 +59,7 @@ vi.mock('@/components/CostRow', () => ({
       <td>{isSelected ? 'selected' : 'unselected'}</td>
       <td><button onClick={onToggleSelect}>Toggle {cost.id}</button></td>
       <td><button onClick={onEdit}>Edit {cost.id}</button></td>
+      <td><button onClick={onDuplicate}>Duplicate {cost.id}</button></td>
       <td><button onClick={onDelete}>Delete {cost.id}</button></td>
     </tr>
   ),
@@ -197,6 +200,7 @@ const mockStoreState = {
   region: 'Europe' as Region,
   costs: mockCosts,
   addCost: vi.fn(),
+  duplicateCost: vi.fn(),
   editCost: vi.fn(),
   deleteCost: vi.fn(),
   deleteCosts: vi.fn(),
@@ -282,6 +286,16 @@ describe('CostLedger', () => {
     expect(mockStoreState.deleteCost).toHaveBeenCalledWith('cost-2');
   });
 
+  it('duplicates the selected row through the store without changing bulk selection', () => {
+    render(<CostLedger />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Toggle cost-1' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Duplicate cost-2' }));
+
+    expect(mockStoreState.duplicateCost).toHaveBeenCalledWith('cost-2');
+    expect(screen.getByText('Selected Count: 1')).toBeInTheDocument();
+  });
+
   it('FE-LED-005 applies bulk currency to selected costs and clears selection', () => {
     render(<CostLedger />);
 
@@ -362,6 +376,24 @@ describe('CostLedger', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Save Edit Row' }));
 
     expect(getSaveFailureCopy).toHaveBeenCalledWith(expect.any(Error), 'edit');
+    expect(mockToastState.pushToast).toHaveBeenCalledWith({
+      type: 'error',
+      title: 'Could not save',
+      message: 'Save failed.',
+    });
+  });
+
+  it('shows an error toast when duplicating a cost fails', () => {
+    const error = new Error('Persist storage failed');
+    mockStoreState.duplicateCost.mockImplementation(() => {
+      throw error;
+    });
+
+    render(<CostLedger />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Duplicate cost-2' }));
+
+    expect(getSaveFailureCopy).toHaveBeenCalledWith(error, 'new');
     expect(mockToastState.pushToast).toHaveBeenCalledWith({
       type: 'error',
       title: 'Could not save',

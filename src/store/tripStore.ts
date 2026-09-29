@@ -59,6 +59,7 @@ interface TripStore {
 
   // Cost actions
   addCost: (cost: Omit<CostEntry, 'id' | 'sortOrder'>) => void;
+  duplicateCost: (id: string) => void;
   editCost: (id: string, updates: Partial<Omit<CostEntry, 'id'>>) => void;
   deleteCost: (id: string) => void;
   deleteCosts: (costIds: string[]) => void;
@@ -258,6 +259,37 @@ export const useTripStore = create<TripStore>()(
             sortOrder: state.costs.length,
           };
           return { costs: [...state.costs, newCost], isDirty: true };
+        });
+      },
+
+      duplicateCost: (id) => {
+        if (get().costs.length >= MAX_COST_ENTRIES) {
+          useToastStore.getState().pushToast({
+            type: 'warning',
+            title: 'Cost entry limit reached',
+            message: 'Trips are limited to 1,000 cost entries. Remove an entry before adding another.',
+          });
+          return;
+        }
+        set((state) => {
+          const orderedCosts = [...state.costs].sort((a, b) => a.sortOrder - b.sortOrder);
+          const sourceIndex = orderedCosts.findIndex((cost) => cost.id === id);
+          if (sourceIndex === -1) {
+            return state;
+          }
+
+          const source = orderedCosts[sourceIndex]!;
+          const duplicate: CostEntry = {
+            ...source,
+            id: generateId(),
+            assignedCoupleIds: [...source.assignedCoupleIds],
+          };
+          orderedCosts.splice(sourceIndex + 1, 0, duplicate);
+
+          return {
+            costs: orderedCosts.map((cost, sortOrder) => ({ ...cost, sortOrder })),
+            isDirty: true,
+          };
         });
       },
 

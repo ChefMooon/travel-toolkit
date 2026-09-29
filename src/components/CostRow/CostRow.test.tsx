@@ -95,6 +95,7 @@ describe('CostRow - Who Field Clickability', () => {
             isSelected={false}
             onToggleSelect={vi.fn()}
             onEdit={vi.fn()}
+            onDuplicate={vi.fn()}
             onDelete={vi.fn()}
           />
         </tbody>
@@ -111,6 +112,7 @@ describe('CostRow - Who Field Clickability', () => {
 
   it('gives selection, currency, inline editing, reset, and row actions contextual names', () => {
     const onToggleSelect = vi.fn();
+    const onDuplicate = vi.fn();
     render(
       <table>
         <tbody>
@@ -119,6 +121,7 @@ describe('CostRow - Who Field Clickability', () => {
             isSelected={false}
             onToggleSelect={onToggleSelect}
             onEdit={vi.fn()}
+            onDuplicate={onDuplicate}
             onDelete={vi.fn()}
           />
         </tbody>
@@ -134,12 +137,22 @@ describe('CostRow - Who Field Clickability', () => {
     expect(screen.getByRole('button', { name: 'Edit amount for Shared' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Reset markup for Shared to global markup' })).toBeInTheDocument();
     const editButton = screen.getByRole('button', { name: 'Edit Shared' });
+    const duplicateButton = screen.getByRole('button', { name: 'Duplicate Shared' });
     const deleteButton = screen.getByRole('button', { name: 'Delete Shared' });
+    const actionNames = [...document.querySelectorAll('.row-acts button')].map((button) =>
+      button.getAttribute('aria-label')
+    );
+    expect(actionNames).toEqual(['Edit Shared', 'Duplicate Shared', 'Delete Shared']);
     fireEvent.focus(editButton);
     expect(screen.getByRole('tooltip')).toHaveTextContent('Edit this cost');
     fireEvent.blur(editButton);
+    fireEvent.focus(duplicateButton);
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Duplicate this cost');
+    fireEvent.blur(duplicateButton);
     fireEvent.focus(deleteButton);
     expect(screen.getByRole('tooltip')).toHaveTextContent('Delete this cost');
+    fireEvent.click(duplicateButton);
+    expect(onDuplicate).toHaveBeenCalledOnce();
 
     fireEvent.click(screen.getByRole('button', { name: 'Edit amount for Shared' }));
     expect(screen.getByRole('spinbutton', { name: 'Amount for Shared' })).toBeInTheDocument();
@@ -156,6 +169,7 @@ describe('CostRow - Who Field Clickability', () => {
             isSelected={false}
             onToggleSelect={vi.fn()}
             onEdit={vi.fn()}
+            onDuplicate={vi.fn()}
             onDelete={vi.fn()}
           />
         </tbody>
@@ -189,6 +203,7 @@ describe('CostRow - Who Field Clickability', () => {
             isSelected={false}
             onToggleSelect={vi.fn()}
             onEdit={vi.fn()}
+            onDuplicate={vi.fn()}
             onDelete={vi.fn()}
           />
         </tbody>
@@ -212,6 +227,7 @@ describe('CostRow - Who Field Clickability', () => {
               isSelected={false}
               onToggleSelect={vi.fn()}
               onEdit={vi.fn()}
+              onDuplicate={vi.fn()}
               onDelete={vi.fn()}
             />
           </tbody>
@@ -235,6 +251,7 @@ describe('CostRow - Who Field Clickability', () => {
               isSelected={false}
               onToggleSelect={vi.fn()}
               onEdit={vi.fn()}
+              onDuplicate={vi.fn()}
               onDelete={vi.fn()}
             />
           </tbody>
@@ -254,6 +271,7 @@ describe('CostRow - Who Field Clickability', () => {
               isSelected={false}
               onToggleSelect={vi.fn()}
               onEdit={vi.fn()}
+              onDuplicate={vi.fn()}
               onDelete={vi.fn()}
             />
           </tbody>
@@ -273,6 +291,7 @@ describe('CostRow - Who Field Clickability', () => {
               isSelected={false}
               onToggleSelect={vi.fn()}
               onEdit={vi.fn()}
+              onDuplicate={vi.fn()}
               onDelete={vi.fn()}
             />
           </tbody>
@@ -298,6 +317,7 @@ describe('CostRow - Who Field Clickability', () => {
               isSelected={false}
               onToggleSelect={vi.fn()}
               onEdit={vi.fn()}
+              onDuplicate={vi.fn()}
               onDelete={vi.fn()}
             />
           </tbody>
@@ -328,6 +348,7 @@ describe('CostRow - Who Field Clickability', () => {
               isSelected={false}
               onToggleSelect={vi.fn()}
               onEdit={vi.fn()}
+              onDuplicate={vi.fn()}
               onDelete={vi.fn()}
             />
           </tbody>
@@ -349,6 +370,7 @@ describe('CostRow - Who Field Clickability', () => {
               isSelected={false}
               onToggleSelect={vi.fn()}
               onEdit={vi.fn()}
+              onDuplicate={vi.fn()}
               onDelete={vi.fn()}
             />
           </tbody>
@@ -382,6 +404,7 @@ describe('CostRow - Who Field Clickability', () => {
               isSelected={false}
               onToggleSelect={vi.fn()}
               onEdit={vi.fn()}
+              onDuplicate={vi.fn()}
               onDelete={vi.fn()}
             />
           </tbody>
@@ -402,6 +425,7 @@ describe('CostRow - Who Field Clickability', () => {
               isSelected={false}
               onToggleSelect={vi.fn()}
               onEdit={vi.fn()}
+              onDuplicate={vi.fn()}
               onDelete={vi.fn()}
             />
           </tbody>
@@ -421,6 +445,7 @@ describe('CostRow - Who Field Clickability', () => {
               isSelected={false}
               onToggleSelect={vi.fn()}
               onEdit={vi.fn()}
+              onDuplicate={vi.fn()}
               onDelete={vi.fn()}
             />
           </tbody>
@@ -443,6 +468,7 @@ describe('CostRow - Who Field Clickability', () => {
               isSelected={false}
               onToggleSelect={vi.fn()}
               onEdit={vi.fn()}
+              onDuplicate={vi.fn()}
               onDelete={vi.fn()}
             />
           </tbody>
@@ -469,6 +495,7 @@ describe('CostRow - Who Field Clickability', () => {
               isSelected={false}
               onToggleSelect={vi.fn()}
               onEdit={vi.fn()}
+              onDuplicate={vi.fn()}
               onDelete={vi.fn()}
             />
           </tbody>
@@ -496,6 +523,7 @@ describe('CostRow - Who Field Clickability', () => {
               isSelected={false}
               onToggleSelect={vi.fn()}
               onEdit={vi.fn()}
+              onDuplicate={vi.fn()}
               onDelete={vi.fn()}
             />
           </tbody>
@@ -522,6 +550,7 @@ describe('CostRow - Who Field Clickability', () => {
               isSelected={false}
               onToggleSelect={vi.fn()}
               onEdit={vi.fn()}
+              onDuplicate={vi.fn()}
               onDelete={vi.fn()}
             />
           </tbody>
@@ -550,6 +579,7 @@ describe('CostRow - Who Field Clickability', () => {
               isSelected={false}
               onToggleSelect={vi.fn()}
               onEdit={vi.fn()}
+              onDuplicate={vi.fn()}
               onDelete={vi.fn()}
             />
           </tbody>
@@ -570,6 +600,7 @@ describe('CostRow - Who Field Clickability', () => {
               isSelected={false}
               onToggleSelect={vi.fn()}
               onEdit={vi.fn()}
+              onDuplicate={vi.fn()}
               onDelete={vi.fn()}
             />
           </tbody>
@@ -589,6 +620,7 @@ describe('CostRow - Who Field Clickability', () => {
               isSelected={false}
               onToggleSelect={vi.fn()}
               onEdit={vi.fn()}
+              onDuplicate={vi.fn()}
               onDelete={vi.fn()}
             />
           </tbody>
@@ -611,6 +643,7 @@ describe('CostRow - Who Field Clickability', () => {
               isSelected={false}
               onToggleSelect={vi.fn()}
               onEdit={vi.fn()}
+              onDuplicate={vi.fn()}
               onDelete={vi.fn()}
             />
           </tbody>

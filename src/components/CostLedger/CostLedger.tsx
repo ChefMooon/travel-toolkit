@@ -27,6 +27,7 @@ export default function CostLedger() {
   const rawCosts = useTripStore((s) => s.costs);
   const costs = useMemo(() => [...rawCosts].sort((a, b) => a.sortOrder - b.sortOrder), [rawCosts]);
   const addCost = useTripStore((s) => s.addCost);
+  const duplicateCost = useTripStore((s) => s.duplicateCost);
   const editCost = useTripStore((s) => s.editCost);
   const deleteCost = useTripStore((s) => s.deleteCost);
   const deleteCosts = useTripStore((s) => s.deleteCosts);
@@ -146,6 +147,18 @@ export default function CostLedger() {
     [addCost, pushToast]
   );
 
+  const handleDuplicate = useCallback(
+    (id: string) => {
+      try {
+        duplicateCost(id);
+      } catch (error) {
+        const toast = getSaveFailureCopy(error, 'new');
+        pushToast(toast);
+      }
+    },
+    [duplicateCost, pushToast]
+  );
+
   const handleEditSave = useCallback(
     (data: {
       name: string;
@@ -233,7 +246,7 @@ export default function CostLedger() {
                   <th scope="col" style={{ width: 60 }}>Who</th>
                   <th scope="col" style={{ width: 48 }}>Type</th>
                   <th scope="col" style={{ width: 96 }}>Total</th>
-                  <th scope="col" style={{ width: 58 }}><span className="sr-only">Actions</span></th>
+                  <th scope="col" style={{ width: 90 }}><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
             <tbody>
@@ -253,6 +266,7 @@ export default function CostLedger() {
                       isSelected={selectedIds.has(cost.id)}
                       onToggleSelect={() => toggleSelect(cost.id)}
                       onEdit={() => setEditingId(cost.id)}
+                      onDuplicate={() => handleDuplicate(cost.id)}
                       onDelete={() => {
                         setIsBulkDeleteOpen(false);
                         setDeletingId(cost.id);

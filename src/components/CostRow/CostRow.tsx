@@ -2,7 +2,7 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 import { useTripStore } from '@/store/tripStore';
 import { getEffectiveMarkup, getCostWithMarkup, formatCurrency, validateCost } from '@/lib/calculations';
 import { createPortal } from 'react-dom';
-import { Pencil, Trash2, GripVertical, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
+import { Pencil, Copy, Trash2, GripVertical, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
 import type { CostEntry, SplitType } from '@/store/types';
 import { getAvailableCurrencies, getColorThemeValue, COST_ENTRY_TYPES } from '@/store/types';
 import { useSortable } from '@dnd-kit/sortable';
@@ -15,10 +15,11 @@ interface CostRowProps {
   isSelected: boolean;
   onToggleSelect: () => void;
   onEdit: () => void;
+  onDuplicate: () => void;
   onDelete: () => void;
 }
 
-export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDelete }: CostRowProps) {
+export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDuplicate, onDelete }: CostRowProps) {
   const globalMarkup = useTripStore((s) => s.globalMarkup);
   const region = useTripStore((s) => s.region);
   const theme = useTripStore((s) => s.theme);
@@ -631,6 +632,11 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDe
           <Tooltip content="Edit this cost">
             <button type="button" className="ibtn" onClick={onEdit} aria-label={`Edit ${cost.name}`}>
               <Pencil size={13} aria-hidden="true" />
+            </button>
+          </Tooltip>
+          <Tooltip content="Duplicate this cost">
+            <button type="button" className="ibtn" onClick={onDuplicate} aria-label={`Duplicate ${cost.name}`}>
+              <Copy size={13} aria-hidden="true" />
             </button>
           </Tooltip>
           <Tooltip content="Delete this cost">

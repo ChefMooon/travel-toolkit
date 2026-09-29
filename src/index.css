@@ -2764,11 +2764,11 @@ table.ledger tbody tr.sel { background: var(--c3-soft); }
 
 table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13px; }
 
-/* ── DESKTOP TABLE COLUMN WIDTHS (>700px) ──
+/* ── DESKTOP TABLE COLUMN WIDTHS (>850px) ──
    Using CSS to define column widths instead of inline styles
    to allow mobile media queries to override properly
 ─────────────────────────────────────────────────────────────── */
-@media (min-width: 701px) {
+@media (min-width: 851px) {
   table.ledger th:nth-child(1) { width: 26px; }      /* checkbox */
   table.ledger th:nth-child(2) { width: 26px; }      /* drag handle */
   table.ledger th:nth-child(3) { }                    /* name - flex */
@@ -2779,16 +2779,16 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
   table.ledger th:nth-child(8) { width: 60px; }      /* who */
   table.ledger th:nth-child(9) { width: 48px; }      /* type */
   table.ledger th:nth-child(10) { width: 96px; }     /* total */
-  table.ledger th:nth-child(11) { width: 58px; }     /* actions */
+  table.ledger th:nth-child(11) { width: 90px; }     /* actions */
 }
 
-/* ── MOBILE CARD LAYOUT (≤700px) ──
+/* ── MOBILE CARD LAYOUT (≤850px) ──
    Transforms each table row into a 3-row card:
-   Row 1: [name ·····················] [edit] [delete]
+   Row 1: [name ·····················] [edit] [duplicate] [delete]
    Row 2: [currency] [amount] [markup < > ↺]
    Row 3: [split · who ·····] [type] [total]
 ─────────────────────────────────────────────────────────────── */
-@media (max-width: 700px) {
+@media (max-width: 850px) {
   table.ledger,
   table.ledger tbody { display: block; }
 
