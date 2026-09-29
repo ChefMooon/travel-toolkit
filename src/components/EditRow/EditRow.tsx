@@ -59,6 +59,11 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
   const [tempAssignedCouples, setTempAssignedCouples] = useState<string[]>([]);
   const [modalOriginSplitType, setModalOriginSplitType] = useState<SplitType | null>(null);
   const [modalOriginAssignedCouples, setModalOriginAssignedCouples] = useState<string[]>([]);
+  const fieldPrefix = initial?.id ? `edit-cost-${initial.id}` : 'new-cost-entry';
+  const assignedGroupNames = couples
+    .filter((couple) => assignedCoupleIds.includes(couple.id))
+    .map((couple) => couple.name)
+    .join(', ');
 
   const getSoloFallbackAssignment = useCallback(
     (preferredIds: string[], fallbackIds: string[]) => {
@@ -242,8 +247,9 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
       <td colSpan={11}>
         <div className="edit-grid">
           <div className="ef">
-            <label className="ef-lbl">Name</label>
+            <label className="ef-lbl" htmlFor={`${fieldPrefix}-name`}>Name</label>
             <input
+              id={`${fieldPrefix}-name`}
               className="ef-inp"
               type="text"
               value={name}
@@ -254,8 +260,9 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
             />
           </div>
           <div className="ef">
-            <label className="ef-lbl">Currency</label>
+            <label className="ef-lbl" htmlFor={`${fieldPrefix}-currency`}>Currency</label>
             <select
+              id={`${fieldPrefix}-currency`}
               className="ef-select"
               value={currency}
               onChange={(e) => setCurrency(e.target.value)}
@@ -266,8 +273,9 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
             </select>
           </div>
           <div className="ef">
-            <label className="ef-lbl" style={{ textAlign: 'right' }}>Amount</label>
+            <label className="ef-lbl" htmlFor={`${fieldPrefix}-amount`} style={{ textAlign: 'right' }}>Amount</label>
             <input
+              id={`${fieldPrefix}-amount`}
               className="ef-inp mono"
               type="number"
               step="0.01"
@@ -278,8 +286,8 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
             />
           </div>
           <div className="ef">
-            <label className="ef-lbl">Split</label>
-            <div role="group" aria-label="Split type" className="seg">
+            <span className="ef-lbl" id={`${fieldPrefix}-split-label`}>Split</span>
+            <div role="group" aria-labelledby={`${fieldPrefix}-split-label`} className="seg">
               <button
                 className={`seg-btn${splitType === 'shared' ? ' on' : ''}`}
                 onClick={() => openSplitModalFor('shared')}
@@ -307,8 +315,9 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
             </div>
           </div>
           <div className="ef">
-            <label className="ef-lbl">Type</label>
+            <label className="ef-lbl" htmlFor={`${fieldPrefix}-type`}>Type</label>
             <select
+              id={`${fieldPrefix}-type`}
               className="ef-select"
               value={type ?? ''}
               onChange={(e) => setType(e.target.value || null)}
@@ -333,7 +342,11 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
                 Use global markup ({globalMarkup}%)
               </label>
               <div className={`markup-controls${useGlobalMarkup ? ' is-hidden' : ''}`} aria-hidden={useGlobalMarkup}>
+                <label htmlFor={`${fieldPrefix}-markup`} className="sr-only">
+                  Custom markup percentage
+                </label>
                 <input
+                  id={`${fieldPrefix}-markup`}
                   className="ef-inp mono markup-override-inp"
                   type="number"
                   step="0.1"
@@ -365,12 +378,9 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
                 }}>
                   {splitType === 'individual' ? 'Assigned group:' : 'Included groups:'}
                 </span>
-                <Tooltip
-                  content={couples
-                    .filter((couple) => assignedCoupleIds.includes(couple.id))
-                    .map((couple) => couple.name)
-                    .join(', ')}
-                >
+                <Tooltip content={assignedGroupNames
+                  ? `Currently assigned to: ${assignedGroupNames}`
+                  : 'Choose groups for this cost'}>
                   <button
                     type="button"
                     className={`split-select-inline-btn${assignedCoupleIds.length > 0 ? ' with-dots' : ''}`}
@@ -400,7 +410,16 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
 
           <div className="edit-acts" style={{ paddingTop: 0 }}>
             <button className="btn-save" onClick={handleSave} type="button">Save</button>
-            <button className="btn-cancel" onClick={onCancel} type="button">✕</button>
+            <Tooltip content="Discard changes and close this editor">
+              <button
+                className="btn-cancel"
+                onClick={onCancel}
+                type="button"
+                aria-label="Cancel editing cost"
+              >
+                ✕
+              </button>
+            </Tooltip>
           </div>
         </div>
 

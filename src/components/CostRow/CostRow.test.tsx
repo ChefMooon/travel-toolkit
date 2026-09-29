@@ -102,11 +102,81 @@ describe('CostRow - Who Field Clickability', () => {
     );
 
     const name = container.querySelector('.cost-name')!;
-    expect(name).toHaveAttribute('aria-label', 'Shared');
+    expect(name).toHaveAttribute('aria-label', 'Edit name for Shared');
     expect(name).not.toHaveAttribute('title');
     fireEvent.focus(name);
     expect(screen.getByRole('tooltip')).toHaveTextContent('Shared');
     expect(name).toHaveAttribute('aria-describedby', screen.getByRole('tooltip').id);
+  });
+
+  it('gives selection, currency, inline editing, reset, and row actions contextual names', () => {
+    const onToggleSelect = vi.fn();
+    render(
+      <table>
+        <tbody>
+          <CostRow
+            cost={mockCostShared}
+            isSelected={false}
+            onToggleSelect={onToggleSelect}
+            onEdit={vi.fn()}
+            onDelete={vi.fn()}
+          />
+        </tbody>
+      </table>
+    );
+
+    const checkbox = screen.getByRole('checkbox', { name: 'Select Shared' });
+    expect(screen.getByRole('button', { name: 'Reorder Shared' })).toBeInTheDocument();
+    fireEvent.click(checkbox);
+    expect(onToggleSelect).toHaveBeenCalledOnce();
+    expect(screen.getByRole('combobox', { name: 'Currency for Shared' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Edit name for Shared' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Edit amount for Shared' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Reset markup for Shared to global markup' })).toBeInTheDocument();
+    const editButton = screen.getByRole('button', { name: 'Edit Shared' });
+    const deleteButton = screen.getByRole('button', { name: 'Delete Shared' });
+    fireEvent.focus(editButton);
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Edit this cost');
+    fireEvent.blur(editButton);
+    fireEvent.focus(deleteButton);
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Delete this cost');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit amount for Shared' }));
+    expect(screen.getByRole('spinbutton', { name: 'Amount for Shared' })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Edit name for Shared' }));
+    expect(screen.getByRole('textbox', { name: 'Cost name for Shared' })).toBeInTheDocument();
+  });
+
+  it('exposes split and type popover states through stable control relationships', () => {
+    render(
+      <table>
+        <tbody>
+          <CostRow
+            cost={mockCostShared}
+            isSelected={false}
+            onToggleSelect={vi.fn()}
+            onEdit={vi.fn()}
+            onDelete={vi.fn()}
+          />
+        </tbody>
+      </table>
+    );
+
+    const splitButton = screen.getByRole('button', { name: /Change split type for Shared/ });
+    expect(splitButton).toHaveAttribute('aria-expanded', 'false');
+    expect(splitButton).toHaveAttribute('aria-controls', 'cost-cost3-split-options');
+    expect(document.getElementById('cost-cost3-split-options')).toHaveAttribute('hidden');
+    fireEvent.click(splitButton);
+    expect(splitButton).toHaveAttribute('aria-expanded', 'true');
+    expect(document.getElementById('cost-cost3-split-options')).toHaveAttribute('role', 'group');
+
+    const typeButton = screen.getByRole('button', { name: /Change type for Shared/ });
+    expect(typeButton).toHaveAttribute('aria-expanded', 'false');
+    expect(typeButton).toHaveAttribute('aria-controls', 'cost-cost3-type-options');
+    expect(document.getElementById('cost-cost3-type-options')).toHaveAttribute('hidden');
+    fireEvent.click(typeButton);
+    expect(typeButton).toHaveAttribute('aria-expanded', 'true');
+    expect(document.getElementById('cost-cost3-type-options')).toHaveAttribute('role', 'group');
   });
 
   it('keeps invalid-cost feedback in the shared tooltip description', () => {
@@ -133,7 +203,7 @@ describe('CostRow - Who Field Clickability', () => {
   });
 
   describe('Subset split type', () => {
-    it('should have pointer cursor on who-dots for subset type', () => {
+    it('uses a named button as the pointer and keyboard entry for assigned groups', () => {
       const { container } = render(
         <table>
           <tbody>
@@ -148,10 +218,12 @@ describe('CostRow - Who Field Clickability', () => {
         </table>
       );
 
-      const whoDots = container.querySelector('.who-dots');
-      expect(whoDots).toBeInTheDocument();
-      const styles = window.getComputedStyle(whoDots!);
-      expect(styles.cursor).toBe('pointer');
+      const whoButton = screen.getByRole('button', { name: 'Change assigned groups for Dinner' });
+      expect(whoButton).toHaveAttribute('aria-haspopup', 'dialog');
+      expect(container.querySelector('.who-dots')).toBeInTheDocument();
+      expect(whoButton).toHaveAttribute('type', 'button');
+      fireEvent.focus(whoButton);
+      expect(screen.getByRole('tooltip')).toHaveTextContent('Currently assigned to: Alice & Bob, Charlie & Diana');
     });
 
     it('should not render "All" label for subset type', () => {
@@ -301,8 +373,8 @@ describe('CostRow - Who Field Clickability', () => {
   });
 
   describe('Individual split type', () => {
-    it('should have pointer cursor on who-dots for individual type', () => {
-      const { container } = render(
+    it('has a pointer-enabled named button for individual group assignment', () => {
+      render(
         <table>
           <tbody>
             <CostRow
@@ -316,10 +388,9 @@ describe('CostRow - Who Field Clickability', () => {
         </table>
       );
 
-      const whoDots = container.querySelector('.who-dots');
-      expect(whoDots).toBeInTheDocument();
-      const styles = window.getComputedStyle(whoDots!);
-      expect(styles.cursor).toBe('pointer');
+      const whoButton = screen.getByRole('button', { name: 'Change assigned groups for Activity' });
+      expect(whoButton).toBeInTheDocument();
+      expect(whoButton).toHaveAttribute('type', 'button');
     });
 
     it('should render single colored dot for individual type', () => {

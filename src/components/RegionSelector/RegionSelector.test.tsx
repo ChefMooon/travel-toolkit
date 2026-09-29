@@ -28,7 +28,15 @@ describe('RegionSelector', () => {
 
   it('FE-REG-001 renders the current region value', () => {
     render(<RegionSelector />);
-    expect(screen.getByRole('combobox')).toHaveValue('Europe');
+
+    expect(screen.getByRole('combobox', { name: 'Region' })).toHaveValue('Europe');
+  });
+
+  it('provides a visible section heading and programmatic label for the region selector', () => {
+    render(<RegionSelector />);
+
+    expect(screen.getByRole('heading', { name: 'Region', level: 2 })).toBeInTheDocument();
+    expect(screen.getByLabelText('Region')).toBe(screen.getByRole('combobox', { name: 'Region' }));
   });
 
   it('FE-REG-002 renders all region options', () => {

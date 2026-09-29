@@ -74,6 +74,8 @@ describe('CostSummary', () => {
   it('FE-SUM-001 renders empty state when no summary data exists', () => {
     render(<CostSummary />);
 
+    expect(screen.getByRole('heading', { name: 'Cost Summary', level: 2 })).toBeInTheDocument();
+    expect(screen.getByRole('combobox', { name: 'Convert to' })).toBeInTheDocument();
     expect(screen.getByText('No summary yet')).toBeInTheDocument();
     expect(screen.getByText('Add groups and costs to see the breakdown')).toBeInTheDocument();
     expect(screen.queryByTestId('trip-total')).not.toBeInTheDocument();
@@ -322,7 +324,7 @@ describe('CostSummary', () => {
     expect(screen.getByText('Group 2:c2')).toBeInTheDocument();
   });
 
-  it('FE-SUM-004 disclaimer renders when useTripRates has data', () => {
+  it('FE-SUM-004 separates the source link and exposes the rates disclosure relationship', () => {
     (useTripRates as ReturnType<typeof vi.fn>).mockReturnValue({
       isPending: false,
       isError: false,
@@ -331,6 +333,21 @@ describe('CostSummary', () => {
     });
     render(<CostSummary />);
     expect(screen.getByTestId('rates-disclaimer')).toBeInTheDocument();
+
+    const disclosure = screen.getByRole('button', { name: 'Rates sourced from' });
+    const sourceLink = screen.getByRole('link', { name: 'Frankfurter' });
+    const details = document.getElementById('rates-details');
+    expect(sourceLink.closest('button')).toBeNull();
+    expect(disclosure).toHaveAttribute('aria-expanded', 'false');
+    expect(disclosure).toHaveAttribute('aria-controls', 'rates-details');
+    expect(details).toHaveAttribute('hidden');
+
+    fireEvent.click(disclosure);
+    expect(disclosure).toHaveAttribute('aria-expanded', 'true');
+    expect(details).not.toHaveAttribute('hidden');
+    fireEvent.click(disclosure);
+    expect(disclosure).toHaveAttribute('aria-expanded', 'false');
+    expect(details).toHaveAttribute('hidden');
   });
 
   it('FE-SUM-005 target currency dropdown triggers setTargetCurrency', () => {

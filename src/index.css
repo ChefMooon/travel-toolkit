@@ -170,6 +170,11 @@ body::before {
   transition: background 0.4s, border-color 0.4s;
 }
 
+.mobile-nav-tabs {
+  display: flex;
+  width: 100%;
+}
+
 .navbar-actions {
   display: flex;
   align-items: center;
@@ -2000,12 +2005,32 @@ body::before {
 .chip-c4 .chip-dot { background: var(--c4); }
 .chip-c5 .chip-dot { background: var(--c5); }
 
-.chip-grip { opacity: 0.35; font-size: 10px; cursor: grab; }
+.chip-grip {
+  opacity: 0.35;
+  font-size: 10px;
+  font-family: inherit;
+  color: inherit;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  line-height: 1;
+  cursor: grab;
+  appearance: none;
+}
 .chip-x {
   opacity: 0.4; cursor: pointer; font-size: 13px; margin-left: 2px;
   background: none; border: none; color: inherit; padding: 0; line-height: 1;
 }
 .chip-x:hover { opacity: 1; color: var(--danger); }
+.chip-grip,
+.chip-x {
+  font-family: inherit;
+}
+.chip-grip:focus-visible,
+.chip-x:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
 
 .chip-child { font-size: 12px; font-weight: 600; }
 .chip-child-c1 { background: var(--c1-soft); border: 1.5px dashed var(--c1-border); color: var(--c1); opacity: 0.85; }
@@ -2028,6 +2053,11 @@ body::before {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  appearance: none;
 }
 
 /* Desktop hover states for icons (@media (hover: hover)) */
@@ -2082,6 +2112,11 @@ body::before {
   justify-content: center;
   position: relative;
   color: color-mix(in srgb, var(--group-color, #999) 55%, white);
+  border: 0;
+  background: transparent;
+  font: inherit;
+  padding: 0;
+  appearance: none;
 }
 .color-dot-interactive .chip-dot {
   flex-shrink: 0;
@@ -2148,6 +2183,11 @@ body::before {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  appearance: none;
 }
 
 @media (hover: hover) {
@@ -2663,16 +2703,54 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
 }
 
 .chk {
-  width: 15px; height: 15px; border-radius: 4px;
+  appearance: none;
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  flex: 0 0 15px;
   border: 1.5px solid var(--border-2);
-  display: inline-flex; align-items: center; justify-content: center;
-  font-size: 9px; cursor: pointer;
-  background: transparent; color: transparent;
+  border-radius: 4px;
+  display: inline-grid;
+  place-content: center;
+  background: transparent;
+  cursor: pointer;
   transition: all 0.12s;
 }
-.chk.on { background: var(--c3); border-color: var(--c3); color: white; }
+.chk:checked {
+  background: var(--c3);
+  border-color: var(--c3);
+}
+.chk:checked::after {
+  content: '✓';
+  color: white;
+  font-size: 9px;
+  line-height: 1;
+}
+.chk:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
 
 .cost-name { font-weight: 700; color: var(--text); }
+.cell-edit-trigger {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+.cell-edit-trigger:focus-visible,
+.who-select:focus-visible,
+.reset-markup-btn:focus-visible,
+.ibtn:focus-visible,
+.arrow-btn:focus-visible,
+.split:focus-visible,
+.type-trigger-btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
 
 .cur-select {
   appearance: none; -webkit-appearance: none;
@@ -2732,6 +2810,20 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
 
 .who-dots { display: flex; gap: 4px; align-items: center; }
 .who-dot { width: 10px; height: 10px; border-radius: 50%; }
+.who-select {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  min-height: 28px;
+  border: 0;
+  padding: 2px 4px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+}
 
 .total-num { font-family: 'JetBrains Mono', monospace; font-weight: 600; font-size: 13px; color: var(--text); }
 
@@ -3381,7 +3473,11 @@ tr.add-row td { padding: 0; border: none; }
   text-align: right;
   height: 22px;
 }
-.ex-inp:focus { outline: none; border-color: var(--focus); }
+.ex-inp:focus {
+  outline: none;
+  border-color: var(--focus);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--focus) 35%, transparent);
+}
 
 .usd-eq {
   font-size: 11px; font-family: 'JetBrains Mono', monospace; font-weight: 600;
@@ -3838,6 +3934,11 @@ tr.add-row td { padding: 0; border: none; }
     transition: color 0.15s;
     padding: 6px 0;
     -webkit-tap-highlight-color: transparent;
+  }
+  .mobile-nav-tab:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: -3px;
+    border-radius: 8px;
   }
   .mobile-nav-tab.active {
     color: var(--accent);

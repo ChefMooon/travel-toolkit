@@ -26,15 +26,15 @@ vi.mock('@/components/Topbar', () => ({
 }));
 
 vi.mock('@/components/GroupSetup', () => ({
-  default: () => <section data-testid="party-content">Party Content</section>,
+  default: () => <section data-testid="party-content"><h2 id="party-heading">Travelling Party</h2></section>,
 }));
 
 vi.mock('@/components/CostLedger', () => ({
-  default: () => <section data-testid="costs-content">Costs Content</section>,
+  default: () => <section data-testid="costs-content"><h2 id="cost-ledger-heading">Cost Ledger</h2></section>,
 }));
 
 vi.mock('@/components/CostSummary', () => ({
-  default: () => <section data-testid="summary-content">Summary Content</section>,
+  default: () => <section data-testid="summary-content"><h2 id="cost-summary-heading">Cost Summary</h2></section>,
 }));
 
 describe('Responsive behavior', () => {
@@ -49,11 +49,13 @@ describe('Responsive behavior', () => {
     const main = container.querySelector('main.main');
     expect(main).toHaveAttribute('data-mobile-tab', 'costs');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Party' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Party' }));
     expect(main).toHaveAttribute('data-mobile-tab', 'party');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Summary' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'Summary' }));
     expect(main).toHaveAttribute('data-mobile-tab', 'summary');
+    expect(screen.getByRole('tabpanel', { name: 'Summary' })).toHaveAttribute('id', 'trip-panel-summary');
+    expect(screen.getByRole('heading', { name: 'Trip Cost', level: 1 })).toBeInTheDocument();
   });
 
   it('FE-RSP-002 sets mobile viewport state and keeps mobile nav available', () => {
@@ -81,5 +83,7 @@ describe('Responsive behavior', () => {
     const main = container.querySelector('main.main');
     expect(main).toHaveAttribute('data-viewport', 'desktop');
     expect(screen.queryByRole('navigation', { name: 'Main navigation' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('tabpanel')).not.toBeInTheDocument();
+    expect(screen.getByRole('region', { name: 'Cost Ledger' })).toBeInTheDocument();
   });
 });

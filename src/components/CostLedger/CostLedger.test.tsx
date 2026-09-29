@@ -231,6 +231,15 @@ describe('CostLedger', () => {
     expect(rows[1]).toHaveTextContent('Second');
   });
 
+  it('names the ledger heading and all action column headers', () => {
+    render(<CostLedger />);
+
+    expect(screen.getByRole('heading', { name: 'Cost Ledger', level: 2 })).toBeInTheDocument();
+    for (const name of ['Reorder cost', 'Select cost', 'Actions']) {
+      expect(screen.getByRole('columnheader', { name })).toHaveAttribute('scope', 'col');
+    }
+  });
+
   it('FE-LED-002 adds a new cost via add flow', () => {
     render(<CostLedger />);
 

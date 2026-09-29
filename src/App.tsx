@@ -7,6 +7,17 @@ import MobileNav from '@/components/MobileNav';
 type MobileTab = 'party' | 'costs' | 'summary';
 type ViewportSize = 'mobile' | 'tablet' | 'desktop';
 
+const tabIds: Record<MobileTab, string> = {
+  party: 'trip-tab-party',
+  costs: 'trip-tab-costs',
+  summary: 'trip-tab-summary',
+};
+const panelIds: Record<MobileTab, string> = {
+  party: 'trip-panel-party',
+  costs: 'trip-panel-costs',
+  summary: 'trip-panel-summary',
+};
+
 function getViewportSize(width: number): ViewportSize {
   if (width <= 479) return 'mobile';
   if (width <= 767) return 'tablet';
@@ -31,20 +42,41 @@ export default function App() {
     };
   }, []);
 
+  const showMobileTabs = viewportSize !== 'desktop';
+
   return (
     <>
       <main className="main" data-mobile-tab={mobileTab} data-viewport={viewportSize}>
-        <div data-section="party">
+        <h1 className="sr-only">Trip Cost</h1>
+        <section
+          id={panelIds.party}
+          data-section="party"
+          role={showMobileTabs ? 'tabpanel' : undefined}
+          aria-labelledby={showMobileTabs ? tabIds.party : 'party-heading'}
+          tabIndex={showMobileTabs ? 0 : undefined}
+        >
           <GroupSetup />
-        </div>
-        <div data-section="costs">
+        </section>
+        <section
+          id={panelIds.costs}
+          data-section="costs"
+          role={showMobileTabs ? 'tabpanel' : undefined}
+          aria-labelledby={showMobileTabs ? tabIds.costs : 'cost-ledger-heading'}
+          tabIndex={showMobileTabs ? 0 : undefined}
+        >
           <CostLedger />
-        </div>
-        <div data-section="summary">
+        </section>
+        <section
+          id={panelIds.summary}
+          data-section="summary"
+          role={showMobileTabs ? 'tabpanel' : undefined}
+          aria-labelledby={showMobileTabs ? tabIds.summary : 'cost-summary-heading'}
+          tabIndex={showMobileTabs ? 0 : undefined}
+        >
           <CostSummary />
-        </div>
+        </section>
       </main>
-      {viewportSize !== 'desktop' ? <MobileNav activeTab={mobileTab} onChange={setMobileTab} /> : null}
+      {showMobileTabs ? <MobileNav activeTab={mobileTab} onChange={setMobileTab} /> : null}
     </>
   );
 }

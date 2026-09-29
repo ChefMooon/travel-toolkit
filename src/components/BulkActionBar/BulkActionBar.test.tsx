@@ -55,7 +55,7 @@ describe('BulkActionBar', () => {
       />
     );
 
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'EUR' } });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Bulk currency:' }), { target: { value: 'EUR' } });
 
     expect(onBulkCurrencyChange).toHaveBeenCalledWith('EUR');
   });

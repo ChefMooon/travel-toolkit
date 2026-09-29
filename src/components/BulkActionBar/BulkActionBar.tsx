@@ -24,8 +24,9 @@ export default function BulkActionBar({
   return (
     <div className="bulk-bar">
       <span className="bulk-count">{selectedCount} selected</span>
-      <span className="bulk-label">Bulk currency:</span>
+      <label className="bulk-label" htmlFor="bulk-currency-select">Bulk currency:</label>
       <select
+        id="bulk-currency-select"
         className="bulk-sel"
         value={bulkCurrency}
         onChange={(e) => onBulkCurrencyChange(e.target.value)}
@@ -34,15 +35,15 @@ export default function BulkActionBar({
           <option key={c} value={c}>{c}</option>
         ))}
       </select>
-      <button className="bulk-apply" onClick={() => onApply(bulkCurrency)}>
+      <button type="button" className="bulk-apply" onClick={() => onApply(bulkCurrency)}>
         Apply
       </button>
       <div className="bulk-bar-actions">
-        <button className="bulk-delete" onClick={onDeleteSelected}>
+        <button type="button" className="bulk-delete" onClick={onDeleteSelected}>
           <Trash2 size={13} aria-hidden="true" />
           <span>Delete Selected</span>
         </button>
-        <button className="bulk-clear" onClick={onClear}>✕ Clear</button>
+        <button type="button" className="bulk-clear" onClick={onClear}>✕ Clear</button>
       </div>
     </div>
   );

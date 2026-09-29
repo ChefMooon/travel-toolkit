@@ -9,10 +9,12 @@ export default function RegionSelector() {
   return (
     <div className="card" style={{ marginBottom: '12px' }}>
       <div className="card-header">
-        <span className="card-title">Region</span>
+        <h2 id="region-heading" className="card-title">Region</h2>
       </div>
       <div style={{ padding: '12px 16px' }}>
+        <label htmlFor="trip-region-select" className="sr-only">Region</label>
         <select
+          id="trip-region-select"
           value={region}
           onChange={(e) => setRegion(e.target.value as Region)}
           style={{

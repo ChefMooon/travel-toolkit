@@ -2,7 +2,7 @@
 /// <reference types="@testing-library/jest-dom" />
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { render, fireEvent } from '@testing-library/react';
+import { act, render, fireEvent, screen } from '@testing-library/react';
 import GroupSetup from './GroupSetup';
 import type { Couple } from '../../store/types';
 import { COUPLE_ICONS } from '../../store/types';
@@ -154,8 +154,9 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
       // Icon should be keyboard-accessible button-like control
       const iconButton = iconButtons[0];
       if (iconButton) {
-        expect(iconButton).toHaveAttribute('role', 'button');
-        expect(iconButton).toHaveAttribute('tabIndex', '0');
+        expect(iconButton.tagName).toBe('BUTTON');
+        expect(iconButton).toHaveAttribute('type', 'button');
+        expect(iconButton).toHaveAttribute('aria-label', 'Change icon for Alice & Bob');
       }
     });
 
@@ -291,8 +292,9 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
       // Dot should be keyboard-accessible button-like control
       const dotButton = dotButtons[0];
       if (dotButton) {
-        expect(dotButton).toHaveAttribute('role', 'button');
-        expect(dotButton).toHaveAttribute('tabIndex', '0');
+        expect(dotButton.tagName).toBe('BUTTON');
+        expect(dotButton).toHaveAttribute('type', 'button');
+        expect(dotButton).toHaveAttribute('aria-label', 'Change color for Alice & Bob');
       }
     });
 
@@ -468,7 +470,7 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
   });
 
   describe('Visual Alignment', () => {
-    it('should only make the grip icon draggable for reordering', () => {
+    it('uses a keyboard-focusable dnd-kit grip with the existing reorder tooltip', () => {
       const mockStore = createMockStore();
       (useTripStore as any).mockImplementation((selector: any) =>
         selector(mockStore)
@@ -482,10 +484,89 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
       expect(firstGroup).toBeTruthy();
       expect(firstGrip).toBeTruthy();
       expect(firstGroup).not.toHaveAttribute('draggable');
-      expect(firstGrip).toHaveAttribute('draggable', 'true');
+      expect(firstGrip).toHaveAttribute('type', 'button');
+      expect(firstGrip).toHaveAttribute('aria-label', 'Reorder Alice & Bob');
+      expect(firstGrip).toHaveAttribute('tabindex', '0');
+      expect(firstGrip).not.toHaveAttribute('draggable');
       expect(firstGrip).not.toHaveAttribute('title');
       fireEvent.focus(firstGrip as Element);
       expect(document.querySelector('[role="tooltip"]')).toHaveTextContent('Drag to reorder group');
+    });
+
+    it('reorders groups using the keyboard drag sensor', async () => {
+      const mockStore = createMockStore();
+      (useTripStore as any).mockImplementation((selector: any) => selector(mockStore));
+      vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
+        const groups = Array.from(document.querySelectorAll('.group-group'));
+        const index = groups.indexOf(this);
+        return new DOMRect(0, Math.max(index, 0) * 100, 240, 40);
+      });
+
+      render(<GroupSetup />);
+      const firstGrip = screen.getByRole('button', { name: 'Reorder Alice & Bob' });
+      act(() => firstGrip.focus());
+
+      await act(async () => {
+        fireEvent.keyDown(firstGrip, { key: ' ', code: 'Space', keyCode: 32 });
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+      act(() => fireEvent.keyDown(firstGrip, { key: 'ArrowDown', code: 'ArrowDown', keyCode: 40 }));
+      act(() => fireEvent.keyDown(firstGrip, { key: ' ', code: 'Space', keyCode: 32 }));
+
+      expect(mockStore.reorderCouples).toHaveBeenCalledWith(['couple2', 'couple1']);
+      vi.restoreAllMocks();
+    });
+
+    it('exposes the Add Child picker disclosure state and controlled region', () => {
+      const mockStore = createMockStore();
+      (useTripStore as any).mockImplementation((selector: any) => selector(mockStore));
+
+      render(<GroupSetup />);
+
+      const trigger = screen.getByRole('button', { name: 'Add Child' });
+      const picker = document.getElementById('group-child-picker');
+      expect(trigger).toHaveAttribute('aria-expanded', 'false');
+      expect(trigger).toHaveAttribute('aria-controls', 'group-child-picker');
+      expect(picker).toBeInTheDocument();
+
+      fireEvent.click(trigger);
+      expect(trigger).toHaveAttribute('aria-expanded', 'true');
+      expect(picker).not.toHaveAttribute('hidden');
+    });
+
+    it('renders the party heading and native named group actions', () => {
+      const mockStore = createMockStore();
+      (useTripStore as any).mockImplementation((selector: any) => selector(mockStore));
+
+      render(<GroupSetup />);
+
+      expect(screen.getByRole('heading', { name: 'Travelling Party', level: 2 })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Change icon for Alice & Bob' })).toHaveAttribute('type', 'button');
+      expect(screen.getByRole('button', { name: 'Change color for Alice & Bob' })).toHaveAttribute('type', 'button');
+    });
+
+    it('adds supplemental focus tooltips to icon and removal actions', () => {
+      const mockStore = createMockStore();
+      (mockStore as any).nonPayingTravellers = [
+        { id: 'child1', coupleId: 'couple1', label: 'Casey' },
+      ];
+      (useTripStore as any).mockImplementation((selector: any) => selector(mockStore));
+
+      render(<GroupSetup />);
+
+      const iconButton = screen.getByRole('button', { name: 'Change icon for Alice & Bob' });
+      fireEvent.focus(iconButton);
+      expect(screen.getByRole('tooltip')).toHaveTextContent('Choose a different group icon');
+      fireEvent.blur(iconButton);
+
+      const removeGroupButton = screen.getByRole('button', { name: 'Remove Alice & Bob' });
+      fireEvent.focus(removeGroupButton);
+      expect(screen.getByRole('tooltip')).toHaveTextContent('Remove this group');
+      fireEvent.blur(removeGroupButton);
+
+      const removeChildButton = screen.getByRole('button', { name: 'Remove Casey' });
+      fireEvent.focus(removeChildButton);
+      expect(screen.getByRole('tooltip')).toHaveTextContent('Remove this child from the group');
     });
 
     it('should have proper spacing between icon and dot', () => {
@@ -531,8 +612,8 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
       // Icon should be visible and keyboard-accessible
       const iconButton = iconButtons[0] as Element;
       expect(iconButton).toBeVisible();
-      expect(iconButton).toHaveAttribute('role', 'button');
-      expect(iconButton).toHaveAttribute('tabIndex', '0');
+      expect(iconButton.tagName).toBe('BUTTON');
+      expect(iconButton).toHaveAttribute('type', 'button');
     });
   });
 

@@ -57,6 +57,17 @@ const renderEditRow = (props?: Partial<React.ComponentProps<typeof EditRow>>) =>
 };
 
 describe('EditRow', () => {
+  it('programmatically labels every form control and names the split group', () => {
+    renderEditRow();
+
+    expect(screen.getByLabelText('Name')).toBeInTheDocument();
+    expect(screen.getByLabelText('Currency')).toBeInTheDocument();
+    expect(screen.getByLabelText('Amount')).toBeInTheDocument();
+    expect(screen.getByRole('group', { name: 'Split' })).toBeInTheDocument();
+    expect(screen.getByLabelText('Type')).toBeInTheDocument();
+    expect(screen.getByLabelText('Custom markup percentage')).toBeInTheDocument();
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
 
@@ -224,7 +235,10 @@ describe('EditRow', () => {
 
   it('FE-EDT-008 calls onCancel when cancel button is clicked', () => {
     const { onCancel } = renderEditRow();
-    fireEvent.click(screen.getByRole('button', { name: '✕' }));
+    const cancelButton = screen.getByRole('button', { name: 'Cancel editing cost' });
+    fireEvent.focus(cancelButton);
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Discard changes and close this editor');
+    fireEvent.click(cancelButton);
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
 

@@ -4,6 +4,7 @@ import { formatCurrency } from '@/lib/calculations';
 import { CURRENCY_FLAGS, COUPLE_ICONS, getColorThemeValue, CURRENCY_SYMBOLS } from '@/store/types';
 import IconChoiceModal from '../IconChoiceModal';
 import ColorChoiceModal from '../ColorChoiceModal';
+import Tooltip from '@/components/Tooltip';
 import type { CoupleSummary } from '@/store/types';
 
 interface CoupleCardProps {
@@ -59,32 +60,34 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
         style={{ borderColor: cardBorderColor }}
       >
         <div className="s-head" style={{ background: colorDotColor }}>
-          <div
-            className="icon-with-tint"
-            onClick={() => setIconModalOpen(true)}
-            style={{ position: 'relative', zIndex: 10, '--group-color': colorDotColor } as React.CSSProperties}
-            role="button"
-            tabIndex={0}
-            aria-label={`Change icon for ${summary.coupleName}`}
-            data-testid="s-head-icon"
-          >
-            <span className="s-head-icon">{icon}</span>
-          </div>
-          <div
-            className="color-dot-interactive"
-            onClick={() => setColorModalOpen(true)}
-            style={{
-              position: 'relative',
-              zIndex: 10,
-              '--group-color': colorDotColor,
-            } as React.CSSProperties}
-            role="button"
-            tabIndex={0}
-            aria-label={`Change color for ${summary.coupleName}`}
-            data-testid="color-dot"
-          >
-            ●
-          </div>
+          <Tooltip content="Choose a different group icon">
+            <button
+              type="button"
+              className="icon-with-tint"
+              onClick={() => setIconModalOpen(true)}
+              style={{ position: 'relative', zIndex: 10, '--group-color': colorDotColor } as React.CSSProperties}
+              aria-label={`Change icon for ${summary.coupleName}`}
+              data-testid="s-head-icon"
+            >
+              <span className="s-head-icon">{icon}</span>
+            </button>
+          </Tooltip>
+          <Tooltip content="Change the group's color">
+            <button
+              type="button"
+              className="color-dot-interactive"
+              onClick={() => setColorModalOpen(true)}
+              style={{
+                position: 'relative',
+                zIndex: 10,
+                '--group-color': colorDotColor,
+              } as React.CSSProperties}
+              aria-label={`Change color for ${summary.coupleName}`}
+              data-testid="color-dot"
+            >
+              ●
+            </button>
+          </Tooltip>
           <span className="s-head-name">{summary.coupleName}</span>
         </div>
         <div className="s-body">
@@ -93,6 +96,7 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
             const flag = CURRENCY_FLAGS[curr.currency] ?? '🏳️';
             const isUSD = curr.currency === 'USD';
             const isEditing = editingCurrency === curr.currency;
+            const rateInputId = `exchange-rate-${summary.coupleId}-${curr.currency}`;
 
             return (
               <div key={curr.currency}>
@@ -136,7 +140,11 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
                   {!isUSD && isEditing && (
                     <div className="ex-row">
                       <span className="ex-lbl">1 {curr.currency} = __ USD</span>
+                      <label htmlFor={rateInputId} className="sr-only">
+                        Exchange rate for {curr.currency} in US dollars
+                      </label>
                       <input
+                        id={rateInputId}
                         className="ex-inp"
                         type="number"
                         step="0.0001"
@@ -179,7 +187,11 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
                         Reset to live
                       </button>
                       <span className="ex-lock" aria-label="rate overridden">🔒</span>
+                      <label htmlFor={rateInputId} className="sr-only">
+                        Exchange rate for {curr.currency} in US dollars
+                      </label>
                       <input
+                        id={rateInputId}
                         className="ex-inp"
                         type="number"
                         step="0.0001"
@@ -199,17 +211,19 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
                   {!isUSD && !isEditing && !rate?.isOverridden && !!rate && (
                     <div className="ex-row">
                       <span className="ex-lbl">1 {curr.currency} = {rate.rateToUSD.toFixed(4)} USD</span>
-                      <button
-                        type="button"
-                        className="ex-edit-btn"
-                        aria-label={`Edit rate for ${curr.currency}`}
-                        onClick={() => {
-                          setEditingCurrency(curr.currency);
-                          setEditValue(rate.rateToUSD.toFixed(4));
-                        }}
-                      >
-                        ✏
-                      </button>
+                      <Tooltip content="Edit the exchange rate">
+                        <button
+                          type="button"
+                          className="ex-edit-btn"
+                          aria-label={`Edit rate for ${curr.currency}`}
+                          onClick={() => {
+                            setEditingCurrency(curr.currency);
+                            setEditValue(rate.rateToUSD.toFixed(4));
+                          }}
+                        >
+                          ✏
+                        </button>
+                      </Tooltip>
                     </div>
                   )}
 
@@ -217,17 +231,19 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
                   {!isUSD && !isEditing && !rate && (
                     <div className="ex-row">
                       <span className="ex-lbl">1 {curr.currency} = — USD</span>
-                      <button
-                        type="button"
-                        className="ex-edit-btn"
-                        aria-label={`Add rate for ${curr.currency}`}
-                        onClick={() => {
-                          setEditingCurrency(curr.currency);
-                          setEditValue('');
-                        }}
-                      >
-                        ✏
-                      </button>
+                      <Tooltip content="Add an exchange rate">
+                        <button
+                          type="button"
+                          className="ex-edit-btn"
+                          aria-label={`Add rate for ${curr.currency}`}
+                          onClick={() => {
+                            setEditingCurrency(curr.currency);
+                            setEditValue('');
+                          }}
+                        >
+                          ✏
+                        </button>
+                      </Tooltip>
                     </div>
                   )}
 

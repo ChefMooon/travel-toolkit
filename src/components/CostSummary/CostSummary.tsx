@@ -54,7 +54,7 @@ export default function CostSummary() {
     <div className="card">
       <div className="card-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <span className="card-title">Cost Summary</span>
+          <h2 id="cost-summary-heading" className="card-title">Cost Summary</h2>
           <span aria-hidden="true" style={{ color: 'var(--text-3)', fontWeight: 700 }}>
             ·
           </span>
@@ -147,39 +147,43 @@ export default function CostSummary() {
             data-testid="rates-disclaimer"
             style={{ borderTop: '1px solid var(--border)', marginTop: 12, paddingTop: 10 }}
           >
-            <button
-              type="button"
-              onClick={() => setDetailsOpen((o) => !o)}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 5,
-                background: 'none',
-                border: 'none',
-                padding: 0,
-                cursor: 'pointer',
-                fontSize: 12,
-                color: 'var(--text-2)',
-              }}
-            >
-              <span style={{ fontSize: 10 }}>{detailsOpen ? '▾' : '▸'}</span>
-              Rates sourced from{' '}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 5, flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                aria-expanded={detailsOpen}
+                aria-controls="rates-details"
+                onClick={() => setDetailsOpen((o) => !o)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 5,
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  cursor: 'pointer',
+                  fontSize: 12,
+                  color: 'var(--text-2)',
+                }}
+              >
+                <span aria-hidden="true" style={{ fontSize: 10 }}>{detailsOpen ? '▾' : '▸'}</span>
+                Rates sourced from
+              </button>
               <a
                 href="https://frankfurter.dev"
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={(e) => e.stopPropagation()}
                 style={{
                   color: 'var(--text)',
                   fontWeight: 600,
+                  fontSize: 12,
                   textDecoration: 'none',
                   borderBottom: '1px solid var(--border)',
                 }}
               >
                 Frankfurter
               </a>
-            </button>
-            {detailsOpen && (
+            </div>
+            <div id="rates-details" hidden={!detailsOpen}>
               <p style={{ color: 'var(--text-2)', fontSize: 12, margin: '6px 0 0 14px' }}>
                 Frankfurter aggregates data from central banks and official institutions. Rates
                 update on business days — the ECB publishes reference rates around 16:00 CET.
@@ -187,7 +191,7 @@ export default function CostSummary() {
                 Rate date: {formatRateDate(tripRatesQuery.data.updatedAt)} · Retrieved{' '}
                 {formatFetchTime(tripRatesQuery.data.fetchedAt)}.
               </p>
-            )}
+            </div>
           </div>
         )}
       </div>

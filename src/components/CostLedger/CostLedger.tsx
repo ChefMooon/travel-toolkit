@@ -176,7 +176,7 @@ export default function CostLedger() {
       <div className="card" style={{ marginTop: 16 }}>
         <div className="card-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <span className="card-title">Cost Ledger</span>
+            <h2 id="cost-ledger-heading" className="card-title">Cost Ledger</h2>
             <span aria-hidden="true" style={{ color: 'var(--text-3)', fontWeight: 700 }}>·</span>
             <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 700 }}>
               {costs.length} {costs.length === 1 ? 'entry' : 'entries'}
@@ -223,17 +223,17 @@ export default function CostLedger() {
           <table className="ledger">
             <thead>
               <tr>
-                <th style={{ width: 26 }}></th>
-                <th style={{ width: 26 }}></th>
-                <th>Name</th>
-                <th style={{ width: 60 }}>Cur.</th>
-                <th style={{ width: 92 }}>Amount</th>
-                <th style={{ width: 96 }}>Markup</th>
-                <th style={{ width: 92 }}>Split</th>
-                <th style={{ width: 60 }}>Who</th>
-                <th style={{ width: 48 }}>Type</th>
-                <th style={{ width: 96 }}>Total</th>
-                <th style={{ width: 58 }}></th>
+                  <th scope="col" style={{ width: 26 }}><span className="sr-only">Reorder cost</span></th>
+                  <th scope="col" style={{ width: 26 }}><span className="sr-only">Select cost</span></th>
+                  <th scope="col">Name</th>
+                  <th scope="col" style={{ width: 60 }}>Cur.</th>
+                  <th scope="col" style={{ width: 92 }}>Amount</th>
+                  <th scope="col" style={{ width: 96 }}>Markup</th>
+                  <th scope="col" style={{ width: 92 }}>Split</th>
+                  <th scope="col" style={{ width: 60 }}>Who</th>
+                  <th scope="col" style={{ width: 48 }}>Type</th>
+                  <th scope="col" style={{ width: 96 }}>Total</th>
+                  <th scope="col" style={{ width: 58 }}><span className="sr-only">Actions</span></th>
               </tr>
             </thead>
             <tbody>

@@ -99,6 +99,21 @@ describe('CoupleCard', () => {
     });
   });
 
+  it('exposes named keyboard-operable icon and color buttons with tooltips', () => {
+    render(<CoupleCard summary={mockSummary} />);
+
+    const iconButton = screen.getByRole('button', { name: 'Change icon for Test Couple' });
+    const colorButton = screen.getByRole('button', { name: 'Change color for Test Couple' });
+    expect(iconButton).toHaveAttribute('type', 'button');
+    expect(colorButton).toHaveAttribute('type', 'button');
+
+    fireEvent.focus(iconButton);
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Choose a different group icon');
+    fireEvent.blur(iconButton);
+    fireEvent.focus(colorButton);
+    expect(screen.getByRole('tooltip')).toHaveTextContent("Change the group's color");
+  });
+
   it('should confirm icon selection and update store', async () => {
     render(<CoupleCard summary={mockSummary} />);
     
@@ -244,8 +259,9 @@ describe('CoupleCard', () => {
     render(<CoupleCard summary={mockSummary} />);
     const colorDot = screen.getByTestId('color-dot');
     
-    expect(colorDot).toHaveAttribute('role', 'button');
-    expect(colorDot).toHaveAttribute('tabIndex', '0');
+    expect(colorDot.tagName).toBe('BUTTON');
+    expect(colorDot).toHaveAttribute('type', 'button');
+    expect(colorDot).toHaveAttribute('aria-label', 'Change color for Test Couple');
   });
 
   it('should render all currency breakdown sections', () => {
@@ -366,6 +382,8 @@ describe('CoupleCard', () => {
       render(<CoupleCard summary={eurSummary} />);
       expect(screen.getByText('1 EUR = — USD')).toBeInTheDocument();
       expect(screen.getByLabelText('Add rate for EUR')).toBeInTheDocument();
+      fireEvent.focus(screen.getByLabelText('Add rate for EUR'));
+      expect(screen.getByRole('tooltip')).toHaveTextContent('Add an exchange rate');
     });
 
     it('auto-state: shows read-only rate text and pencil when rate exists and not overridden', () => {
@@ -380,6 +398,7 @@ describe('CoupleCard', () => {
       render(<CoupleCard summary={eurSummary} />);
       expect(screen.getByLabelText('rate overridden')).toBeInTheDocument();
       expect(screen.getByText('Reset to live')).toBeInTheDocument();
+      expect(screen.getByLabelText('Exchange rate for EUR in US dollars')).toHaveValue(1.5);
     });
 
     it('override-state: Reset to live calls clearExchangeRateOverride', () => {
@@ -395,7 +414,7 @@ describe('CoupleCard', () => {
       render(<CoupleCard summary={eurSummary} />);
       fireEvent.click(screen.getByLabelText('Edit rate for EUR'));
       await waitFor(() => {
-        expect(screen.getByPlaceholderText('0.0000')).toBeInTheDocument();
+        expect(screen.getByLabelText('Exchange rate for EUR in US dollars')).toBeInTheDocument();
       });
     });
 
@@ -403,8 +422,8 @@ describe('CoupleCard', () => {
       useTripStore.getState().hydrateExchangeRates({ EUR: 0.91 });
       render(<CoupleCard summary={eurSummary} />);
       fireEvent.click(screen.getByLabelText('Edit rate for EUR'));
-      await waitFor(() => expect(screen.getByPlaceholderText('0.0000')).toBeInTheDocument());
-      const input = screen.getByPlaceholderText('0.0000');
+      await waitFor(() => expect(screen.getByLabelText('Exchange rate for EUR in US dollars')).toBeInTheDocument());
+      const input = screen.getByLabelText('Exchange rate for EUR in US dollars');
       fireEvent.change(input, { target: { value: '1.25' } });
       fireEvent.blur(input);
       await waitFor(() => {

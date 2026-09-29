@@ -1,13 +1,169 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useTripStore } from '@/store/tripStore';
-import type { Couple } from '@/store/types';
 import { Plus, X } from 'lucide-react';
 import { COUPLE_ICONS, getColorThemeValue, MAX_GROUPS, MAX_KIDS_PER_GROUP, MAX_GROUP_NAME_LENGTH } from '@/store/types';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from '@dnd-kit/sortable';
+import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
+import { CSS } from '@dnd-kit/utilities';
 import Modal from '../Modal';
 import IconChoiceModal from '../IconChoiceModal';
 import ColorChoiceModal from '../ColorChoiceModal';
 import RegionSelector from '../RegionSelector';
 import Tooltip from '@/components/Tooltip';
+
+interface SortableGroupProps {
+  couple: { id: string; name: string; iconIndex: number; colorIndex: number };
+  children: { id: string; label: string; coupleId: string }[];
+  theme: 'light' | 'dark';
+  onRename: (id: string, name: string) => void;
+  onChangeIcon: (id: string) => void;
+  onChangeColor: (id: string) => void;
+  onRemove: (id: string) => void;
+  onRemoveChild: (id: string) => void;
+}
+
+function SortableGroup({
+  couple,
+  children,
+  theme,
+  onRename,
+  onChangeIcon,
+  onChangeColor,
+  onRemove,
+  onRemoveChild,
+}: SortableGroupProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: couple.id });
+  const coupleColor = getColorThemeValue(couple.colorIndex, theme);
+
+  return (
+    <div
+      ref={setNodeRef}
+      className="group-group"
+      style={{
+        opacity: isDragging ? 0.5 : 1,
+        transform: CSS.Transform.toString(transform),
+        transition,
+      }}
+    >
+      <div className="group-group-row">
+        <div
+          className="chip"
+          style={{
+            background: `color-mix(in srgb, ${coupleColor} 18%, transparent)`,
+            borderColor: `color-mix(in srgb, ${coupleColor} 30%, white)`,
+            color: coupleColor,
+          }}
+        >
+          <Tooltip content="Drag to reorder group">
+            <button
+              type="button"
+              className="chip-grip"
+              {...attributes}
+              {...listeners}
+              aria-label={`Reorder ${couple.name}`}
+            >
+              ⠿
+            </button>
+          </Tooltip>
+          <Tooltip content="Choose a different group icon">
+            <button
+              type="button"
+              className="icon-interactive"
+              onClick={() => onChangeIcon(couple.id)}
+              style={{ position: 'relative', zIndex: 10 }}
+              aria-label={`Change icon for ${couple.name}`}
+            >
+              <span className="chip-icon">{COUPLE_ICONS[couple.iconIndex]?.symbol}</span>
+            </button>
+          </Tooltip>
+          <Tooltip content="Change the group's color">
+            <button
+              type="button"
+              className="color-dot-interactive"
+              onClick={() => onChangeColor(couple.id)}
+              style={{
+                position: 'relative',
+                zIndex: 10,
+                '--group-color': coupleColor,
+              } as React.CSSProperties}
+              aria-label={`Change color for ${couple.name}`}
+            >
+              <span className="chip-dot" />
+            </button>
+          </Tooltip>
+          <input
+            className="group-name-input"
+            value={couple.name}
+            onChange={(e) => onRename(couple.id, e.target.value)}
+            style={{ color: 'inherit' }}
+            maxLength={MAX_GROUP_NAME_LENGTH}
+            aria-label={`Rename ${couple.name}`}
+          />
+          <Tooltip content="Remove this group">
+            <button
+              type="button"
+              className="chip-x"
+              onClick={() => onRemove(couple.id)}
+              aria-label={`Remove ${couple.name}`}
+            >
+              <X size={12} aria-hidden="true" />
+            </button>
+          </Tooltip>
+        </div>
+      </div>
+      {children.length > 0 && (
+        <div className="group-group-children">
+          <span className="child-connector" />
+          {children.map((child) => (
+            <div
+              key={child.id}
+              className="chip chip-child"
+              style={{
+                background: `color-mix(in srgb, ${coupleColor} 18%, transparent)`,
+                borderColor: `color-mix(in srgb, ${coupleColor} 30%, white)`,
+                color: coupleColor,
+              }}
+            >
+              👶 {child.label}
+              <Tooltip content="Remove this child from the group">
+                <button
+                  type="button"
+                  className="chip-x"
+                  onClick={() => onRemoveChild(child.id)}
+                  aria-label={`Remove ${child.label}`}
+                >
+                  <X size={10} aria-hidden="true" />
+                </button>
+              </Tooltip>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function GroupSetup() {
   const couples = useTripStore((s) => s.couples);
@@ -21,10 +177,13 @@ export default function GroupSetup() {
   const updateCoupleColor = useTripStore((s) => s.updateCoupleColor);
   const addNonPayingTraveller = useTripStore((s) => s.addNonPayingTraveller);
   const removeNonPayingTraveller = useTripStore((s) => s.removeNonPayingTraveller);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   const [showChildPicker, setShowChildPicker] = useState(false);
   const [removingCouple, setRemovingCouple] = useState<string | null>(null);
-  const [draggedId, setDraggedId] = useState<string | null>(null);
   const [iconModalOpen, setIconModalOpen] = useState(false);
   const [colorModalOpen, setColorModalOpen] = useState(false);
   const [selectedCoupleId, setSelectedCoupleId] = useState<string | null>(null);
@@ -49,41 +208,12 @@ export default function GroupSetup() {
     [addNonPayingTraveller]
   );
 
-  const handleDragStart = (coupleId: string) => {
-    setDraggedId(coupleId);
-  };
-
-  const handleDragEnd = () => {
-    setDraggedId(null);
-  };
-
-  const handleDragOver = (e: React.DragEvent) => {
-    if (e.dataTransfer) {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-    }
-  };
-
-  const handleDrop = (targetCoupleId: string) => {
-    if (!draggedId || draggedId === targetCoupleId) {
-      setDraggedId(null);
-      return;
-    }
-
-    const draggedIndex = couples.findIndex((c) => c.id === draggedId);
-    const targetIndex = couples.findIndex((c) => c.id === targetCoupleId);
-
-    if (draggedIndex === -1 || targetIndex === -1) {
-      setDraggedId(null);
-      return;
-    }
-
-    const newOrder = [...couples];
-    const [movedCouple] = newOrder.splice(draggedIndex, 1) as [Couple];
-    newOrder.splice(targetIndex, 0, movedCouple);
-
-    reorderCouples(newOrder.map((c) => c.id));
-    setDraggedId(null);
+  const handleDragEnd = ({ active, over }: DragEndEvent) => {
+    if (!over || active.id === over.id) return;
+    const oldIndex = couples.findIndex((couple) => couple.id === String(active.id));
+    const newIndex = couples.findIndex((couple) => couple.id === String(over.id));
+    if (oldIndex === -1 || newIndex === -1) return;
+    reorderCouples(arrayMove(couples, oldIndex, newIndex).map((couple) => couple.id));
   };
 
   const coupleToRemove = couples.find((c) => c.id === removingCouple);
@@ -93,21 +223,29 @@ export default function GroupSetup() {
       <RegionSelector />
       <div className="card">
         <div className="card-header">
-          <span className="card-title">Travelling Party</span>
+          <h2 id="party-heading" className="card-title">Travelling Party</h2>
           <div className="add-btns">
-            <button className="btn-add" onClick={() => addCouple()} disabled={couples.length >= MAX_GROUPS}>
+            <button type="button" className="btn-add" onClick={() => addCouple()} disabled={couples.length >= MAX_GROUPS}>
               <Plus size={12} /> Add Group
             </button>
             <div style={{ position: 'relative' }} ref={pickerRef}>
               <button
+                type="button"
                 className="btn-add"
                 onClick={() => setShowChildPicker(!showChildPicker)}
                 disabled={couples.length === 0}
+                aria-expanded={showChildPicker && couples.length > 0}
+                aria-controls="group-child-picker"
               >
                 <Plus size={12} /> Add Child
               </button>
-              {showChildPicker && couples.length > 0 && (
-                <div className="child-picker">
+              <div
+                id="group-child-picker"
+                className="child-picker"
+                role="group"
+                aria-label="Assign child to group"
+                hidden={!showChildPicker || couples.length === 0}
+              >
                   <div style={{ padding: '4px 14px', fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-3)' }}>
                     Assign to group:
                   </div>
@@ -116,6 +254,7 @@ export default function GroupSetup() {
                     const atKidLimit = kidsCount >= MAX_KIDS_PER_GROUP;
                     return (
                       <button
+                        type="button"
                         key={c.id}
                         className="child-picker-item"
                         onClick={() => handleAddChild(c.id)}
@@ -126,8 +265,7 @@ export default function GroupSetup() {
                       </button>
                     );
                   })}
-                </div>
-              )}
+              </div>
             </div>
           </div>
         </div>
@@ -140,123 +278,39 @@ export default function GroupSetup() {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {couples.map((couple) => {
-                const children = nonPayingTravellers.filter((t) => t.coupleId === couple.id);
-                const coupleColor = getColorThemeValue(couple.colorIndex, theme);
-                return (
-                  <div
-                    className="group-group"
-                    key={couple.id}
-                    onDragOver={handleDragOver}
-                    onDrop={() => handleDrop(couple.id)}
-                    style={{
-                      opacity: draggedId === couple.id ? 0.5 : 1,
-                      transition: 'opacity 0.2s',
-                    }}
-                  >
-                    <div className="group-group-row">
-                      <div
-                        className="chip"
-                        style={{
-                          background: `color-mix(in srgb, ${coupleColor} 18%, transparent)`,
-                          borderColor: `color-mix(in srgb, ${coupleColor} 30%, white)`,
-                          color: coupleColor,
-                        }}
-                      >
-                        <Tooltip content="Drag to reorder group">
-                          <span
-                            className="chip-grip"
-                            draggable
-                            onDragStart={() => handleDragStart(couple.id)}
-                            onDragEnd={handleDragEnd}
-                            tabIndex={0}
-                            aria-label={`Drag to reorder ${couple.name}`}
-                          >
-                            ⠿
-                          </span>
-                        </Tooltip>
-                        <div
-                          className="icon-interactive"
-                          onClick={() => {
-                            setSelectedCoupleId(couple.id);
-                            setColorModalOpen(false);
-                            setIconModalOpen(true);
-                          }}
-                          style={{ position: 'relative', zIndex: 10 }}
-                          role="button"
-                          tabIndex={0}
-                          aria-label={`Change icon for ${couple.name}`}
-                        >
-                          <span className="chip-icon">
-                            {COUPLE_ICONS[couple.iconIndex]?.symbol}
-                          </span>
-                        </div>
-                        <div
-                          className="color-dot-interactive"
-                          onClick={() => {
-                            setSelectedCoupleId(couple.id);
-                            setIconModalOpen(false);
-                            setColorModalOpen(true);
-                          }}
-                          style={{
-                            position: 'relative',
-                            zIndex: 10,
-                            '--group-color': coupleColor
-                          } as React.CSSProperties}
-                          role="button"
-                          tabIndex={0}
-                          aria-label={`Change color for ${couple.name}`}
-                        >
-                          <span
-                            className="chip-dot"
-                            style={{ backgroundColor: coupleColor }}
-                          ></span>
-                        </div>
-                        <input
-                          className="group-name-input"
-                          value={couple.name}
-                          onChange={(e) => renameCouple(couple.id, e.target.value)}
-                          style={{ color: 'inherit' }}
-                          maxLength={MAX_GROUP_NAME_LENGTH}
-                          aria-label={`Rename ${couple.name}`}
-                        />
-                        <button
-                          className="chip-x"
-                          onClick={() => setRemovingCouple(couple.id)}
-                          aria-label={`Remove ${couple.name}`}
-                        >
-                          <X size={12} />
-                        </button>
-                      </div>
-                    </div>
-                    {children.length > 0 && (
-                      <div className="group-group-children">
-                        <span className="child-connector"></span>
-                        {children.map((child) => (
-                          <div
-                            key={child.id}
-                            className="chip chip-child"
-                            style={{
-                              background: `color-mix(in srgb, ${coupleColor} 18%, transparent)`,
-                              borderColor: `color-mix(in srgb, ${coupleColor} 30%, white)`,
-                              color: coupleColor,
-                            }}
-                          >
-                            👶 {child.label}
-                            <button
-                              className="chip-x"
-                              onClick={() => removeNonPayingTraveller(child.id)}
-                              aria-label={`Remove ${child.label}`}
-                            >
-                              <X size={10} />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+                modifiers={[restrictToVerticalAxis]}
+              >
+                <SortableContext
+                  items={couples.map((couple) => couple.id)}
+                  strategy={verticalListSortingStrategy}
+                >
+                  {couples.map((couple) => (
+                    <SortableGroup
+                      key={couple.id}
+                      couple={couple}
+                      children={nonPayingTravellers.filter((child) => child.coupleId === couple.id)}
+                      theme={theme}
+                      onRename={renameCouple}
+                      onChangeIcon={(id) => {
+                        setSelectedCoupleId(id);
+                        setColorModalOpen(false);
+                        setIconModalOpen(true);
+                      }}
+                      onChangeColor={(id) => {
+                        setSelectedCoupleId(id);
+                        setIconModalOpen(false);
+                        setColorModalOpen(true);
+                      }}
+                      onRemove={setRemovingCouple}
+                      onRemoveChild={removeNonPayingTraveller}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
             </div>
           )}
         </div>
