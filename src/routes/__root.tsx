@@ -115,7 +115,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <ThemeSync />
       <AnalyticsBridge />
-      <div className="app-shell">
+      <div className={`app-shell${showFooter ? '' : ' app-shell--mobile-trip'}`}>
         <Navbar />
         <ToastViewport />
         <ConsentBanner />
