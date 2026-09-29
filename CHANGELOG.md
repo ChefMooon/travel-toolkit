@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [1.3.0] - 2026-09-29
+
+### Added
+
+- Added a Markdown-powered blog with tag-based browsing.
+- Trip summaries now show overall totals and each group's share.
+- Save-slot swapping now lets you clear a selected slot.
+
+### Changed
+
+- Clarified save status when starting a new trip.
+- Improved accessibility and contextual tooltips throughout the Trip Cost experience.
+- Improved timezone search and selection.
+
+### Fixed
+
+- Kept the consent banner visible above the mobile tabs.
+
 ## [1.2.2] - 2026-04-10
 
 ### Added

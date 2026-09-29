@@ -234,6 +234,18 @@ describe('loadBlogPosts', () => {
     );
     expect(launchPost?.content).not.toMatch(/\b(?:daily|weekly|monthly|every week|every month)\b/i);
   });
+
+  it('publishes release notes with a date-prefixed slug and only the changelog tag', () => {
+    const releasePost = blogPosts.find(
+      ({ slug }) => slug === '2026-09-29-travel-toolkit-1-3-0-release-notes'
+    );
+
+    expect(releasePost).toMatchObject({
+      slug: '2026-09-29-travel-toolkit-1-3-0-release-notes',
+      date: '2026-09-29',
+      tags: ['changelog'],
+    });
+  });
 });
 
 describe('BlogMarkdown', () => {
