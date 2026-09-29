@@ -357,7 +357,6 @@ export default function GroupSetup() {
             setRemovingCouple(null);
           }}
           onCancel={() => setRemovingCouple(null)}
-          compact
         />
       )}
     </>

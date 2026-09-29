@@ -545,6 +545,25 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
       expect(screen.getByRole('button', { name: 'Change color for Alice & Bob' })).toHaveAttribute('type', 'button');
     });
 
+    it('confirms group removal in the shared viewport-wide modal', () => {
+      const mockStore = createMockStore();
+      (useTripStore as any).mockImplementation((selector: any) => selector(mockStore));
+
+      render(<GroupSetup />);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Remove Alice & Bob' }));
+
+      const dialog = screen.getByRole('dialog', { name: 'Remove Alice & Bob?' });
+      expect(dialog).toHaveTextContent(
+        'This will remove Alice & Bob and their children from the trip. Costs assigned to them will be unassigned.'
+      );
+      expect(dialog.closest('.modal-bd')?.parentElement).toBe(document.body);
+
+      fireEvent.click(screen.getByRole('button', { name: 'Remove' }));
+
+      expect(mockStore.removeCouple).toHaveBeenCalledWith('couple1');
+    });
+
     it('adds supplemental focus tooltips to icon and removal actions', () => {
       const mockStore = createMockStore();
       (mockStore as any).nonPayingTravellers = [

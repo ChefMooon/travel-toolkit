@@ -45,9 +45,9 @@ describe('Modal', () => {
 
   it('FE-MOD-004 closes when backdrop is clicked', () => {
     const onCancel = vi.fn();
-    const { container } = render(<Modal {...baseProps} onCancel={onCancel} />);
+    render(<Modal {...baseProps} onCancel={onCancel} />);
 
-    const backdrop = container.querySelector('.modal-bd');
+    const backdrop = document.body.querySelector('.modal-bd');
     expect(backdrop).toBeInTheDocument();
 
     fireEvent.click(backdrop!);
@@ -55,11 +55,14 @@ describe('Modal', () => {
     expect(onCancel).toHaveBeenCalledTimes(1);
   });
 
-  it('FE-MOD-005 applies compact variant classes when compact is true', () => {
-    const { container } = render(<Modal {...baseProps} compact />);
+  it('FE-MOD-005 renders the backdrop and dialog through a document body portal', () => {
+    const { container } = render(<Modal {...baseProps} />);
 
-    expect(container.querySelector('.modal-bd-compact')).toBeInTheDocument();
-    expect(container.querySelector('.modal-compact')).toBeInTheDocument();
+    const backdrop = document.body.querySelector('.modal-bd');
+    expect(backdrop).toBeInTheDocument();
+    expect(backdrop?.parentElement).toBe(document.body);
+    expect(container.querySelector('.modal-bd')).not.toBeInTheDocument();
+    expect(backdrop?.querySelector('.modal')).toBeInTheDocument();
   });
 
   it('FE-MOD-006 includes dialog accessibility attributes', () => {

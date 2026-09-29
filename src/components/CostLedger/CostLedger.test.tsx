@@ -2,7 +2,7 @@
 /// <reference types="@testing-library/jest-dom" />
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import CostLedger from '@/components/CostLedger';
 import type { CostEntry, Region } from '@/store/types';
 
@@ -152,24 +152,6 @@ vi.mock('@/components/BulkActionBar', () => ({
   ),
 }));
 
-vi.mock('@/components/Modal', () => ({
-  default: ({
-    title,
-    onConfirm,
-    onCancel,
-  }: {
-    title: string;
-    onConfirm: () => void;
-    onCancel: () => void;
-  }) => (
-    <div>
-      <div>{title}</div>
-      <button onClick={onConfirm}>Confirm Delete</button>
-      <button onClick={onCancel}>Cancel Delete</button>
-    </div>
-  ),
-}));
-
 import { useTripStore } from '@/store/tripStore';
 import { getSaveFailureCopy, useToastStore } from '@/store/toastStore';
 
@@ -281,8 +263,9 @@ describe('CostLedger', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Delete cost-2' }));
     expect(screen.getByText('Delete this cost?')).toBeInTheDocument();
+    expect(screen.getByRole('dialog').closest('.modal-bd')?.parentElement).toBe(document.body);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Confirm Delete' }));
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete' }));
     expect(mockStoreState.deleteCost).toHaveBeenCalledWith('cost-2');
   });
 
@@ -316,8 +299,11 @@ describe('CostLedger', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Delete Selected' }));
 
     expect(screen.getByText('Delete selected costs?')).toBeInTheDocument();
+    expect(screen.getByRole('dialog').closest('.modal-bd')?.parentElement).toBe(document.body);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Confirm Delete' }));
+    fireEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete Selected' })
+    );
 
     expect(mockStoreState.deleteCosts).toHaveBeenCalledWith(['cost-1', 'cost-2']);
     expect(screen.getByText('Selected Count: 0')).toBeInTheDocument();

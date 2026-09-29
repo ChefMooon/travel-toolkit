@@ -4025,33 +4025,6 @@ tr.add-row td { padding: 0; border: none; }
   cursor: pointer;
 }
 
-/* Compact modal variant - no blur, smaller, fits in pane */
-.modal-bd-compact {
-  background: transparent;
-  backdrop-filter: none;
-}
-.modal-compact {
-  max-width: min(90vw, 320px);
-  padding: 16px;
-  border-radius: 12px;
-}
-.modal-compact .modal-ico {
-  font-size: 28px;
-  margin-bottom: 8px;
-}
-.modal-compact .modal-title {
-  font-size: 16px;
-  margin-bottom: 6px;
-}
-.modal-compact .modal-body {
-  font-size: 12px;
-  line-height: 1.5;
-  margin-bottom: 12px;
-}
-.modal-compact .modal-acts {
-  gap: 6px;
-}
-
 /* ══════════════════════════════════════════ TOASTS */
 .toast-viewport {
   position: fixed;
