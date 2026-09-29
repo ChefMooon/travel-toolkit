@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [1.3.1] - 2026-09-29
+
+### Added
+
+- Added the ability to duplicate a cost entry directly from its row.
+
+### Changed
+
+- Refined blog post title links for a clearer appearance.
+
+### Fixed
+
+- Confirmation dialogs now cover the full viewport.
+- Tooltips now dismiss when the pointer leaves their trigger.
+
 ## [1.3.0] - 2026-09-29
 
 ### Added
