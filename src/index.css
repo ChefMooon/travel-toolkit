@@ -844,20 +844,22 @@ body::before {
 }
 
 .blog-post-card h2 {
-  font-size: 20px;
-  line-height: 1.25;
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
   overflow-wrap: anywhere;
 }
 
 .blog-post-title-link {
   color: var(--text);
   text-decoration: none;
+  transition: color 0.2s ease;
 }
 
-.blog-post-title-link:hover {
+.blog-post-title-link:hover,
+.blog-post-title-link:focus-visible {
   color: var(--c3);
-  text-decoration: underline;
-  text-underline-offset: 3px;
 }
 
 .blog-post-date {

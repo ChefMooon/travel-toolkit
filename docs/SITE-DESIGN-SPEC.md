@@ -105,6 +105,9 @@ Loaded in [index.html](../index.html):
 
 Type roles:
 - Card labels and metadata: uppercase, compact tracking, 10-11px
+- Blog post card titles: Nunito, 22px, weight 800, line-height 1.3; linked
+  titles use `--text` by default and transition to `--c3` on hover or keyboard
+  focus, without an underline
 - Body interface text: 12-14px
 - Numeric emphasis (totals/amounts): mono, 11-19px depending on hierarchy
 
@@ -522,3 +525,4 @@ Definition of done for design-affecting changes:
 |---|---|---|
 | 1.0 | 2026-03-21 | Initial site design specification authored from implemented UI, PRD, and architecture docs. |
 | 1.1 | 2026-03-21 | Updated launcher and nav design rules: centered compact landing cards, 2x2 grid navigation tile layout, no dedicated grid-panel close button, and theme-aware icon tone tokens including larger top-bar grid icon sizing. |
+| 1.2 | 2026-09-29 | Documented the title hierarchy and color-only hover and focus treatment for blog post card links. |
