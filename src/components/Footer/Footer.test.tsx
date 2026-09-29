@@ -3,22 +3,37 @@
 
 import { beforeEach, describe, expect, it } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
-import Footer from '@/components/Footer';
+import {
+  createMemoryHistory,
+  createRouter,
+  RouterProvider,
+} from '@tanstack/react-router';
+import { routeTree } from '@/routeTree.gen';
 import { useConsentStore } from '@/store/consentStore';
+
+async function renderAppAtHome() {
+  const router = createRouter({
+    routeTree,
+    history: createMemoryHistory({ initialEntries: ['/'] }),
+  });
+
+  render(<RouterProvider router={router} />);
+  await screen.findByRole('link', { name: 'Blog' });
+}
 
 describe('Footer', () => {
   beforeEach(() => {
     useConsentStore.getState().resetConsent();
   });
 
-  it('shows privacy preferences control', () => {
-    render(<Footer />);
+  it('shows privacy preferences control', async () => {
+    await renderAppAtHome();
 
     expect(screen.getByRole('button', { name: 'Privacy Preferences' })).toBeInTheDocument();
   });
 
-  it('shows the source repository link', () => {
-    render(<Footer />);
+  it('shows the source repository link', async () => {
+    await renderAppAtHome();
 
     const sourceLink = screen.getByRole('link', { name: 'Source' });
 
@@ -27,11 +42,20 @@ describe('Footer', () => {
     expect(sourceLink).toHaveAttribute('rel', 'noreferrer');
   });
 
-  it('resets consent state when privacy preferences is clicked', () => {
+  it('shows the blog link in the shared footer', async () => {
+    await renderAppAtHome();
+
+    const blogLink = screen.getByRole('link', { name: 'Blog' });
+
+    expect(blogLink).toHaveAttribute('href', '/blog');
+    expect(screen.getAllByRole('link', { name: 'Blog' })).toHaveLength(1);
+  });
+
+  it('resets consent state when privacy preferences is clicked', async () => {
     useConsentStore.getState().acceptAll();
     expect(useConsentStore.getState().consentChoice).toBe('accepted');
 
-    render(<Footer />);
+    await renderAppAtHome();
 
     fireEvent.click(screen.getByRole('button', { name: 'Privacy Preferences' }));
 

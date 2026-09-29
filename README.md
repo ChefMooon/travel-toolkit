@@ -88,11 +88,35 @@ Example workflow:
 | `/currency` | Currency Converter | Convert supported currencies using snapshot data |
 | `/timezone` | Timezone Converter | Track and customize saved timezone cards |
 | `/forecast` | Destination Forecast | Search destinations and inspect date-range climate data |
+| `/blog` | Blog | Browse published articles and changelogs, with tag filtering |
+| `/blog/:slug` | Blog | Read a published post using its filename-derived slug |
+
+## Blog Content and Publishing
+
+Published posts are Markdown files in `src/content/blog/`. A post's filename must be a unique kebab-case slug, using lowercase letters and numbers separated by single hyphens. For example, `introducing-the-travel-toolkit-blog.md` is available at `/blog/introducing-the-travel-toolkit-blog`.
+
+Add a `.md` file with YAML frontmatter containing a non-empty `title`, a valid calendar `date` in `YYYY-MM-DD` format, a non-empty `summary`, and one or more `tags` written as lowercase letters and numbers separated by single hyphens. Write the article body in Markdown after the closing frontmatter delimiter:
+
+```md
+---
+title: "A sample article"
+date: "2026-09-29"
+summary: "A concise description of the article."
+tags:
+  - travel-planning
+  - changelog
+---
+
+Write the article body in Markdown.
+```
+
+Every Markdown file in `src/content/blog/` is included in the built app and is public. Keep unpublished drafts outside this directory and off the deployment branch. To publish a post, add the file, run `npm run build`, then deploy with `wrangler deploy`; the post becomes available after that deployment.
 
 ## Project Structure
 
 ```text
 src/
+  content/blog/    Published Markdown blog posts
   routes/          File-based route entry points for each tool page
   features/        Tool-specific modules for currency, forecast, and timezone
   components/      Shared UI and trip-cost components
@@ -124,7 +148,7 @@ Additional testing docs:
 npm run build
 ```
 
-Build output is written to `dist/client` and `dist/server`.
+Build output is written to `dist`.
 
 ## Deploy
 
@@ -132,7 +156,7 @@ Build output is written to `dist/client` and `dist/server`.
 wrangler deploy
 ```
 
-Deployment uses the TanStack Start server entry configured in [wrangler.toml](wrangler.toml).
+Deployment serves the built assets from `dist` using the Cloudflare SPA fallback configured in [wrangler.toml](wrangler.toml).
 
 ## Further Documentation
 
@@ -143,4 +167,3 @@ Deployment uses the TanStack Start server entry configured in [wrangler.toml](wr
 ## License
 
 MIT. See [LICENSE](LICENSE).
-

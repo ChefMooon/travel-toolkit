@@ -3,7 +3,7 @@
 // @ts-nocheck
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { render, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { useTripStore } from './store/tripStore';
 import { getColorThemeValue, COUPLE_ICONS } from './store/types';
 import { useConsentStore } from './store/consentStore';
@@ -546,5 +546,42 @@ describe('Root analytics consent bridge', () => {
     await waitFor(() => expect(initializeAnalyticsMock).toHaveBeenCalledTimes(1));
     await expect(initializeAnalyticsMock.mock.results[0]?.value).resolves.toBe(false);
     expect(trackPageViewMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('Blog navigation integration', () => {
+  it('navigates from the shared footer to a post from the blog index', async () => {
+    vi.doUnmock('@tanstack/react-router');
+    vi.doUnmock('@/components/Footer');
+    vi.resetModules();
+
+    const routerModule = await import('@tanstack/react-router');
+    const { routeTree } = await import('./routeTree.gen');
+    const { blogPosts } = await import('./lib/blogPosts');
+    const post = blogPosts[0];
+
+    if (!post) {
+      throw new Error('Expected a published post for blog navigation coverage.');
+    }
+
+    const router = routerModule.createRouter({
+      routeTree,
+      history: routerModule.createMemoryHistory({ initialEntries: ['/'] }),
+    });
+    const RouterProvider = routerModule.RouterProvider;
+
+    render(<RouterProvider router={router} />);
+
+    fireEvent.click(await screen.findByRole('link', { name: 'Blog' }));
+    await screen.findByRole('heading', { level: 1, name: 'Blog' });
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe('/blog');
+    });
+
+    fireEvent.click(await screen.findByRole('link', { name: post.title }));
+    await screen.findByRole('heading', { level: 1, name: post.title });
+    await waitFor(() => {
+      expect(router.state.location.pathname).toBe(`/blog/${post.slug}`);
+    });
   });
 });

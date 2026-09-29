@@ -1,3 +1,4 @@
+import { Link } from '@tanstack/react-router';
 import { useConsentStore } from '@/store/consentStore';
 
 const CLOUDFLARE_URL = 'https://www.cloudflare.com/';
@@ -29,6 +30,10 @@ export default function Footer() {
           >
             Source
           </a>
+          <span className="site-footer-separator" aria-hidden="true">|</span>
+          <Link className="site-footer-link" to="/blog" search={{ tag: undefined }}>
+            Blog
+          </Link>
           <span className="site-footer-separator" aria-hidden="true">|</span>
           <button
             type="button"
