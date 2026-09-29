@@ -43,6 +43,7 @@ export default function Tooltip({
   const id = useId();
   const triggerRef = useRef<HTMLElement | null>(null);
   const tooltipRef = useRef<HTMLDivElement | null>(null);
+  const pointerInteraction = useRef(false);
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const [touchOpened, setTouchOpened] = useState(false);
@@ -152,11 +153,21 @@ export default function Tooltip({
     },
     onPointerDown: (event: React.PointerEvent<HTMLElement>) => {
       trigger.props.onPointerDown?.(event);
+      pointerInteraction.current = true;
+      setFocused(false);
       if (event.pointerType === 'touch') setTouchOpened(true);
+    },
+    onPointerUp: (event: React.PointerEvent<HTMLElement>) => {
+      trigger.props.onPointerUp?.(event);
+      pointerInteraction.current = false;
+    },
+    onPointerCancel: (event: React.PointerEvent<HTMLElement>) => {
+      trigger.props.onPointerCancel?.(event);
+      pointerInteraction.current = false;
     },
     onFocus: (event: React.FocusEvent<HTMLElement>) => {
       trigger.props.onFocus?.(event);
-      setFocused(true);
+      if (!pointerInteraction.current) setFocused(true);
     },
     onBlur: (event: React.FocusEvent<HTMLElement>) => {
       trigger.props.onBlur?.(event);

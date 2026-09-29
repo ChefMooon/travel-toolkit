@@ -51,6 +51,30 @@ describe('Tooltip', () => {
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
   });
 
+  it('hides after pointer click focus when the pointer leaves', () => {
+    const onClick = vi.fn();
+    render(
+      <Tooltip content="Action information">
+        <button type="button" onClick={onClick}>
+          Continue
+        </button>
+      </Tooltip>,
+    );
+
+    const trigger = screen.getByRole('button', { name: 'Continue' });
+    fireEvent.pointerEnter(trigger, { pointerType: 'mouse' });
+    expect(screen.getByRole('tooltip')).toBeInTheDocument();
+
+    fireEvent.pointerDown(trigger, { pointerType: 'mouse' });
+    fireEvent.focus(trigger);
+    fireEvent.pointerUp(trigger, { pointerType: 'mouse' });
+    fireEvent.click(trigger);
+    fireEvent.pointerLeave(trigger, { pointerType: 'mouse' });
+
+    expect(onClick).toHaveBeenCalledOnce();
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+  });
+
   it('opens on touch without preventing the trigger action and closes on an outside tap', () => {
     const onClick = vi.fn();
     render(
