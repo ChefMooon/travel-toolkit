@@ -17,7 +17,7 @@ export default function BlogArticlePage() {
             Back to Blog
           </Link>
           <h1 id="blog-article-title">{post.title}</h1>
-          <time className="blog-post-date" dateTime={post.date}>
+          <time className="blog-post-date" dateTime={post.publishedAt}>
             {post.date}
           </time>
           <p className="blog-post-summary">{post.summary}</p>

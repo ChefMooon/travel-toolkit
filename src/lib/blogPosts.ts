@@ -4,6 +4,7 @@ export interface BlogPost {
   slug: string;
   title: string;
   date: string;
+  publishedAt: string;
   summary: string;
   tags: string[];
   content: string;
@@ -11,6 +12,7 @@ export interface BlogPost {
 
 const kebabCasePattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const isoDatePattern = /^\d{4}-\d{2}-\d{2}$/;
+const isoUtcTimestampPattern = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
 const frontmatterPattern =
   /^(?:\uFEFF)?---[ \t]*\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)([\s\S]*)$/;
 
@@ -44,6 +46,19 @@ function isIsoDate(value: unknown): value is string {
 
   const parsedDate = new Date(`${value}T00:00:00.000Z`);
   return Number.isFinite(parsedDate.getTime()) && parsedDate.toISOString().slice(0, 10) === value;
+}
+
+function isIsoUtcTimestamp(value: unknown): value is string {
+  if (typeof value !== 'string' || !isoUtcTimestampPattern.test(value)) {
+    return false;
+  }
+
+  const date = value.slice(0, 10);
+  const hours = Number(value.slice(11, 13));
+  const minutes = Number(value.slice(14, 16));
+  const seconds = Number(value.slice(17, 19));
+
+  return isIsoDate(date) && hours < 24 && minutes < 60 && seconds < 60;
 }
 
 function requiredText(
@@ -105,6 +120,15 @@ export function parseBlogPost(filePath: string, markdown: string): BlogPost {
     );
   }
 
+  const publishedAt = metadata.publishedAt;
+
+  if (!isIsoUtcTimestamp(publishedAt)) {
+    invalidPost(
+      filePath,
+      'frontmatter field "publishedAt" must be a valid UTC timestamp in ISO YYYY-MM-DDTHH:mm:ssZ format.'
+    );
+  }
+
   const rawTags = metadata.tags;
 
   if (!Array.isArray(rawTags) || rawTags.length === 0) {
@@ -129,6 +153,7 @@ export function parseBlogPost(filePath: string, markdown: string): BlogPost {
     slug,
     title,
     date,
+    publishedAt,
     summary,
     tags,
     content,
@@ -136,8 +161,11 @@ export function parseBlogPost(filePath: string, markdown: string): BlogPost {
 }
 
 function comparePosts(left: BlogPost, right: BlogPost): number {
-  if (left.date !== right.date) {
-    return left.date > right.date ? -1 : 1;
+  const leftPublishedAt = Date.parse(left.publishedAt);
+  const rightPublishedAt = Date.parse(right.publishedAt);
+
+  if (leftPublishedAt !== rightPublishedAt) {
+    return leftPublishedAt > rightPublishedAt ? -1 : 1;
   }
 
   if (left.slug === right.slug) {

@@ -62,20 +62,24 @@ describe('blog index route', () => {
       `/blog/${post.slug}`,
     );
     expect(within(postList).getByText(post.summary)).toBeInTheDocument();
-    expect(
-      within(postList).getByText(post.date, { selector: 'time' }),
-    ).toHaveAttribute('datetime', post.date);
+    const firstPostCard = within(postList).getAllByRole('article')[0];
+    if (!firstPostCard) {
+      throw new Error('Expected the first published post card.');
+    }
+    expect(within(firstPostCard).getByText(post.date, { selector: 'time' })).toHaveAttribute(
+      'datetime',
+      post.publishedAt,
+    );
     expect(
       within(filterNavigation()).getByRole('link', { name: 'All posts' }),
     ).toHaveAttribute('aria-current', 'page');
   });
 
   it('filters by an exact tag and supports clear, back, and forward navigation', async () => {
-    const post = firstPost();
-    const tag = post.tags[0];
+    const tag = 'announcement';
 
-    if (!tag) {
-      throw new Error('Expected a tag on the introductory post.');
+    if (!blogPosts.some((post) => post.tags.includes(tag))) {
+      throw new Error('Expected an announcement post for unique-tag filter coverage.');
     }
 
     const router = await renderBlog();
@@ -123,7 +127,7 @@ describe('blog index route', () => {
     const tag = firstPost().tags[0];
 
     if (!tag) {
-      throw new Error('Expected a tag on the introductory post.');
+      throw new Error('Expected a tag on a published post.');
     }
 
     const router = await renderBlog(`/blog?tag=${encodeURIComponent(tag)}`);
@@ -140,7 +144,7 @@ describe('blog index route', () => {
     const tag = firstPost().tags[0];
 
     if (!tag) {
-      throw new Error('Expected a tag on the introductory post.');
+      throw new Error('Expected a tag on a published post.');
     }
 
     const partialTag = tag.slice(0, -1);

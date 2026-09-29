@@ -19,7 +19,7 @@ function BlogPostCard({
             {post.title}
           </Link>
         </h2>
-        <time className="blog-post-date" dateTime={post.date}>
+        <time className="blog-post-date" dateTime={post.publishedAt}>
           {post.date}
         </time>
       </header>

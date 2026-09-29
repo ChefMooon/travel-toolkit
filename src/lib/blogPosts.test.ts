@@ -9,6 +9,7 @@ import { blogPosts, loadBlogPosts, parseBlogPost } from './blogPosts';
 
 const validFrontmatter = `title: "Example article"
 date: "2026-09-29"
+publishedAt: "2026-09-29T09:00:00Z"
 summary: "A concise example summary."
 tags:
   - travel-planning`;
@@ -30,6 +31,7 @@ describe('parseBlogPost', () => {
       slug: 'example-article',
       title: 'Example article',
       date: '2026-09-29',
+      publishedAt: '2026-09-29T09:00:00Z',
       summary: 'A concise example summary.',
       tags: ['travel-planning'],
       content: '# Example',
@@ -53,6 +55,15 @@ tags:
     [
       'date',
       `title: "Example article"
+publishedAt: "2026-09-29T09:00:00Z"
+summary: "A concise example summary."
+tags:
+  - travel-planning`,
+    ],
+    [
+      'publishedAt',
+      `title: "Example article"
+date: "2026-09-29"
 summary: "A concise example summary."
 tags:
   - travel-planning`,
@@ -68,6 +79,7 @@ tags:
       'tags',
       `title: "Example article"
 date: "2026-09-29"
+publishedAt: "2026-09-29T09:00:00Z"
 summary: "A concise example summary."`,
     ],
   ])('rejects missing required metadata field "%s"', (field, frontmatter) => {
@@ -94,6 +106,25 @@ summary: "A concise example summary."`,
       ).toThrow(/frontmatter field "date".*ISO YYYY-MM-DD/);
     }
   );
+
+  it.each([
+    ['malformed timestamp', '2026-09-29 09:00:00Z'],
+    ['missing seconds', '2026-09-29T09:00Z'],
+    ['impossible date', '2026-02-30T09:00:00Z'],
+    ['hour out of range', '2026-09-29T24:00:00Z'],
+    ['minute out of range', '2026-09-29T09:60:00Z'],
+    ['second out of range', '2026-09-29T09:00:60Z'],
+    ['UTC offset instead of Z', '2026-09-29T09:00:00+00:00'],
+    ['missing UTC suffix', '2026-09-29T09:00:00'],
+  ])('rejects an invalid UTC publication timestamp (%s)', (_description, publishedAt) => {
+    const frontmatter = validFrontmatter.replace(
+      '2026-09-29T09:00:00Z',
+      publishedAt
+    );
+    expect(() =>
+      parseBlogPost('../content/blog/example-article.md', makeMarkdown(frontmatter))
+    ).toThrow(/frontmatter field "publishedAt".*ISO YYYY-MM-DDTHH:mm:ssZ/);
+  });
 
   it.each([
     ['empty list', 'tags: []'],
@@ -143,20 +174,36 @@ describe('loadBlogPosts', () => {
     ).toThrow(/filename-derived slug "example" duplicates "\.\.\/content\/blog\/example\.md"/);
   });
 
-  it('sorts newest-first and uses the slug as a deterministic tie-breaker', () => {
-    const sameDate = validFrontmatter;
-    const olderDate = validFrontmatter.replace('2026-09-29', '2026-09-01');
+  it('sorts by publication timestamp and uses the slug for exact timestamp ties', () => {
+    const withPublication = (date: string, publishedAt: string) =>
+      validFrontmatter
+        .replace('date: "2026-09-29"', `date: "${date}"`)
+        .replace('2026-09-29T09:00:00Z', publishedAt);
 
     const posts = loadBlogPosts({
-      '../content/blog/older-post.md': makeMarkdown(olderDate),
-      '../content/blog/zulu-post.md': makeMarkdown(sameDate),
-      '../content/blog/alpha-post.md': makeMarkdown(sameDate),
+      '../content/blog/older-date-post.md': makeMarkdown(
+        withPublication('2026-09-28', '2026-09-28T23:59:59Z')
+      ),
+      '../content/blog/same-day-earlier-post.md': makeMarkdown(
+        withPublication('2026-09-29', '2026-09-29T08:00:00Z')
+      ),
+      '../content/blog/same-day-zulu-post.md': makeMarkdown(
+        withPublication('2026-09-29', '2026-09-29T09:00:00Z')
+      ),
+      '../content/blog/same-day-alpha-post.md': makeMarkdown(
+        withPublication('2026-09-29', '2026-09-29T09:00:00Z')
+      ),
+      '../content/blog/newer-date-post.md': makeMarkdown(
+        withPublication('2026-09-30', '2026-09-30T00:01:00Z')
+      ),
     });
 
     expect(posts.map(({ slug }) => slug)).toEqual([
-      'alpha-post',
-      'zulu-post',
-      'older-post',
+      'newer-date-post',
+      'same-day-alpha-post',
+      'same-day-zulu-post',
+      'same-day-earlier-post',
+      'older-date-post',
     ]);
   });
 
@@ -164,13 +211,19 @@ describe('loadBlogPosts', () => {
     expect(loadBlogPosts({})).toEqual([]);
   });
 
+  it('limits published tag options to announcements and changelog posts', () => {
+    const tagOptions = new Set(blogPosts.flatMap(({ tags }) => tags));
+
+    expect(tagOptions).toEqual(new Set(['announcement', 'changelog']));
+  });
+
   it('bundles the launch post with its required publication metadata and purpose', () => {
     const launchPost = blogPosts.find(
-      ({ slug }) => slug === 'introducing-the-travel-toolkit-blog'
+      ({ slug }) => slug === '2026-09-29-introducing-the-travel-toolkit-blog'
     );
 
     expect(launchPost).toMatchObject({
-      slug: 'introducing-the-travel-toolkit-blog',
+      slug: '2026-09-29-introducing-the-travel-toolkit-blog',
       title: 'Introducing the Travel Toolkit Blog',
       date: '2026-09-29',
       summary: 'A new place for Travel Toolkit articles and changelogs.',

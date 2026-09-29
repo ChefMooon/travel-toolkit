@@ -36,11 +36,14 @@ describe('blog article route', () => {
     expect(screen.getByRole('heading', { level: 1, name: post.title })).toBeInTheDocument();
     expect(screen.getByText(post.date, { selector: 'time' })).toHaveAttribute(
       'datetime',
-      post.date,
+      post.publishedAt,
     );
     expect(screen.getByText(post.summary)).toBeInTheDocument();
 
-    const firstParagraph = post.content.trim().split(/\r?\n/)[0];
+    const firstParagraph = post.content
+      .trim()
+      .split(/\r?\n\s*\r?\n/)[0]
+      ?.replace(/\s*\r?\n\s*/g, ' ');
     if (firstParagraph) {
       expect(screen.getByText(firstParagraph)).toBeInTheDocument();
     }
