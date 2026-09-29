@@ -95,12 +95,12 @@ Example workflow:
 
 Published posts are Markdown files in `src/content/blog/`. A post's filename must be a unique kebab-case slug, using lowercase letters and numbers separated by single hyphens. For example, `introducing-the-travel-toolkit-blog.md` is available at `/blog/introducing-the-travel-toolkit-blog`.
 
-Add a `.md` file with YAML frontmatter containing a non-empty `title`, a valid calendar `date` in `YYYY-MM-DD` format, a non-empty `summary`, and one or more `tags` written as lowercase letters and numbers separated by single hyphens. Write the article body in Markdown after the closing frontmatter delimiter:
+Add a `.md` file with YAML frontmatter containing a non-empty `title`, a canonical UTC `publishedAt` timestamp in `YYYY-MM-DDTHH:mm:ssZ` format, a non-empty `summary`, and one or more `tags` written as lowercase letters and numbers separated by single hyphens. The visible calendar date comes from the UTC date in `publishedAt`; a separate `date` field is not needed. Write the article body in Markdown after the closing frontmatter delimiter:
 
 ```md
 ---
 title: "A sample article"
-date: "2026-09-29"
+publishedAt: "2026-09-29T09:00:00Z"
 summary: "A concise description of the article."
 tags:
   - travel-planning

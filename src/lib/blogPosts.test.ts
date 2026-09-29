@@ -5,10 +5,14 @@ import { createElement } from 'react';
 import { render, screen } from '@testing-library/react';
 import { describe, expect, it } from 'vitest';
 import { BlogMarkdown } from '../components/BlogMarkdown';
-import { blogPosts, loadBlogPosts, parseBlogPost } from './blogPosts';
+import {
+  blogPosts,
+  getBlogPostDisplayDate,
+  loadBlogPosts,
+  parseBlogPost,
+} from './blogPosts';
 
 const validFrontmatter = `title: "Example article"
-date: "2026-09-29"
 publishedAt: "2026-09-29T09:00:00Z"
 summary: "A concise example summary."
 tags:
@@ -26,11 +30,28 @@ function makeFile(slug: string, markdown = makeMarkdown()): Record<string, strin
 }
 
 describe('parseBlogPost', () => {
-  it('parses required metadata and the Markdown body', () => {
+  it('parses required metadata without a separate date field', () => {
     expect(parseBlogPost('../content/blog/example-article.md', makeMarkdown())).toEqual({
       slug: 'example-article',
       title: 'Example article',
-      date: '2026-09-29',
+      publishedAt: '2026-09-29T09:00:00Z',
+      summary: 'A concise example summary.',
+      tags: ['travel-planning'],
+      content: '# Example',
+    });
+  });
+
+  it('does not validate a legacy date field', () => {
+    const frontmatter = `title: "Example article"
+date: "not-a-date"
+publishedAt: "2026-09-29T09:00:00Z"
+summary: "A concise example summary."
+tags:
+  - travel-planning`;
+
+    expect(parseBlogPost('../content/blog/example-article.md', makeMarkdown(frontmatter))).toEqual({
+      slug: 'example-article',
+      title: 'Example article',
       publishedAt: '2026-09-29T09:00:00Z',
       summary: 'A concise example summary.',
       tags: ['travel-planning'],
@@ -47,15 +68,7 @@ describe('parseBlogPost', () => {
   it.each([
     [
       'title',
-      `date: "2026-09-29"
-summary: "A concise example summary."
-tags:
-  - travel-planning`,
-    ],
-    [
-      'date',
-      `title: "Example article"
-publishedAt: "2026-09-29T09:00:00Z"
+      `publishedAt: "2026-09-29T09:00:00Z"
 summary: "A concise example summary."
 tags:
   - travel-planning`,
@@ -63,7 +76,6 @@ tags:
     [
       'publishedAt',
       `title: "Example article"
-date: "2026-09-29"
 summary: "A concise example summary."
 tags:
   - travel-planning`,
@@ -71,7 +83,7 @@ tags:
     [
       'summary',
       `title: "Example article"
-date: "2026-09-29"
+publishedAt: "2026-09-29T09:00:00Z"
 tags:
   - travel-planning`,
     ],
@@ -96,16 +108,6 @@ summary: "A concise example summary."`,
       )
     ).toThrow(/broken-frontmatter\.md.*could not parse YAML frontmatter/);
   });
-
-  it.each(['2026-02-30', '2026-9-29', 'not-a-date'])(
-    'rejects an invalid publication date: %s',
-    (date) => {
-      const frontmatter = validFrontmatter.replace('2026-09-29', date);
-      expect(() =>
-        parseBlogPost('../content/blog/example-article.md', makeMarkdown(frontmatter))
-      ).toThrow(/frontmatter field "date".*ISO YYYY-MM-DD/);
-    }
-  );
 
   it.each([
     ['malformed timestamp', '2026-09-29 09:00:00Z'],
@@ -175,26 +177,24 @@ describe('loadBlogPosts', () => {
   });
 
   it('sorts by publication timestamp and uses the slug for exact timestamp ties', () => {
-    const withPublication = (date: string, publishedAt: string) =>
-      validFrontmatter
-        .replace('date: "2026-09-29"', `date: "${date}"`)
-        .replace('2026-09-29T09:00:00Z', publishedAt);
+    const withPublication = (publishedAt: string) =>
+      validFrontmatter.replace('2026-09-29T09:00:00Z', publishedAt);
 
     const posts = loadBlogPosts({
       '../content/blog/older-date-post.md': makeMarkdown(
-        withPublication('2026-09-28', '2026-09-28T23:59:59Z')
+        withPublication('2026-09-28T23:59:59Z')
       ),
       '../content/blog/same-day-earlier-post.md': makeMarkdown(
-        withPublication('2026-09-29', '2026-09-29T08:00:00Z')
+        withPublication('2026-09-29T08:00:00Z')
       ),
       '../content/blog/same-day-zulu-post.md': makeMarkdown(
-        withPublication('2026-09-29', '2026-09-29T09:00:00Z')
+        withPublication('2026-09-29T09:00:00Z')
       ),
       '../content/blog/same-day-alpha-post.md': makeMarkdown(
-        withPublication('2026-09-29', '2026-09-29T09:00:00Z')
+        withPublication('2026-09-29T09:00:00Z')
       ),
       '../content/blog/newer-date-post.md': makeMarkdown(
-        withPublication('2026-09-30', '2026-09-30T00:01:00Z')
+        withPublication('2026-09-30T00:01:00Z')
       ),
     });
 
@@ -211,6 +211,10 @@ describe('loadBlogPosts', () => {
     expect(loadBlogPosts({})).toEqual([]);
   });
 
+  it('derives the display date from the UTC date portion of publishedAt', () => {
+    expect(getBlogPostDisplayDate('2026-09-29T00:30:00Z')).toBe('2026-09-29');
+  });
+
   it('limits published tag options to announcements and changelog posts', () => {
     const tagOptions = new Set(blogPosts.flatMap(({ tags }) => tags));
 
@@ -225,7 +229,6 @@ describe('loadBlogPosts', () => {
     expect(launchPost).toMatchObject({
       slug: '2026-09-29-introducing-the-travel-toolkit-blog',
       title: 'Introducing the Travel Toolkit Blog',
-      date: '2026-09-29',
       summary: 'A new place for Travel Toolkit articles and changelogs.',
       tags: ['announcement', 'changelog'],
     });
@@ -242,7 +245,6 @@ describe('loadBlogPosts', () => {
 
     expect(releasePost).toMatchObject({
       slug: '2026-09-29-travel-toolkit-1-3-0-release-notes',
-      date: '2026-09-29',
       tags: ['changelog'],
     });
   });

@@ -66,10 +66,9 @@ describe('blog index route', () => {
     if (!firstPostCard) {
       throw new Error('Expected the first published post card.');
     }
-    expect(within(firstPostCard).getByText(post.date, { selector: 'time' })).toHaveAttribute(
-      'datetime',
-      post.publishedAt,
-    );
+    expect(
+      within(firstPostCard).getByText(post.publishedAt.slice(0, 10), { selector: 'time' }),
+    ).toHaveAttribute('datetime', post.publishedAt);
     expect(
       within(filterNavigation()).getByRole('link', { name: 'All posts' }),
     ).toHaveAttribute('aria-current', 'page');

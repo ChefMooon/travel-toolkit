@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { BlogTagLinks } from '@/components/BlogTagLinks';
-import { blogPosts } from '@/lib/blogPosts';
+import { blogPosts, getBlogPostDisplayDate } from '@/lib/blogPosts';
 
 function BlogPostCard({
   post,
@@ -20,7 +20,7 @@ function BlogPostCard({
           </Link>
         </h2>
         <time className="blog-post-date" dateTime={post.publishedAt}>
-          {post.date}
+          {getBlogPostDisplayDate(post.publishedAt)}
         </time>
       </header>
       <p className="blog-post-summary">{post.summary}</p>

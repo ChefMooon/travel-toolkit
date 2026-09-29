@@ -3,7 +3,6 @@ import { parse as parseYaml } from 'yaml';
 export interface BlogPost {
   slug: string;
   title: string;
-  date: string;
   publishedAt: string;
   summary: string;
   tags: string[];
@@ -111,15 +110,6 @@ export function parseBlogPost(filePath: string, markdown: string): BlogPost {
   const metadata = parsedMetadata as Record<string, unknown>;
   const title = requiredText(metadata, 'title', filePath);
   const summary = requiredText(metadata, 'summary', filePath);
-  const date = metadata.date;
-
-  if (!isIsoDate(date)) {
-    invalidPost(
-      filePath,
-      'frontmatter field "date" must be a valid calendar date in ISO YYYY-MM-DD format.'
-    );
-  }
-
   const publishedAt = metadata.publishedAt;
 
   if (!isIsoUtcTimestamp(publishedAt)) {
@@ -152,12 +142,15 @@ export function parseBlogPost(filePath: string, markdown: string): BlogPost {
   return {
     slug,
     title,
-    date,
     publishedAt,
     summary,
     tags,
     content,
   };
+}
+
+export function getBlogPostDisplayDate(publishedAt: string): string {
+  return publishedAt.slice(0, 10);
 }
 
 function comparePosts(left: BlogPost, right: BlogPost): number {

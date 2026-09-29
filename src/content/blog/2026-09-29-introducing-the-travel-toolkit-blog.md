@@ -1,6 +1,5 @@
 ---
 title: "Introducing the Travel Toolkit Blog"
-date: "2026-09-29"
 publishedAt: "2026-09-29T09:00:00Z"
 summary: "A new place for Travel Toolkit articles and changelogs."
 tags:

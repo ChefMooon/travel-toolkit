@@ -1,6 +1,7 @@
 import { Link, useLoaderData } from '@tanstack/react-router';
 import { BlogTagLinks } from '@/components/BlogTagLinks';
 import { BlogMarkdown } from '@/components/BlogMarkdown';
+import { getBlogPostDisplayDate } from '@/lib/blogPosts';
 
 export default function BlogArticlePage() {
   const { post } = useLoaderData({ from: '/blog/$slug' });
@@ -18,7 +19,7 @@ export default function BlogArticlePage() {
           </Link>
           <h1 id="blog-article-title">{post.title}</h1>
           <time className="blog-post-date" dateTime={post.publishedAt}>
-            {post.date}
+            {getBlogPostDisplayDate(post.publishedAt)}
           </time>
           <p className="blog-post-summary">{post.summary}</p>
           <BlogTagLinks

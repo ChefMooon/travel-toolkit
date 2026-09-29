@@ -1,6 +1,5 @@
 ---
 title: "What's New in Travel Toolkit 1.3.0"
-date: "2026-09-29"
 publishedAt: "2026-09-29T12:00:00Z"
 summary: "Travel Toolkit 1.3.0 brings a new blog, clearer trip summaries, and smoother save, accessibility, and timezone experiences."
 tags:

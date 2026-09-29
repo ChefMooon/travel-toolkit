@@ -34,7 +34,7 @@ describe('blog article route', () => {
     await screen.findByRole('heading', { level: 1, name: post.title });
 
     expect(screen.getByRole('heading', { level: 1, name: post.title })).toBeInTheDocument();
-    expect(screen.getByText(post.date, { selector: 'time' })).toHaveAttribute(
+    expect(screen.getByText(post.publishedAt.slice(0, 10), { selector: 'time' })).toHaveAttribute(
       'datetime',
       post.publishedAt,
     );

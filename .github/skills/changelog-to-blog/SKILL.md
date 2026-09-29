@@ -39,7 +39,6 @@ a release announcement, release notes, or a changelog blog post.
    ```yaml
    ---
    title: "What's New in Travel Toolkit 1.3.0"
-   date: "2026-09-29"
    publishedAt: "2026-09-29T12:00:00Z"
    summary: "A concise summary of the release for the blog index."
    tags:
@@ -47,14 +46,16 @@ a release announcement, release notes, or a changelog blog post.
    ---
    ```
 
-   Set `date` to the release date from the changelog and `publishedAt` to the
-   user-provided UTC publication time in canonical `YYYY-MM-DDTHH:mm:ssZ`
-   format. Keep the filename-derived slug lowercase kebab-case and unique.
-   The only allowed tags are `announcement` and `changelog`; use `changelog`
-   for release posts. Do not add topic tags.
+   Set `publishedAt` to the user-provided UTC publication time in canonical
+   `YYYY-MM-DDTHH:mm:ssZ` format. The displayed calendar date is the UTC date
+   portion of `publishedAt`; the filename's release-date prefix remains based
+   on the changelog date. Keep the filename-derived slug lowercase kebab-case
+   and unique. The only allowed tags are `announcement` and `changelog`; use
+   `changelog` for release posts. Do not add topic tags.
 6. Write the article body in Markdown with clear section headings. The article
-   page already displays the post title, date, summary, and tags, so do not
-   repeat the title as a top-level heading in the body.
+   page already displays the post title, the UTC calendar date from
+   `publishedAt`, summary, and tags, so do not repeat the title as a top-level
+   heading in the body.
 7. If the user requested a draft only, show it without writing the file.
    Otherwise, create the post and report its path and the validation performed.
 8. Validate the post with the focused blog parser test:
@@ -73,11 +74,11 @@ Blog posts are Markdown files under `src/content/blog/`. Required frontmatter
 fields are:
 
 - `title`: non-empty string
-- `date`: valid calendar date in `YYYY-MM-DD` format
 - `publishedAt`: valid UTC timestamp in canonical `YYYY-MM-DDTHH:mm:ssZ` format
 - `summary`: non-empty string for the blog index
 - `tags`: a non-empty list containing only `announcement` and/or `changelog`
 
+The displayed calendar date is the UTC date portion of `publishedAt`.
 The filename must start with the post's `YYYY-MM-DD` publication or release
 date. The remaining filename, without the date prefix and `.md`, forms part of
 the lowercase kebab-case slug. The article body is rendered as Markdown.
