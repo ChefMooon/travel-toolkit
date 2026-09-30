@@ -12,12 +12,7 @@ export default function Navbar() {
   const triggerRef = useRef<HTMLButtonElement>(null);
 
   const closeGrid = useCallback(() => {
-    setGridOpen((wasOpen) => {
-      if (wasOpen) {
-        triggerRef.current?.focus();
-      }
-      return false;
-    });
+    setGridOpen(false);
   }, []);
 
   return (
@@ -27,7 +22,7 @@ export default function Navbar() {
       </a>
 
       <div className="navbar-actions">
-        <Tooltip content={gridOpen ? 'Close tool navigation' : 'Open tool navigation'}>
+        <Tooltip content={gridOpen ? '' : 'Open tool navigation'}>
           <button
             ref={triggerRef}
             type="button"

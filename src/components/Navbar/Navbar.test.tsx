@@ -15,8 +15,28 @@ vi.mock('@/components/Logo', () => ({
 }));
 
 vi.mock('@/components/GridPanel', () => ({
-  default: ({ open }: { open: boolean }) => (
-    <div data-testid="grid-panel-state">{open ? 'open' : 'closed'}</div>
+  default: ({ open, onClose }: { open: boolean; onClose: () => void }) => (
+    <div data-testid="grid-panel-state">
+      {open ? 'open' : 'closed'}
+      {open && (
+        <>
+          <a
+            href="/trip"
+            onClick={(event) => {
+              event.preventDefault();
+              onClose();
+            }}
+          >
+            Navigate to tool
+          </a>
+          <div
+            aria-hidden="true"
+            data-testid="grid-panel-backdrop"
+            onClick={onClose}
+          />
+        </>
+      )}
+    </div>
   ),
 }));
 
@@ -71,6 +91,7 @@ describe('Navbar', () => {
     expect(screen.getByRole('tooltip')).toHaveTextContent('Open tool navigation');
     fireEvent.click(gridTrigger);
     expect(screen.getByTestId('grid-panel-state')).toHaveTextContent('open');
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 
     const themeTrigger = screen.getByRole('button', { name: 'Toggle theme' });
     fireEvent.pointerDown(themeTrigger, { pointerType: 'touch' });
@@ -93,6 +114,40 @@ describe('Navbar', () => {
     expect(screen.getByTestId('grid-panel-state')).toHaveTextContent('open');
     const closeTrigger = screen.getByRole('button', { name: 'Close tool navigation' });
     expect(closeTrigger).toHaveAttribute('aria-expanded', 'true');
-    expect(screen.getByRole('tooltip')).toHaveTextContent('Close tool navigation');
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+
+    fireEvent.click(closeTrigger);
+
+    expect(screen.getByTestId('grid-panel-state')).toHaveTextContent('closed');
+    expect(screen.getByRole('button', { name: 'Open tool navigation' })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    );
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Open tool navigation');
+  });
+
+  it.each([
+    ['navigation', 'link'],
+    ['outside dismissal', 'backdrop'],
+  ])('does not reopen its tooltip after closing through %s', (_closeReason, closeAction) => {
+    render(<Navbar />);
+
+    const trigger = screen.getByRole('button', { name: 'Open tool navigation' });
+    fireEvent.pointerEnter(trigger, { pointerType: 'mouse' });
+    fireEvent.click(trigger);
+    expect(screen.getByTestId('grid-panel-state')).toHaveTextContent('open');
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+
+    fireEvent.pointerLeave(trigger, { pointerType: 'mouse' });
+
+    const closeTarget = closeAction === 'link'
+      ? screen.getByRole('link', { name: 'Navigate to tool' })
+      : screen.getByTestId('grid-panel-backdrop');
+    if (closeAction === 'link') fireEvent.focus(closeTarget);
+    fireEvent.click(closeTarget);
+
+    expect(screen.getByTestId('grid-panel-state')).toHaveTextContent('closed');
+    expect(trigger).not.toHaveFocus();
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
   });
 });
