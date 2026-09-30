@@ -26,7 +26,9 @@ describe('GridPanel', () => {
 
   it('renders tool entries when open', () => {
     const triggerRef = { current: document.createElement('button') };
-    render(<GridPanel open={true} onClose={vi.fn()} triggerRef={triggerRef} />);
+    const { container } = render(
+      <GridPanel open={true} onClose={vi.fn()} triggerRef={triggerRef} />,
+    );
 
     expect(screen.getByRole('dialog', { name: 'Tool navigation' })).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Close tool navigation' })).not.toBeInTheDocument();
@@ -34,6 +36,11 @@ describe('GridPanel', () => {
     expect(screen.getByRole('link', { name: 'Currency Converter' })).toHaveAttribute('href', '/currency');
     expect(screen.getByRole('link', { name: 'Timezone Tracker' })).toHaveAttribute('href', '/timezone');
     expect(screen.getByRole('link', { name: 'Destination Forecast' })).toHaveAttribute('href', '/forecast');
+    expect(
+      container.querySelectorAll(
+        '.tool-launcher-icon[aria-hidden="true"] > svg[focusable="false"]',
+      ),
+    ).toHaveLength(4);
   });
 
   it('closes when selecting a tool link', () => {

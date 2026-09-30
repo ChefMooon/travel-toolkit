@@ -92,7 +92,9 @@ export default function GridPanel({ open, onClose, triggerRef }: GridPanelProps)
             className="grid-panel-item"
             onClick={onClose}
           >
-            <img src={tool.icon} alt="" aria-hidden="true" />
+            <span className="tool-launcher-icon" aria-hidden="true">
+              <tool.icon focusable="false" strokeWidth={1.75} />
+            </span>
             <span className="grid-panel-item-title">{tool.label}</span>
           </Link>
         ))}

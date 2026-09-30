@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
-import { Moon, Sun } from 'lucide-react';
+import { Grid2X2, Moon, Sun } from 'lucide-react';
 import { useTripStore } from '@/store/tripStore';
 import Logo from '@/components/Logo';
 import GridPanel from '@/components/GridPanel';
@@ -32,7 +32,7 @@ export default function Navbar() {
             aria-controls="tool-grid-panel"
             onClick={() => setGridOpen((open) => !open)}
           >
-            <img src="/grid.svg" alt="" aria-hidden="true" />
+            <Grid2X2 aria-hidden="true" focusable="false" />
           </button>
         </Tooltip>
 

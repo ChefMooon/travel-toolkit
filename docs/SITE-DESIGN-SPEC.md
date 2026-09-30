@@ -62,14 +62,11 @@ Defined in [src/index.css](../src/index.css) under :root and theme selectors.
 | --danger | #B85C5C | #B85C5C | Destructive actions |
 | --focus | #7B87BE | #7B87BE | Keyboard focus ring |
 
-Icon tone tokens (theme-aware, used for launcher and nav icons):
+Icon tone tokens:
 
 | Token | Light | Dark | Usage |
 |---|---|---|---|
-| --nav-icon-filter | sepia-based filter | invert/sepia-based filter | Top-bar grid launcher icon idle tone |
-| --nav-icon-filter-hover | stronger sepia-based filter | brighter invert/sepia-based filter | Top-bar grid launcher icon hover/focus tone |
-| --tool-icon-filter | sepia-based filter | invert/sepia-based filter | Landing and grid-panel tool icon idle tone |
-| --tool-icon-filter-hover | stronger sepia-based filter | brighter invert/sepia-based filter | Landing and grid-panel tool icon hover/focus tone |
+| --tool-icon-filter | sepia-based filter | invert/sepia-based filter | Save-panel icon |
 
 Theme-only semantic backgrounds:
 
@@ -181,7 +178,8 @@ Top bar behavior:
 
 Top-bar grid launcher sizing:
 - Grid launcher trigger target is 48x48 to exceed the 44px minimum touch target
-- Grid launcher glyph is 24x24 and uses theme-aware icon filter tokens
+- The trigger uses a dedicated four-cell Lucide grid glyph, separate from the tool icons; its stroke inherits the theme-aware `currentColor` from `--c3`
+- Tune the glyph size and stroke for the top bar so its weight aligns with the refreshed tool icons; do not treat their dimensions as a launcher requirement
 
 Ledger behavior:
 - >700px: table layout
@@ -287,16 +285,17 @@ Layout:
 - Four destination tiles are presented in a 2x2 grid on anchored/tablet/desktop panel layouts
 - Each tile stacks icon above label
 - Labels support up to two lines for long names with balanced line-height and clipping
-- Icon tones are theme-aware and intensify slightly on hover/focus for affordance clarity
+- Tool icons use the shared Lucide React mapping in `src/lib/tools.ts`; each decorative 22x22 glyph has a 1.75 stroke and uses `currentColor` inside a 34x34 theme-aware soft-tint badge
+- Tile hover and focus feedback applies to the whole link; focus uses the shared `--focus` outline and active state provides touch feedback
 
 Panel content:
 
-| Icon | Label | Route |
+| Lucide icon | Label | Route |
 |---|---|---|
-| trip-cost.svg | Trip Cost | /trip |
-| currency.svg | Currency | /currency |
-| timezone.svg | Timezones | /timezone |
-| forecast.svg | Forecast | /forecast |
+| Calculator | Trip Cost | /trip |
+| ArrowLeftRight | Currency Converter | /currency |
+| Clock | Timezone Tracker | /timezone |
+| CloudSun | Destination Forecast | /forecast |
 
 ### 8.3 Landing Page
 
@@ -312,6 +311,12 @@ Each card includes:
 - title
 - short description (typically one to two lines)
 - clear click target that navigates through the shared route system
+
+Launcher icon and interaction treatment:
+- Cards use the same decorative Lucide React icon mapping as the grid panel, with 22x22 glyphs at 1.75 stroke inside 38x38 theme-aware soft-tint badges
+- Icon glyphs inherit `currentColor`; badge color and surface use the shared theme palette
+- Hover lifts the whole card slightly and strengthens its border and shadow; keyboard focus outlines the whole link with the `--focus` token
+- Active state gives touch feedback; reduced-motion preferences suppress launcher transforms and transitions
 
 ### 8.4 Region Selector
 
@@ -487,6 +492,7 @@ Logo:
 
 Iconography:
 - Lucide React icons used for utility controls and navigation
+- The four tool-launcher icons share the typed mapping in `src/lib/tools.ts`; use decorative 22x22 glyphs with a 1.75 stroke and theme-aware `currentColor`
 - Emoji icon set used for group identity selection
 
 Imagery:
@@ -526,3 +532,5 @@ Definition of done for design-affecting changes:
 | 1.0 | 2026-03-21 | Initial site design specification authored from implemented UI, PRD, and architecture docs. |
 | 1.1 | 2026-03-21 | Updated launcher and nav design rules: centered compact landing cards, 2x2 grid navigation tile layout, no dedicated grid-panel close button, and theme-aware icon tone tokens including larger top-bar grid icon sizing. |
 | 1.2 | 2026-09-29 | Documented the title hierarchy and color-only hover and focus treatment for blog post card links. |
+| 1.3 | 2026-09-30 | Documented shared Lucide tool-launcher icons and whole-link hover, focus, active, and reduced-motion behavior. |
+| 1.4 | 2026-09-30 | Replaced the top-bar launcher image with a dedicated Lucide grid glyph using theme-aware `currentColor`; retained the existing trigger geometry and interactions. |

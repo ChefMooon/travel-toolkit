@@ -104,6 +104,14 @@ describe('Navbar', () => {
     render(<Navbar />);
 
     const trigger = screen.getByRole('button', { name: 'Open tool navigation' });
+    const icon = trigger.querySelector('svg');
+
+    expect(icon).toBeInTheDocument();
+    expect(icon).toHaveAttribute('aria-hidden', 'true');
+    expect(icon).toHaveAttribute('focusable', 'false');
+    expect(icon).not.toHaveAttribute('tabindex');
+    expect(trigger.querySelector('img')).not.toBeInTheDocument();
+
     fireEvent.pointerEnter(trigger, { pointerType: 'mouse' });
     expect(screen.getByRole('tooltip')).toHaveTextContent('Open tool navigation');
     expect(trigger).toHaveAccessibleName('Open tool navigation');

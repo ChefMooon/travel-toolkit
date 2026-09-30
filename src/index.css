@@ -16,10 +16,7 @@
   --surface: #FFFFFF; --surface-2: #F8F8F5;
   --border: #E2E0D8; --border-2: #D0CEC4;
   --text: #2A2824; --text-2: #6B6860; --text-3: #A8A59E;
-  --nav-icon-filter: sepia(0.32) saturate(1.25) hue-rotate(300deg) brightness(0.78) contrast(1.08);
-  --nav-icon-filter-hover: sepia(0.42) saturate(1.45) hue-rotate(296deg) brightness(0.7) contrast(1.12);
   --tool-icon-filter: sepia(0.34) saturate(1.2) hue-rotate(304deg) brightness(0.84) contrast(1.06);
-  --tool-icon-filter-hover: sepia(0.38) saturate(1.35) hue-rotate(300deg) brightness(0.76) contrast(1.1);
   --shadow: 0 1px 4px rgba(42,40,36,0.07), 0 6px 20px rgba(42,40,36,0.05);
   --shadow-sm: 0 1px 2px rgba(42,40,36,0.06);
   --shadow-lg: 0 16px 48px rgba(42,40,36,0.13);
@@ -33,10 +30,7 @@
   --surface: #FFFFFF; --surface-2: #F8F8F5;
   --border: #E2E0D8; --border-2: #D0CEC4;
   --text: #2A2824; --text-2: #6B6860; --text-3: #A8A59E;
-  --nav-icon-filter: sepia(0.32) saturate(1.25) hue-rotate(300deg) brightness(0.78) contrast(1.08);
-  --nav-icon-filter-hover: sepia(0.42) saturate(1.45) hue-rotate(296deg) brightness(0.7) contrast(1.12);
   --tool-icon-filter: sepia(0.34) saturate(1.2) hue-rotate(304deg) brightness(0.84) contrast(1.06);
-  --tool-icon-filter-hover: sepia(0.38) saturate(1.35) hue-rotate(300deg) brightness(0.76) contrast(1.1);
   --shadow: 0 1px 4px rgba(42,40,36,0.07), 0 6px 20px rgba(42,40,36,0.05);
   --shadow-sm: 0 1px 2px rgba(42,40,36,0.06);
   --shadow-lg: 0 16px 48px rgba(42,40,36,0.13);
@@ -50,10 +44,7 @@
   --surface: #1E1C22; --surface-2: #252330;
   --border: #322F3A; --border-2: #403D4C;
   --text: #EEEAE6; --text-2: #9E9B96; --text-3: #625F5A;
-  --nav-icon-filter: invert(88%) sepia(8%) saturate(480%) hue-rotate(306deg) brightness(1.02) contrast(0.98);
-  --nav-icon-filter-hover: invert(95%) sepia(11%) saturate(640%) hue-rotate(304deg) brightness(1.08) contrast(1.04);
   --tool-icon-filter: invert(85%) sepia(8%) saturate(430%) hue-rotate(307deg) brightness(0.98) contrast(0.96);
-  --tool-icon-filter-hover: invert(91%) sepia(9%) saturate(560%) hue-rotate(304deg) brightness(1.05) contrast(1.02);
   --shadow: 0 1px 4px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.2);
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.25);
   --shadow-lg: 0 16px 48px rgba(0,0,0,0.4);
@@ -187,6 +178,7 @@ body::before {
   border-radius: 14px;
   border: 1.5px solid var(--border-2);
   background: color-mix(in srgb, var(--bg-2) 86%, var(--c3-soft) 14%);
+  color: var(--c3);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -205,17 +197,16 @@ body::before {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 26%, transparent 74%);
 }
 
-.grid-nav-trigger img {
-  width: 24px;
-  height: 24px;
+.grid-nav-trigger svg {
+  width: 22px;
+  height: 22px;
   display: block;
-  filter: var(--nav-icon-filter);
-  transition: filter 0.2s ease, transform 0.2s ease;
+  stroke-width: 1.75;
+  transition: transform 0.2s ease;
 }
 
-.grid-nav-trigger:hover img,
-.grid-nav-trigger:focus-visible img {
-  filter: var(--nav-icon-filter-hover);
+.grid-nav-trigger:hover svg,
+.grid-nav-trigger:focus-visible svg {
   transform: scale(1.03);
 }
 
@@ -258,25 +249,42 @@ body::before {
   gap: 8px;
   cursor: pointer;
   text-align: center;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
 }
 
-.grid-panel-item:hover {
+.grid-panel-item:hover,
+.grid-panel-item:focus-visible {
+  transform: translateY(-2px);
   border-color: var(--c3);
   background: color-mix(in srgb, var(--surface-2) 80%, var(--c3-soft) 20%);
+  box-shadow: var(--shadow);
 }
 
-.grid-panel-item img {
-  width: 26px;
-  height: 26px;
-  display: block;
-  filter: var(--tool-icon-filter);
-  transition: filter 0.2s ease, transform 0.2s ease;
+.grid-panel-item:focus-visible,
+.tool-card:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 3px;
 }
 
-.grid-panel-item:hover img,
-.grid-panel-item:focus-visible img {
-  filter: var(--tool-icon-filter-hover);
-  transform: translateY(-1px);
+.grid-panel-item:active {
+  transform: translateY(0) scale(0.99);
+  box-shadow: var(--shadow-sm);
+}
+
+.tool-launcher-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 1px solid var(--c3-border);
+  border-radius: 11px;
+  background: var(--c3-soft);
+  color: var(--c3);
+}
+
+.tool-launcher-icon svg {
+  width: 22px;
+  height: 22px;
+  stroke-width: 1.75;
 }
 
 .grid-panel-item-title {
@@ -678,24 +686,44 @@ body::before {
   gap: 8px;
   text-align: center;
   cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
 }
 
-.tool-card:hover {
+.tool-card:hover,
+.tool-card:focus-visible {
+  transform: translateY(-2px);
   border-color: var(--c3);
+  background: color-mix(in srgb, var(--surface) 88%, var(--c3-soft) 12%);
+  box-shadow: var(--shadow);
 }
 
-.tool-card img {
+.tool-card:active {
+  transform: translateY(0) scale(0.99);
+  box-shadow: var(--shadow-sm);
+}
+
+.tool-card .tool-launcher-icon {
+  width: 38px;
+  height: 38px;
+}
+
+.grid-panel-item .tool-launcher-icon {
   width: 34px;
   height: 34px;
-  display: block;
-  filter: var(--tool-icon-filter);
-  transition: filter 0.2s ease, transform 0.2s ease;
 }
 
-.tool-card:hover img,
-.tool-card:focus-visible img {
-  filter: var(--tool-icon-filter-hover);
-  transform: translateY(-1px);
+@media (prefers-reduced-motion: reduce) {
+  .tool-card,
+  .grid-panel-item,
+  .tool-card:hover,
+  .tool-card:focus-visible,
+  .tool-card:active,
+  .grid-panel-item:hover,
+  .grid-panel-item:focus-visible,
+  .grid-panel-item:active {
+    transition: none;
+    transform: none;
+  }
 }
 
 .tool-card-label {

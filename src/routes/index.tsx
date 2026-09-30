@@ -16,7 +16,9 @@ export default function LandingPage() {
             to={tool.route}
             className="tool-card"
           >
-            <img src={tool.icon} alt="" aria-hidden="true" />
+            <span className="tool-launcher-icon" aria-hidden="true">
+              <tool.icon focusable="false" strokeWidth={1.75} />
+            </span>
             <span className="tool-card-label">{tool.label}</span>
             <span className="tool-card-desc">{tool.description}</span>
           </Link>
