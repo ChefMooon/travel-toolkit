@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [1.3.2] - 2026-09-30
+
+### Changed
+
+- Refined the tool cards and refreshed the navigation icon for a cleaner, more consistent interface.
+
+### Fixed
+
+- Navigation tooltips no longer reappear after being closed.
+
 ## [1.3.1] - 2026-09-29
 
 ### Added
