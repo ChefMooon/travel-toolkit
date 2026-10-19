@@ -116,6 +116,15 @@ html.theme-preload *::after {
   transition: none !important;
 }
 
+html.theme-switching,
+html.theme-switching body,
+html.theme-switching body::before,
+html.theme-switching *,
+html.theme-switching *::before,
+html.theme-switching *::after {
+  transition: none !important;
+}
+
 body::before {
   content: '';
   position: fixed;

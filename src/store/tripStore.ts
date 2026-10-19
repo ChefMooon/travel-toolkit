@@ -24,6 +24,8 @@ function hasDuplicateSavedTripId(tripId: string): boolean {
   return useSaveSlotStore.getState().slots.some((slot) => slot?.tripId === tripId);
 }
 
+let themeSwitchId = 0;
+
 interface TripStore {
   tripId: string;
   tripName: string;
@@ -136,7 +138,24 @@ export const useTripStore = create<TripStore>()(
       setTripName: (name) => set({ tripName: name.slice(0, MAX_TRIP_NAME_LENGTH), isDirty: true }),
       setGlobalMarkup: (markup) => set({ globalMarkup: markup, isDirty: true }),
       setTheme: (theme) => {
-        document.documentElement.dataset['theme'] = theme;
+        const root = document.documentElement;
+        if (get().theme !== theme) {
+          root.classList.add('theme-switching');
+          const switchId = ++themeSwitchId;
+          root.dataset['theme'] = theme;
+          set({ theme, isDirty: true });
+          void root.offsetHeight;
+          window.requestAnimationFrame(() => {
+            window.requestAnimationFrame(() => {
+              if (switchId === themeSwitchId) {
+                root.classList.remove('theme-switching');
+              }
+            });
+          });
+          return;
+        }
+
+        root.dataset['theme'] = theme;
         set({ theme, isDirty: true });
       },
       setRegion: (region) => set({ region, isDirty: true }),

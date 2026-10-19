@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { useTripStore } from './tripStore';
 import { useToastStore } from './toastStore';
 import { useSaveSlotStore } from './saveSlotStore';
@@ -17,6 +17,38 @@ describe('tripStore — new actions', () => {
     useTripStore.getState().markClean();
     useSaveSlotStore.setState({ slots: [null, null, null], labels: ['Slot 1', 'Slot 2', 'Slot 3'] });
     useToastStore.getState().clearToasts();
+  });
+
+  describe('setTheme', () => {
+    it('suppresses transitions through the next paint and keeps suppression for rapid switches', () => {
+      const callbacks: FrameRequestCallback[] = [];
+      const requestAnimationFrame = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+        callbacks.push(callback);
+        return callbacks.length;
+      });
+
+      try {
+        useTripStore.getState().setTheme('dark');
+        expect(document.documentElement.dataset.theme).toBe('dark');
+        expect(useTripStore.getState().theme).toBe('dark');
+        expect(document.documentElement.classList.contains('theme-switching')).toBe(true);
+
+        callbacks.shift()?.(0);
+        useTripStore.getState().setTheme('light');
+        expect(document.documentElement.dataset.theme).toBe('light');
+        expect(useTripStore.getState().theme).toBe('light');
+        expect(document.documentElement.classList.contains('theme-switching')).toBe(true);
+
+        callbacks.shift()?.(0);
+        expect(document.documentElement.classList.contains('theme-switching')).toBe(true);
+        callbacks.shift()?.(0);
+        expect(document.documentElement.classList.contains('theme-switching')).toBe(true);
+        callbacks.shift()?.(0);
+        expect(document.documentElement.classList.contains('theme-switching')).toBe(false);
+      } finally {
+        requestAnimationFrame.mockRestore();
+      }
+    });
   });
 
   describe('trip id and dirty state', () => {
