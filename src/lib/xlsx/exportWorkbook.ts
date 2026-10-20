@@ -11,7 +11,7 @@ export async function exportWorkbook(
 ): Promise<void> {
   const XLSX = await import('xlsx');
 
-  // Strip theme — it's a UI preference, not trip data
+  // Select workbook fields explicitly; appearance is not part of trip data.
   const exportable: ExportableSnapshot = {
     tripId: snapshot.tripId,
     tripName: snapshot.tripName,

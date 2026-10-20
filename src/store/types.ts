@@ -76,7 +76,6 @@ export interface TripSnapshot {
   nonPayingTravellers: NonPayingTraveller[];
   costs: CostEntry[];
   exchangeRates: ExchangeRate[];
-  theme: 'light' | 'dark';
   region: Region;
   targetCurrency: string;
 }

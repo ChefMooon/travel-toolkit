@@ -3,6 +3,7 @@ import { render, fireEvent, waitFor, screen } from '@testing-library/react';
 import { useTripStore } from '../../store/tripStore';
 import CoupleCard from './CoupleCard';
 import { COUPLE_ICONS, type CoupleSummary } from '../../store/types';
+import { useSettingsStore } from '../../store/settingsStore';
 
 // Mock the modals
 vi.mock('../IconChoiceModal', () => ({
@@ -245,8 +246,7 @@ describe('CoupleCard', () => {
 
   it('should render color dot with theme-aware color', () => {
     // Set light theme
-    const store = useTripStore.getState();
-    store.setTheme('light');
+    useSettingsStore.setState({ themePreference: 'light' });
     
     render(<CoupleCard summary={mockSummary} />);
     const colorDot = screen.getByTestId('color-dot');

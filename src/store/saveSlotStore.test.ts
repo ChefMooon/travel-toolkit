@@ -6,7 +6,7 @@ import {
   useSaveSlotStore,
 } from './saveSlotStore';
 import { useToastStore } from './toastStore';
-import { SAVE_SLOT_SCHEMA_VERSION, type TripSnapshot } from './types';
+import { SAVE_SLOT_SCHEMA_VERSION, type SaveSlot, type TripSnapshot } from './types';
 
 const baseSnapshot: TripSnapshot = {
   tripId: '111111',
@@ -16,7 +16,6 @@ const baseSnapshot: TripSnapshot = {
   nonPayingTravellers: [],
   costs: [],
   exchangeRates: [],
-  theme: 'light',
   region: 'Europe',
   targetCurrency: 'USD',
 };
@@ -42,6 +41,65 @@ describe('saveSlotStore', () => {
     useSaveSlotStore.getState().saveToSlot(0, baseSnapshot);
     const loaded = useSaveSlotStore.getState().loadFromSlot(0);
     expect(loaded).toEqual(baseSnapshot);
+  });
+
+  it('strips legacy theme from loaded and persisted save slots', () => {
+    const legacySnapshot = { ...baseSnapshot, theme: 'dark' } as TripSnapshot;
+    const normalized = normalizePersistedSaveSlotState({
+      slots: [{
+        tripId: legacySnapshot.tripId,
+        tripName: legacySnapshot.tripName,
+        data: legacySnapshot,
+      } as never],
+    });
+
+    expect(normalized.slots[0]?.data).not.toHaveProperty('theme');
+    expect(useSaveSlotStore.getState().saveToSlot(0, legacySnapshot)).toBe(true);
+    expect(useSaveSlotStore.getState().slots[0]?.data).not.toHaveProperty('theme');
+    expect(useSaveSlotStore.getState().loadFromSlot(0)).not.toHaveProperty('theme');
+  });
+
+  it('rewrites legacy slot themes out of localStorage during hydration', () => {
+    const legacySnapshot = { ...baseSnapshot, theme: 'dark' };
+    const persistedSlot = {
+      slotIndex: 0,
+      schemaVersion: SAVE_SLOT_SCHEMA_VERSION,
+      label: 'Legacy label',
+      tripId: legacySnapshot.tripId,
+      tripName: legacySnapshot.tripName,
+      savedAt: new Date().toISOString(),
+      coupleCount: 0,
+      costCount: 0,
+      targetCurrency: legacySnapshot.targetCurrency,
+      data: legacySnapshot,
+    };
+    localStorage.setItem('travel-toolkit-save-slots', JSON.stringify({
+      state: { slots: [persistedSlot, null, null], labels: ['Legacy label', 'Slot 2', 'Slot 3'] },
+      version: 1,
+    }));
+
+    useSaveSlotStore.persist.rehydrate();
+
+    const stored = JSON.parse(localStorage.getItem('travel-toolkit-save-slots') ?? '{}');
+    expect(stored.state.slots[0].label).toBe('Legacy label');
+    expect(stored.state.slots[0].data).not.toHaveProperty('theme');
+  });
+
+  it('ignores legacy theme-only differences when comparing saved trips', () => {
+    const legacySlot = {
+      slotIndex: 0,
+      schemaVersion: SAVE_SLOT_SCHEMA_VERSION,
+      label: 'Slot 1',
+      tripId: baseSnapshot.tripId,
+      tripName: baseSnapshot.tripName,
+      savedAt: new Date().toISOString(),
+      coupleCount: 0,
+      costCount: 0,
+      targetCurrency: baseSnapshot.targetCurrency,
+      data: { ...baseSnapshot, theme: 'dark' },
+    } as SaveSlot;
+
+    expect(findRelatedOlderSlotIndex([legacySlot, null, null], baseSnapshot)).toBe(-1);
   });
 
   it('rejects duplicate trip IDs across different slots', () => {

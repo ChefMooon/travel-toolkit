@@ -340,7 +340,7 @@ export default function SaveDataPanel({
     async (file: File) => {
       setIsImporting(true);
       try {
-        const { importWorkbook, toFullSnapshot } = await import('@/lib/xlsx/importWorkbook');
+        const { importWorkbook } = await import('@/lib/xlsx/importWorkbook');
         const { snapshot: exportable, warnings } = await importWorkbook(file);
 
         const adjustedExchangeRates = exportable.exchangeRates.map((rate) => {
@@ -358,10 +358,8 @@ export default function SaveDataPanel({
           exchangeRates: adjustedExchangeRates,
         };
 
-        const theme = useTripStore.getState().theme ?? 'dark';
-        const full = toFullSnapshot(adjustedExportable, theme);
         cancelSaveContinuation();
-        loadSnapshot(full);
+        loadSnapshot(adjustedExportable);
         markClean();
 
         if (warnings.length > 0) {

@@ -1,8 +1,9 @@
-import { useEffect, useCallback, useMemo } from 'react';
+import { useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { COUPLE_COLORS, getColorThemeValue } from '@/store/types';
 import Tooltip from '@/components/Tooltip';
+import { useResolvedTheme } from '@/store/theme';
 
 interface ColorChoiceModalProps {
   colorIndex: number;
@@ -31,11 +32,7 @@ export default function ColorChoiceModal({
     [onConfirm]
   );
 
-  // Get current theme
-  const currentTheme = useMemo(() => {
-    const theme = document.documentElement.dataset.theme as 'light' | 'dark' | undefined;
-    return theme === 'dark' ? 'dark' : 'light';
-  }, []);
+  const currentTheme = useResolvedTheme();
 
   // Handle Escape key
   useEffect(() => {

@@ -2,20 +2,19 @@ import { useState, useCallback } from 'react';
 import { useTripStore } from '@/store/tripStore';
 import { findRelatedOlderSlotIndex, useSaveSlotStore } from '@/store/saveSlotStore';
 import { useToastStore } from '@/store/toastStore';
-import { Sun, Moon, RotateCcw } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import Modal from '../Modal';
 import Logo from '../Logo';
 import SaveDataPanel from '@/components/SaveDataPanel';
 import { getDefaultSlotLabel } from '@/store/types';
 import Tooltip from '@/components/Tooltip';
+import ThemeSelector from '@/components/ThemeSelector/ThemeSelector';
 
 export default function Topbar() {
   const tripName = useTripStore((s) => s.tripName);
   const setTripName = useTripStore((s) => s.setTripName);
   const globalMarkup = useTripStore((s) => s.globalMarkup);
   const setGlobalMarkup = useTripStore((s) => s.setGlobalMarkup);
-  const theme = useTripStore((s) => s.theme);
-  const setTheme = useTripStore((s) => s.setTheme);
   const isDirty = useTripStore((s) => s.isDirty);
   const getSnapshot = useTripStore((s) => s.getSnapshot);
   const resetTrip = useTripStore((s) => s.resetTrip);
@@ -29,10 +28,6 @@ export default function Topbar() {
   const [tripNameFocused, setTripNameFocused] = useState(false);
   const [editingMarkup, setEditingMarkup] = useState(false);
   const [markupInput, setMarkupInput] = useState(String(globalMarkup));
-
-  const toggleTheme = useCallback(() => {
-    setTheme(theme === 'light' ? 'dark' : 'light');
-  }, [theme, setTheme]);
 
   const handleMarkupBlur = useCallback(() => {
     const val = parseFloat(markupInput);
@@ -134,11 +129,7 @@ export default function Topbar() {
             </button>
           </Tooltip>
 
-          <button className="theme-toggle" onClick={toggleTheme} aria-label="Toggle theme">
-            <div className="toggle-knob">
-              <span>{theme === 'dark' ? <Moon size={12} /> : <Sun size={12} />}</span>
-            </div>
-          </button>
+          <ThemeSelector />
         </div>
       </header>
 

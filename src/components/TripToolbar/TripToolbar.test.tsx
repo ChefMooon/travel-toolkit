@@ -47,7 +47,6 @@ const baseSnapshot: TripSnapshot = {
   nonPayingTravellers: [],
   costs: [],
   exchangeRates: [],
-  theme: 'light',
   region: 'Europe',
   targetCurrency: 'USD',
 };
@@ -73,7 +72,6 @@ const mockStoreState = {
   setTripName: vi.fn(),
   globalMarkup: baseSnapshot.globalMarkup,
   setGlobalMarkup: vi.fn(),
-  theme: baseSnapshot.theme,
   isDirty: false,
   resetTrip: vi.fn(),
   getSnapshot: vi.fn(() => activeSnapshot),
@@ -142,14 +140,12 @@ describe('TripToolbar', () => {
     mockStoreState.tripId = baseSnapshot.tripId;
     mockStoreState.tripName = baseSnapshot.tripName;
     mockStoreState.globalMarkup = baseSnapshot.globalMarkup;
-    mockStoreState.theme = baseSnapshot.theme;
     mockStoreState.isDirty = false;
     mockStoreState.getSnapshot.mockImplementation(() => activeSnapshot);
     mockStoreState.loadSnapshot.mockImplementation((snapshot) => {
       activeSnapshot = snapshot;
       mockStoreState.tripId = snapshot.tripId;
       mockStoreState.tripName = snapshot.tripName;
-      mockStoreState.theme = snapshot.theme;
     });
 
     mockSaveStoreState.slots = [null, null, null];
@@ -505,7 +501,6 @@ describe('TripToolbar', () => {
     await waitFor(() => {
       expect(mockStoreState.loadSnapshot).toHaveBeenCalledWith({
         ...importedSnapshot,
-        theme: 'light',
       });
     });
     expect(screen.getByRole('dialog', { name: 'Save Data Slots' })).toBeInTheDocument();

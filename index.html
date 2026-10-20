@@ -10,24 +10,55 @@
     <title>Travel Toolkit</title>
     <script>
       (function () {
-        var storageKey = 'travel-toolkit-trip-data';
-        var fallbackTheme = 'light';
+        var settingsStorageKey = 'travel-toolkit-settings-data';
+        var tripStorageKey = 'travel-toolkit-trip-data';
         var root = document.documentElement;
-        var theme = fallbackTheme;
+        var preference = null;
+        var legacyTheme = null;
+        var theme = 'light';
 
-        try {
-          var storedValue = window.localStorage.getItem(storageKey);
-
-          if (storedValue) {
-            var parsedValue = JSON.parse(storedValue);
-            var persistedTheme = parsedValue && parsedValue.state && parsedValue.state.theme;
-
-            if (persistedTheme === 'light' || persistedTheme === 'dark') {
-              theme = persistedTheme;
-            }
+        function readStoredState(storageKey) {
+          try {
+            var storedValue = window.localStorage.getItem(storageKey);
+            return storedValue ? JSON.parse(storedValue) : null;
+          } catch (error) {
+            console.error('Unable to read stored theme data.', error);
+            return null;
           }
-        } catch (error) {
-          theme = fallbackTheme;
+        }
+
+        var settings = readStoredState(settingsStorageKey);
+        var settingsState = settings && settings.state;
+        var storedPreference = settingsState && settingsState.themePreference;
+        if (
+          storedPreference === 'system' ||
+          storedPreference === 'light' ||
+          storedPreference === 'dark'
+        ) {
+          preference = storedPreference;
+        }
+
+        if (!preference) {
+          var trip = readStoredState(tripStorageKey);
+          var tripState = trip && trip.state;
+          if (tripState && (tripState.theme === 'light' || tripState.theme === 'dark')) {
+            legacyTheme = tripState.theme;
+          }
+          preference = legacyTheme || 'light';
+        }
+
+        if (preference === 'system') {
+          try {
+            if (typeof window.matchMedia === 'function') {
+              theme = window.matchMedia('(prefers-color-scheme: dark)').matches
+                ? 'dark'
+                : 'light';
+            }
+          } catch (error) {
+            console.error('Unable to resolve the system color scheme.', error);
+          }
+        } else {
+          theme = preference;
         }
 
         root.dataset.theme = theme;

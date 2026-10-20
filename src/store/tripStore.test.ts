@@ -1,7 +1,8 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { useTripStore } from './tripStore';
 import { useToastStore } from './toastStore';
 import { useSaveSlotStore } from './saveSlotStore';
+import { useSettingsStore } from './settingsStore';
 import {
   MAX_GROUPS,
   MAX_KIDS_PER_GROUP,
@@ -9,6 +10,7 @@ import {
   MAX_TRIP_NAME_LENGTH,
   MAX_GROUP_NAME_LENGTH,
   MAX_COST_NAME_LENGTH,
+  type TripSnapshot,
 } from './types';
 
 describe('tripStore — new actions', () => {
@@ -17,41 +19,9 @@ describe('tripStore — new actions', () => {
     useTripStore.getState().markClean();
     useSaveSlotStore.setState({ slots: [null, null, null], labels: ['Slot 1', 'Slot 2', 'Slot 3'] });
     useToastStore.getState().clearToasts();
-  });
-
-  describe('setTheme', () => {
-    it('suppresses transitions through the next paint and keeps suppression for rapid switches', () => {
-      const callbacks: FrameRequestCallback[] = [];
-      const requestAnimationFrame = vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
-        callbacks.push(callback);
-        return callbacks.length;
-      });
-
-      try {
-        useTripStore.getState().setTheme('dark');
-        expect(document.documentElement.dataset.theme).toBe('dark');
-        expect(useTripStore.getState().theme).toBe('dark');
-        expect(document.documentElement.classList.contains('theme-switching')).toBe(true);
-
-        callbacks.shift()?.(0);
-        useTripStore.getState().setTheme('light');
-        expect(document.documentElement.dataset.theme).toBe('light');
-        expect(useTripStore.getState().theme).toBe('light');
-        expect(document.documentElement.classList.contains('theme-switching')).toBe(true);
-
-        callbacks.shift()?.(0);
-        expect(document.documentElement.classList.contains('theme-switching')).toBe(true);
-        callbacks.shift()?.(0);
-        expect(document.documentElement.classList.contains('theme-switching')).toBe(true);
-        callbacks.shift()?.(0);
-        expect(document.documentElement.classList.contains('theme-switching')).toBe(false);
-      } finally {
-        requestAnimationFrame.mockRestore();
-      }
     });
-  });
 
-  describe('trip id and dirty state', () => {
+    describe('trip id and dirty state', () => {
     it('setTripId accepts a valid 6-digit value', () => {
       useTripStore.getState().setTripId('123456');
       expect(useTripStore.getState().tripId).toBe('123456');
@@ -86,7 +56,6 @@ describe('tripStore — new actions', () => {
               nonPayingTravellers: [],
               costs: [],
               exchangeRates: [],
-              theme: 'light',
               region: 'Europe',
               targetCurrency: 'USD',
             },
@@ -102,6 +71,41 @@ describe('tripStore — new actions', () => {
       expect(useTripStore.getState().tripId).toBe(prevId);
       const toasts = useToastStore.getState().toasts;
       expect(toasts[toasts.length - 1]?.title).toBe('Duplicate trip ID');
+    });
+
+    it('keeps legacy theme out of snapshots, loaded state, and persisted trip data', () => {
+      useSettingsStore.getState().setThemePreference('system');
+      const legacySnapshot = {
+        ...useTripStore.getState().getSnapshot(),
+        tripName: 'Legacy trip',
+        theme: 'dark',
+      } as TripSnapshot;
+
+      useTripStore.getState().loadSnapshot(legacySnapshot);
+
+      expect(useSettingsStore.getState().themePreference).toBe('system');
+      expect(useTripStore.getState().getSnapshot()).not.toHaveProperty('theme');
+      expect(useTripStore.getState()).not.toHaveProperty('theme');
+      expect(JSON.parse(localStorage.getItem('travel-toolkit-trip-data') ?? '{}').state).not.toHaveProperty('theme');
+
+      useTripStore.getState().resetTrip();
+      expect(useSettingsStore.getState().themePreference).toBe('system');
+      expect(useTripStore.getState()).not.toHaveProperty('theme');
+      expect(useTripStore.getState().getSnapshot()).not.toHaveProperty('theme');
+    });
+
+    it('strips legacy trip theme during persisted-state rehydration without losing trip data', () => {
+      const currentState = useTripStore.getState().getSnapshot();
+      localStorage.setItem('travel-toolkit-trip-data', JSON.stringify({
+        state: { ...currentState, tripName: 'Migrated trip', theme: 'dark' },
+        version: 0,
+      }));
+
+      useTripStore.persist.rehydrate();
+
+      expect(useTripStore.getState().tripName).toBe('Migrated trip');
+      expect(useTripStore.getState()).not.toHaveProperty('theme');
+      expect(JSON.parse(localStorage.getItem('travel-toolkit-trip-data') ?? '{}').state).not.toHaveProperty('theme');
     });
 
     it('markClean resets isDirty to false', () => {

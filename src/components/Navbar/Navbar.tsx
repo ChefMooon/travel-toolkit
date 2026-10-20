@@ -1,13 +1,11 @@
 import { useCallback, useRef, useState } from 'react';
-import { Grid2X2, Moon, Sun } from 'lucide-react';
-import { useTripStore } from '@/store/tripStore';
+import { Grid2X2 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import GridPanel from '@/components/GridPanel';
 import Tooltip from '@/components/Tooltip';
+import ThemeSelector from '@/components/ThemeSelector/ThemeSelector';
 
 export default function Navbar() {
-  const theme = useTripStore((s) => s.theme);
-  const setTheme = useTripStore((s) => s.setTheme);
   const [gridOpen, setGridOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
 
@@ -36,17 +34,7 @@ export default function Navbar() {
           </button>
         </Tooltip>
 
-        <Tooltip content={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}>
-          <button
-            className="theme-toggle"
-            onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
-            aria-label="Toggle theme"
-          >
-            <div className="toggle-knob">
-              <span>{theme === 'dark' ? <Moon size={12} /> : <Sun size={12} />}</span>
-            </div>
-          </button>
-        </Tooltip>
+        <ThemeSelector />
       </div>
 
       <GridPanel open={gridOpen} onClose={closeGrid} triggerRef={triggerRef} />

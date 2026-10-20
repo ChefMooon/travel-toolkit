@@ -12,7 +12,6 @@ function makeSnapshot(): TripSnapshot {
     tripId: '123456',
     tripName: 'Test Trip',
     globalMarkup: 50,
-    theme: 'dark',
     region: 'Europe',
     targetCurrency: 'EUR',
     couples: [
@@ -53,19 +52,14 @@ function makeSnapshot(): TripSnapshot {
   };
 }
 
-function stripTheme(snap: TripSnapshot) {
-  const { theme, ...rest } = snap;
-  return rest;
-}
-
 describe('Single-sheet builder (v1)', () => {
   it('creates a workbook with one sheet named "Trip"', () => {
-    const wb = buildSingleSheet(stripTheme(makeSnapshot()), XLSX);
+    const wb = buildSingleSheet(makeSnapshot(), XLSX);
     expect(wb.SheetNames).toEqual(['Trip']);
   });
 
   it('has schema version marker at A2', () => {
-    const wb = buildSingleSheet(stripTheme(makeSnapshot()), XLSX);
+    const wb = buildSingleSheet(makeSnapshot(), XLSX);
     const sheet = wb.Sheets['Trip']!;
     const aoa: unknown[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
     expect(aoa[1]?.[0]).toBe('schema');
@@ -73,7 +67,7 @@ describe('Single-sheet builder (v1)', () => {
   });
 
   it('exports trip metadata in fixed positions', () => {
-    const wb = buildSingleSheet(stripTheme(makeSnapshot()), XLSX);
+    const wb = buildSingleSheet(makeSnapshot(), XLSX);
     const sheet = wb.Sheets['Trip']!;
     const aoa: unknown[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
 
@@ -85,7 +79,7 @@ describe('Single-sheet builder (v1)', () => {
   });
 
   it('exports cost ledger starting at column L', () => {
-    const wb = buildSingleSheet(stripTheme(makeSnapshot()), XLSX);
+    const wb = buildSingleSheet(makeSnapshot(), XLSX);
     const sheet = wb.Sheets['Trip']!;
     const aoa: unknown[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
 
@@ -101,7 +95,7 @@ describe('Single-sheet builder (v1)', () => {
   });
 
   it('exports party and exchange rates sections', () => {
-    const wb = buildSingleSheet(stripTheme(makeSnapshot()), XLSX);
+    const wb = buildSingleSheet(makeSnapshot(), XLSX);
     const sheet = wb.Sheets['Trip']!;
     const aoa: unknown[][] = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: null });
 
@@ -113,19 +107,19 @@ describe('Single-sheet builder (v1)', () => {
 
 describe('Three-sheet builder (v2)', () => {
   it('creates a workbook with Summary, Costs, and Party sheets', () => {
-    const wb = buildThreeSheet(stripTheme(makeSnapshot()), XLSX);
+    const wb = buildThreeSheet(makeSnapshot(), XLSX);
     expect(wb.SheetNames).toEqual(['Summary', 'Costs', 'Party']);
   });
 
   it('has schema version marker in Summary', () => {
-    const wb = buildThreeSheet(stripTheme(makeSnapshot()), XLSX);
+    const wb = buildThreeSheet(makeSnapshot(), XLSX);
     const aoa: unknown[][] = XLSX.utils.sheet_to_json(wb.Sheets['Summary']!, { header: 1, defval: null });
     expect(aoa[0]?.[0]).toBe('schema');
     expect(aoa[0]?.[1]).toBe(XLSX_SCHEMA_VERSION);
   });
 
   it('exports cost rows in Costs sheet', () => {
-    const wb = buildThreeSheet(stripTheme(makeSnapshot()), XLSX);
+    const wb = buildThreeSheet(makeSnapshot(), XLSX);
     const aoa: unknown[][] = XLSX.utils.sheet_to_json(wb.Sheets['Costs']!, { header: 1, defval: null });
     expect(aoa[0]?.[0]).toBe('Name'); // header
     expect(aoa[1]?.[0]).toBe('Hotel');
@@ -133,7 +127,7 @@ describe('Three-sheet builder (v2)', () => {
   });
 
   it('exports couple and NPT data in Party sheet', () => {
-    const wb = buildThreeSheet(stripTheme(makeSnapshot()), XLSX);
+    const wb = buildThreeSheet(makeSnapshot(), XLSX);
     const aoa: unknown[][] = XLSX.utils.sheet_to_json(wb.Sheets['Party']!, { header: 1, defval: null });
     expect(aoa[0]?.[0]).toBe('Couples');
     expect(aoa[2]?.[0]).toBe('Alice & Bob');
@@ -148,7 +142,7 @@ describe('Three-sheet builder (v2)', () => {
 describe('Round-trip: v1 export → import', () => {
   it('preserves trip data through export/import cycle', () => {
     const original = makeSnapshot();
-    const exportable = stripTheme(original);
+    const exportable = original;
 
     const wb = buildSingleSheet(exportable, XLSX);
     const sheet = wb.Sheets['Trip']!;
@@ -183,7 +177,7 @@ describe('Round-trip: v1 export → import', () => {
 describe('Round-trip: v2 export → import', () => {
   it('preserves trip data through export/import cycle', () => {
     const original = makeSnapshot();
-    const exportable = stripTheme(original);
+    const exportable = original;
 
     const wb = buildThreeSheet(exportable, XLSX);
     const parsed = parseThreeSheet(wb, XLSX);

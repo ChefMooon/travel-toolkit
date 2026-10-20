@@ -2,7 +2,7 @@ import { useRef, useEffect, useCallback, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { X, Plus } from 'lucide-react';
 import { MAX_GROUPS, getColorThemeValue, type Couple, type SplitType } from '@/store/types';
-import { useTripStore } from '@/store/tripStore';
+import { useResolvedTheme } from '@/store/theme';
 
 interface SplitAssignmentModalProps {
   open: boolean;
@@ -27,7 +27,7 @@ export default function SplitAssignmentModal({
   onClose,
   onCreateGroup,
 }: SplitAssignmentModalProps) {
-  const theme = useTripStore((s) => s.theme);
+  const theme = useResolvedTheme();
   const dialogRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<Element | null>(null);
   const titleId = useId();

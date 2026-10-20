@@ -6,6 +6,7 @@ import IconChoiceModal from '../IconChoiceModal';
 import ColorChoiceModal from '../ColorChoiceModal';
 import Tooltip from '@/components/Tooltip';
 import type { CoupleSummary } from '@/store/types';
+import { useResolvedTheme } from '@/store/theme';
 
 interface CoupleCardProps {
   summary: CoupleSummary;
@@ -23,7 +24,7 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
   const clearExchangeRateOverride = useTripStore((s) => s.clearExchangeRateOverride);
   const updateCoupleIcon = useTripStore((s) => s.updateCoupleIcon);
   const updateCoupleColor = useTripStore((s) => s.updateCoupleColor);
-  const theme = useTripStore((s) => s.theme);
+  const theme = useResolvedTheme();
 
   const ci = summary.colorIndex;
   const icon = COUPLE_ICONS[summary.iconIndex]?.symbol ?? '🧳';

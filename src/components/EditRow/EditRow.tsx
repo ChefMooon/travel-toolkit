@@ -3,6 +3,7 @@ import { useTripStore } from '@/store/tripStore';
 import { useToastStore } from '@/store/toastStore';
 import { getAvailableCurrencies, getDefaultCurrency, getColorThemeValue, COST_ENTRY_TYPES, MAX_COST_NAME_LENGTH } from '@/store/types';
 import type { SplitType } from '@/store/types';
+import { useResolvedTheme } from '@/store/theme';
 import SplitAssignmentModal from '../SplitAssignmentModal';
 import Tooltip from '@/components/Tooltip';
 
@@ -34,7 +35,7 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
   const couples = useTripStore((s) => s.couples);
   const globalMarkup = useTripStore((s) => s.globalMarkup);
   const region = useTripStore((s) => s.region);
-  const theme = useTripStore((s) => s.theme);
+  const theme = useResolvedTheme();
   const addCouple = useTripStore((s) => s.addCouple);
   const pushToast = useToastStore((s) => s.pushToast);
 

@@ -3,8 +3,9 @@
 // @ts-nocheck
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { useTripStore } from './store/tripStore';
+import { useSettingsStore } from './store/settingsStore';
 import { getColorThemeValue, COUPLE_ICONS } from './store/types';
 import { useConsentStore } from './store/consentStore';
 import RootLayout from './routes/__root';
@@ -39,10 +40,12 @@ describe('Phase 6: Integration & Dark Mode Testing', () => {
     
     // Reset the store to initial state
     useTripStore.getState().resetTrip();
+    useSettingsStore.setState({ themePreference: 'light' });
   });
 
   afterEach(() => {
     delete document.documentElement.dataset.theme;
+    delete (window as Window & { matchMedia?: typeof window.matchMedia }).matchMedia;
     vi.clearAllMocks();
   });
 
@@ -148,22 +151,14 @@ describe('Phase 6: Integration & Dark Mode Testing', () => {
     });
   });
 
-  describe('E2E Scenario 3: Dark Mode - Theme Toggle Updates Modals', () => {
-    it('should toggle theme and update document attribute', async () => {
-      // Initial theme should be light
-      expect(useTripStore.getState().theme).toBe('light');
+  describe('E2E Scenario 3: Site-wide theme preference', () => {
+    it('keeps the theme preference outside trip state and snapshots', async () => {
+      const wasDirty = useTripStore.getState().isDirty;
+      useSettingsStore.getState().setThemePreference('dark');
 
-      // Toggle to dark
-      useTripStore.getState().setTheme('dark');
-
-      expect(useTripStore.getState().theme).toBe('dark');
-      expect(document.documentElement.dataset.theme).toBe('dark');
-
-      // Toggle back to light
-      useTripStore.getState().setTheme('light');
-
-      expect(useTripStore.getState().theme).toBe('light');
-      expect(document.documentElement.dataset.theme).toBe('light');
+      expect(useSettingsStore.getState().themePreference).toBe('dark');
+      expect(useTripStore.getState().isDirty).toBe(wasDirty);
+      expect(useTripStore.getState().getSnapshot()).not.toHaveProperty('theme');
     });
 
     it('should provide correct colors for light mode', async () => {
@@ -191,28 +186,26 @@ describe('Phase 6: Integration & Dark Mode Testing', () => {
 
   describe('E2E Scenario 4: Dark Mode - Modal Colors Adapt on Theme Change', () => {
     it('modalColors should change when theme changes', async () => {
-      useTripStore.getState().setTheme('light');
+      useSettingsStore.getState().setThemePreference('light');
 
       const lightModeColor1 = getColorThemeValue(1, 'light');
       const darkModeColor1 = getColorThemeValue(1, 'dark');
 
-      useTripStore.getState().setTheme('dark');
+      useSettingsStore.getState().setThemePreference('dark');
 
-      // Verify the current theme in the store matches
-      expect(useTripStore.getState().theme).toBe('dark');
+      expect(useSettingsStore.getState().themePreference).toBe('dark');
 
       // Verify color values are different for light vs dark
       expect(lightModeColor1).not.toBe(darkModeColor1);
     });
 
     it('should handle rapid theme switches', async () => {
-      useTripStore.getState().setTheme('light');
-      useTripStore.getState().setTheme('dark');
-      useTripStore.getState().setTheme('light');
-      useTripStore.getState().setTheme('dark');
+      useSettingsStore.getState().setThemePreference('light');
+      useSettingsStore.getState().setThemePreference('dark');
+      useSettingsStore.getState().setThemePreference('light');
+      useSettingsStore.getState().setThemePreference('dark');
 
-      expect(useTripStore.getState().theme).toBe('dark');
-      expect(document.documentElement.dataset.theme).toBe('dark');
+      expect(useSettingsStore.getState().themePreference).toBe('dark');
     });
   });
 
@@ -445,17 +438,17 @@ describe('Phase 6: Integration & Dark Mode Testing', () => {
       useTripStore.getState().updateCoupleColor(coupleId, 5);
 
       // Switch theme
-      useTripStore.getState().setTheme('dark');
+      useSettingsStore.getState().setThemePreference('dark');
 
       // Verify all state is maintained
       expect(useTripStore.getState().couples[0].iconIndex).toBe(3);
       expect(useTripStore.getState().couples[0].colorIndex).toBe(5);
-      expect(useTripStore.getState().theme).toBe('dark');
+      expect(useSettingsStore.getState().themePreference).toBe('dark');
     });
 
     it('should handle creating multiple couples with distinct icons/colors across themes', async () => {
       // Add couples in light mode
-      useTripStore.getState().setTheme('light');
+      useSettingsStore.getState().setThemePreference('light');
       useTripStore.getState().addCouple();
       useTripStore.getState().addCouple();
 
@@ -470,14 +463,14 @@ describe('Phase 6: Integration & Dark Mode Testing', () => {
       useTripStore.getState().updateCoupleColor(couple2Id, 6);
 
       // Switch to dark mode
-      useTripStore.getState().setTheme('dark');
+      useSettingsStore.getState().setThemePreference('dark');
 
       // Verify customizations persisted through theme change
       expect(useTripStore.getState().couples[0].iconIndex).toBe(2);
       expect(useTripStore.getState().couples[0].colorIndex).toBe(4);
       expect(useTripStore.getState().couples[1].iconIndex).toBe(8);
       expect(useTripStore.getState().couples[1].colorIndex).toBe(6);
-      expect(useTripStore.getState().theme).toBe('dark');
+      expect(useSettingsStore.getState().themePreference).toBe('dark');
     });
 
     it('should maintain data integrity through rapid consecutive updates', async () => {
@@ -517,6 +510,57 @@ describe('Root analytics consent bridge', () => {
 
     expect(initializeAnalyticsMock).not.toHaveBeenCalled();
     expect(trackPageViewMock).not.toHaveBeenCalled();
+  });
+
+  it('synchronizes System preference with the document and ignores OS changes for explicit themes', async () => {
+    const listeners = new Set<(event: MediaQueryListEvent) => void>();
+    const mediaQuery = {
+      matches: false,
+      media: '(prefers-color-scheme: dark)',
+      addEventListener: (_type: string, listener: (event: MediaQueryListEvent) => void) => listeners.add(listener),
+      removeEventListener: (_type: string, listener: (event: MediaQueryListEvent) => void) => listeners.delete(listener),
+      addListener: (listener: (event: MediaQueryListEvent) => void) => listeners.add(listener),
+      removeListener: (listener: (event: MediaQueryListEvent) => void) => listeners.delete(listener),
+    } as unknown as MediaQueryList;
+    Object.defineProperty(window, 'matchMedia', {
+      configurable: true,
+      value: vi.fn(() => mediaQuery),
+    });
+    const changeScheme = (isDark: boolean) => {
+      Object.defineProperty(mediaQuery, 'matches', { configurable: true, value: isDark });
+      listeners.forEach((listener) => listener({ matches: isDark } as MediaQueryListEvent));
+    };
+
+    useSettingsStore.getState().setThemePreference('system');
+    const { unmount } = render(<RootLayout />);
+
+    await waitFor(() => {
+      expect(document.documentElement.dataset.theme).toBe('light');
+      expect(document.documentElement.style.colorScheme).toBe('light');
+    });
+    act(() => changeScheme(true));
+    await waitFor(() => {
+      expect(document.documentElement.dataset.theme).toBe('dark');
+      expect(document.documentElement.style.colorScheme).toBe('dark');
+    });
+
+    act(() => {
+      useSettingsStore.getState().setThemePreference('light');
+      changeScheme(false);
+    });
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe('light'));
+    act(() => {
+      useSettingsStore.getState().setThemePreference('dark');
+      changeScheme(false);
+    });
+    await waitFor(() => expect(document.documentElement.dataset.theme).toBe('dark'));
+
+    act(() => useSettingsStore.getState().setThemePreference('light'));
+    act(() => useSettingsStore.getState().setThemePreference('dark'));
+    await waitFor(() => expect(document.documentElement).not.toHaveClass('theme-switching'));
+
+    unmount();
+    expect(listeners.size).toBe(0);
   });
 
   it('initializes analytics and sends page views with accepted consent in production', async () => {

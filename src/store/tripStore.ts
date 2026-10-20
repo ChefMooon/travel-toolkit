@@ -11,6 +11,7 @@ import {
 } from './types';
 import { useToastStore } from './toastStore';
 import { useSaveSlotStore } from './saveSlotStore';
+import { migrateLegacyThemePreferenceBeforeTripCleanup } from './settingsStore';
 
 function generateId(): string {
   return crypto.randomUUID();
@@ -24,7 +25,8 @@ function hasDuplicateSavedTripId(tripId: string): boolean {
   return useSaveSlotStore.getState().slots.some((slot) => slot?.tripId === tripId);
 }
 
-let themeSwitchId = 0;
+// Capture the old trip-owned theme before persistence hydration strips it.
+migrateLegacyThemePreferenceBeforeTripCleanup();
 
 interface TripStore {
   tripId: string;
@@ -34,7 +36,6 @@ interface TripStore {
   nonPayingTravellers: NonPayingTraveller[];
   costs: CostEntry[];
   exchangeRates: ExchangeRate[];
-  theme: 'light' | 'dark';
   region: Region;
   targetCurrency: string;
   isDirty: boolean;
@@ -43,7 +44,6 @@ interface TripStore {
   setTripId: (tripId: string) => void;
   setTripName: (name: string) => void;
   setGlobalMarkup: (markup: number) => void;
-  setTheme: (theme: 'light' | 'dark') => void;
   setRegion: (region: Region) => void;
   setTargetCurrency: (currency: string) => void;
 
@@ -98,7 +98,6 @@ const initialState = {
   nonPayingTravellers: [] as NonPayingTraveller[],
   costs: [] as CostEntry[],
   exchangeRates: [] as ExchangeRate[],
-  theme: 'light' as const,
   region: 'Europe' as const,
   targetCurrency: 'USD',
   isDirty: false,
@@ -137,27 +136,6 @@ export const useTripStore = create<TripStore>()(
 
       setTripName: (name) => set({ tripName: name.slice(0, MAX_TRIP_NAME_LENGTH), isDirty: true }),
       setGlobalMarkup: (markup) => set({ globalMarkup: markup, isDirty: true }),
-      setTheme: (theme) => {
-        const root = document.documentElement;
-        if (get().theme !== theme) {
-          root.classList.add('theme-switching');
-          const switchId = ++themeSwitchId;
-          root.dataset['theme'] = theme;
-          set({ theme, isDirty: true });
-          void root.offsetHeight;
-          window.requestAnimationFrame(() => {
-            window.requestAnimationFrame(() => {
-              if (switchId === themeSwitchId) {
-                root.classList.remove('theme-switching');
-              }
-            });
-          });
-          return;
-        }
-
-        root.dataset['theme'] = theme;
-        set({ theme, isDirty: true });
-      },
       setRegion: (region) => set({ region, isDirty: true }),
       setTargetCurrency: (currency) => set({ targetCurrency: currency, isDirty: true }),
 
@@ -417,16 +395,16 @@ export const useTripStore = create<TripStore>()(
           nonPayingTravellers: state.nonPayingTravellers,
           costs: state.costs,
           exchangeRates: state.exchangeRates,
-          theme: state.theme,
           region: state.region,
           targetCurrency: state.targetCurrency,
         };
       },
 
       loadSnapshot: (snapshot) => {
-        document.documentElement.dataset['theme'] = snapshot.theme;
+        const sanitizedSnapshot = { ...snapshot } as TripSnapshot & { theme?: unknown };
+        delete sanitizedSnapshot.theme;
         set({
-          ...snapshot,
+          ...sanitizedSnapshot,
           isDirty: false,
         });
       },
@@ -438,11 +416,29 @@ export const useTripStore = create<TripStore>()(
           ...initialState,
           tripId: generateTripId(),
           isDirty: false,
-          theme: document.documentElement.dataset['theme'] as 'light' | 'dark' ?? 'light',
         }),
     }),
     {
       name: 'travel-toolkit-trip-data',
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState && typeof persistedState === 'object'
+          ? { ...persistedState as Record<string, unknown> }
+          : {};
+        const hadLegacyTheme = Object.prototype.hasOwnProperty.call(persisted, 'theme');
+        delete persisted.theme;
+        return {
+          ...currentState,
+          ...persisted,
+          ...(hadLegacyTheme ? { isDirty: false } : {}),
+        } as TripStore;
+      },
+      onRehydrateStorage: () => (state, error) => {
+        if (error) {
+          console.error('Unable to hydrate trip data.', error);
+          return;
+        }
+        state?.markClean();
+      },
       partialize: (state) => ({
         tripId: state.tripId,
         tripName: state.tripName,
@@ -451,7 +447,6 @@ export const useTripStore = create<TripStore>()(
         nonPayingTravellers: state.nonPayingTravellers,
         costs: state.costs,
         exchangeRates: state.exchangeRates,
-        theme: state.theme,
         region: state.region,
         targetCurrency: state.targetCurrency,
       }),

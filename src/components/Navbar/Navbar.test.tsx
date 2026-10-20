@@ -2,13 +2,9 @@
 /// <reference types="@testing-library/jest-dom" />
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { act, render, screen, fireEvent } from '@testing-library/react';
 import Navbar from '@/components/Navbar';
-import { useTripStore } from '@/store/tripStore';
-
-vi.mock('@/store/tripStore', () => ({
-  useTripStore: vi.fn(),
-}));
+import { useSettingsStore } from '@/store/settingsStore';
 
 vi.mock('@/components/Logo', () => ({
   default: () => <div data-testid="logo">Logo</div>,
@@ -40,47 +36,66 @@ vi.mock('@/components/GridPanel', () => ({
   ),
 }));
 
-const mockState = {
-  theme: 'light' as 'light' | 'dark',
-  setTheme: vi.fn(),
-};
-
 describe('Navbar', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockState.theme = 'light';
-
-    (useTripStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(
-      (selector: (state: typeof mockState) => unknown) => selector(mockState)
-    );
+    useSettingsStore.setState({ themePreference: 'light' });
   });
 
-  it('toggles theme from light to dark', () => {
+  it('exposes a synchronized accessible slider for all theme preferences', () => {
     render(<Navbar />);
 
-    const trigger = screen.getByRole('button', { name: 'Toggle theme' });
-    fireEvent.pointerEnter(trigger, { pointerType: 'mouse' });
+    const selector = screen.getByRole('radiogroup', { name: 'Theme preference' });
+    const systemRadio = screen.getByRole('radio', { name: 'System theme' });
+    const lightRadio = screen.getByRole('radio', { name: 'Light theme' });
+    const darkRadio = screen.getByRole('radio', { name: 'Dark theme' });
 
-    expect(screen.getByRole('tooltip')).toHaveTextContent('Switch to dark theme');
-    expect(trigger).toHaveAccessibleName('Toggle theme');
+    expect(selector).toBeInTheDocument();
+    expect(systemRadio).toHaveAttribute('tabindex', '-1');
+    expect(lightRadio).toHaveAttribute('tabindex', '0');
+    expect(darkRadio).toHaveAttribute('tabindex', '-1');
+    expect(screen.getAllByRole('radio').map((radio) => radio.getAttribute('aria-label'))).toEqual([
+      'System theme',
+      'Light theme',
+      'Dark theme',
+    ]);
 
-    fireEvent.click(trigger);
+    fireEvent.click(systemRadio);
+    expect(useSettingsStore.getState().themePreference).toBe('system');
+    expect(systemRadio).toHaveAttribute('aria-checked', 'true');
 
-    expect(mockState.setTheme).toHaveBeenCalledWith('dark');
+    fireEvent.click(lightRadio);
+    expect(useSettingsStore.getState().themePreference).toBe('light');
+    fireEvent.click(darkRadio);
+    expect(useSettingsStore.getState().themePreference).toBe('dark');
+    expect(darkRadio).toHaveAttribute('aria-checked', 'true');
   });
 
-  it('describes the theme action from its current state without changing its accessible name', () => {
-    mockState.theme = 'dark';
+  it('supports arrow and Home/End keyboard navigation within the theme slider', () => {
     render(<Navbar />);
 
-    const trigger = screen.getByRole('button', { name: 'Toggle theme' });
-    fireEvent.focus(trigger);
+    const systemRadio = screen.getByRole('radio', { name: 'System theme' });
+    const lightRadio = screen.getByRole('radio', { name: 'Light theme' });
+    const darkRadio = screen.getByRole('radio', { name: 'Dark theme' });
 
-    expect(screen.getByRole('tooltip')).toHaveTextContent('Switch to light theme');
-    expect(trigger).toHaveAccessibleName('Toggle theme');
+    act(() => lightRadio.focus());
+    fireEvent.keyDown(lightRadio, { key: 'ArrowRight' });
+    expect(darkRadio).toHaveFocus();
+    expect(darkRadio).toHaveAttribute('aria-checked', 'true');
+    expect(useSettingsStore.getState().themePreference).toBe('dark');
 
-    fireEvent.click(trigger);
-    expect(mockState.setTheme).toHaveBeenCalledWith('light');
+    fireEvent.keyDown(darkRadio, { key: 'ArrowRight' });
+    expect(systemRadio).toHaveFocus();
+    expect(systemRadio).toHaveAttribute('aria-checked', 'true');
+    expect(useSettingsStore.getState().themePreference).toBe('system');
+
+    fireEvent.keyDown(systemRadio, { key: 'End' });
+    expect(darkRadio).toHaveFocus();
+    expect(useSettingsStore.getState().themePreference).toBe('dark');
+
+    fireEvent.keyDown(darkRadio, { key: 'Home' });
+    expect(systemRadio).toHaveFocus();
+    expect(useSettingsStore.getState().themePreference).toBe('system');
   });
 
   it('keeps both actions available on the same touch tap that opens their tooltips', () => {
@@ -93,11 +108,11 @@ describe('Navbar', () => {
     expect(screen.getByTestId('grid-panel-state')).toHaveTextContent('open');
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 
-    const themeTrigger = screen.getByRole('button', { name: 'Toggle theme' });
-    fireEvent.pointerDown(themeTrigger, { pointerType: 'touch' });
-    expect(screen.getByRole('tooltip')).toHaveTextContent('Switch to dark theme');
-    fireEvent.click(themeTrigger);
-    expect(mockState.setTheme).toHaveBeenCalledWith('dark');
+    const systemRadio = screen.getByRole('radio', { name: 'System theme' });
+    fireEvent.pointerDown(systemRadio, { pointerType: 'touch' });
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Use system theme');
+    fireEvent.click(screen.getByRole('radio', { name: 'Dark theme' }));
+    expect(useSettingsStore.getState().themePreference).toBe('dark');
   });
 
   it('toggles grid panel open state from trigger', () => {

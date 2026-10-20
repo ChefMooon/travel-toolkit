@@ -21,8 +21,8 @@ Travel Toolkit is a travel planning toolkit built with TanStack Start and deploy
 - **Configurable timezone cards** — save tracked zones, detect the browser timezone, reorder cards, and choose analog or digital display modes
 - **Destination climate lookup** — search locations, choose a date range, view climate averages, and compare local time at the destination
 - **Forecast event overlay** — show curated destination events that overlap with the selected trip dates
-- **Persistent local state** — trip data and timezone settings are stored in `localStorage`; transient UI state stays in memory
-- **Responsive theming** — adaptive layouts with light and dark theme support across the app shell
+- **Persistent local state** — trip data, site-wide theme preference, and timezone settings are stored in `localStorage`; transient UI state stays in memory
+- **Responsive theming** — choose System, Light, or Dark across the app; System follows the device color scheme
 
 ## Prerequisites
 

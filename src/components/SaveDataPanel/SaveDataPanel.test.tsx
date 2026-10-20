@@ -6,6 +6,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import SaveDataPanel from '@/components/SaveDataPanel/SaveDataPanel';
 import { importWorkbook } from '@/lib/xlsx/importWorkbook';
 import { useSaveSlotStore } from '@/store/saveSlotStore';
+import { useSettingsStore } from '@/store/settingsStore';
 import { useToastStore } from '@/store/toastStore';
 import { useTripStore } from '@/store/tripStore';
 import type { ExportableSnapshot } from '@/lib/xlsx/types';
@@ -27,7 +28,6 @@ const baseSnapshot: TripSnapshot = {
   nonPayingTravellers: [],
   costs: [],
   exchangeRates: [],
-  theme: 'light',
   region: 'Europe',
   targetCurrency: 'USD',
 };
@@ -62,6 +62,7 @@ function renderPanel(props: {
 
 describe('SaveDataPanel', () => {
   beforeEach(() => {
+    useSettingsStore.getState().setThemePreference('system');
     useSaveSlotStore.setState({
       slots: [null, null, null],
       labels: ['Slot 1', 'Slot 2', 'Slot 3'],
@@ -210,6 +211,7 @@ describe('SaveDataPanel', () => {
 
       expect(onCancelSaveContinuation).toHaveBeenCalledTimes(1);
       expect(useTripStore.getState().tripId).not.toBe(baseSnapshot.tripId);
+      expect(useSettingsStore.getState().themePreference).toBe('system');
       expect(onSaveComplete).not.toHaveBeenCalled();
       expect(useToastStore.getState().toasts.map((toast) => toast.title)).toEqual(['Trip saved']);
     }

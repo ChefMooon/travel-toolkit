@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom';
 import { Pencil, Copy, Trash2, GripVertical, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
 import type { CostEntry, SplitType } from '@/store/types';
 import { getAvailableCurrencies, getColorThemeValue, COST_ENTRY_TYPES } from '@/store/types';
+import { useResolvedTheme } from '@/store/theme';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import SplitAssignmentModal from '../SplitAssignmentModal';
@@ -22,7 +23,7 @@ interface CostRowProps {
 export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDuplicate, onDelete }: CostRowProps) {
   const globalMarkup = useTripStore((s) => s.globalMarkup);
   const region = useTripStore((s) => s.region);
-  const theme = useTripStore((s) => s.theme);
+  const theme = useResolvedTheme();
   const couples = useTripStore((s) => s.couples);
   const editCost = useTripStore((s) => s.editCost);
   const addCouple = useTripStore((s) => s.addCouple);

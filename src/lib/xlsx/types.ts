@@ -19,8 +19,7 @@ export interface ExportOptions {
   includeDate?: boolean;
 }
 
-/** Fields from TripSnapshot that are included in xlsx export (theme excluded). */
-export type ExportableSnapshot = Omit<TripSnapshot, 'theme'>;
+export type ExportableSnapshot = TripSnapshot;
 
 export interface ImportResult {
   snapshot: ExportableSnapshot;

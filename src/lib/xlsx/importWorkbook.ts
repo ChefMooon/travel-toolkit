@@ -1,4 +1,3 @@
-import type { TripSnapshot } from '@/store/types';
 import type { ImportResult, ExportableSnapshot } from './types';
 import { SHEET_SUMMARY, SHEET_COSTS, SHEET_PARTY } from './constants';
 import { validateImportedSnapshot } from './validate';
@@ -44,14 +43,4 @@ export async function importWorkbook(file: File): Promise<ImportResult> {
   const snapshot = validateImportedSnapshot(raw, warnings);
 
   return { snapshot, warnings };
-}
-
-/**
- * Convert an ExportableSnapshot to a full TripSnapshot by adding the current theme.
- */
-export function toFullSnapshot(
-  exportable: ExportableSnapshot,
-  currentTheme: 'light' | 'dark',
-): TripSnapshot {
-  return { ...exportable, theme: currentTheme };
 }

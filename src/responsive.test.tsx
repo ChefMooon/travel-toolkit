@@ -15,12 +15,6 @@ function setViewport(width: number) {
   window.dispatchEvent(new Event('resize'));
 }
 
-vi.mock('@/store/tripStore', () => ({
-  useTripStore: vi.fn((selector: (state: { theme: 'light' | 'dark' }) => unknown) =>
-    selector({ theme: 'light' })
-  ),
-}));
-
 vi.mock('@/components/Topbar', () => ({
   default: () => <div data-testid="topbar">Topbar</div>,
 }));

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Outlet, createRootRoute, useLocation } from '@tanstack/react-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -8,28 +8,50 @@ import { initializeAnalytics, trackPageView } from '@/lib/analytics';
 import { getRouteTitle } from '@/lib/routeTitles';
 import Footer from '@/components/Footer';
 import { NON_DESKTOP_MAX_WIDTH, shouldShowFooter } from '@/components/Footer/footerVisibility';
-import { useTripStore } from '@/store/tripStore';
+import { useResolvedTheme } from '@/store/theme';
 import { useConsentStore } from '@/store/consentStore';
 import Navbar from '@/components/Navbar';
 import ToastViewport from '@/components/ToastViewport';
 import ConsentBanner from '@/components/ConsentBanner';
 
 function ThemeSync() {
-  const theme = useTripStore((s) => s.theme);
+  const theme = useResolvedTheme();
+  const previousTheme = useRef<'light' | 'dark' | null>(null);
 
   useEffect(() => {
-    document.documentElement.dataset['theme'] = theme;
-    document.documentElement.style.colorScheme = theme;
+    const root = document.documentElement;
+    root.dataset['theme'] = theme;
+    root.style.colorScheme = theme;
 
-    const frameId = window.requestAnimationFrame(() => {
-      document.documentElement.classList.remove('theme-preload');
+    const isThemeChange = previousTheme.current !== null && previousTheme.current !== theme;
+    previousTheme.current = theme;
+    const switchId = isThemeChange ? ++themeSwitchId : themeSwitchId;
+    if (isThemeChange) {
+      root.classList.add('theme-switching');
+      void root.offsetHeight;
+    }
+
+    let firstFrame = 0;
+    let secondFrame = 0;
+    firstFrame = window.requestAnimationFrame(() => {
+      root.classList.remove('theme-preload');
+      secondFrame = window.requestAnimationFrame(() => {
+        if (switchId === themeSwitchId) {
+          root.classList.remove('theme-switching');
+        }
+      });
     });
 
-    return () => window.cancelAnimationFrame(frameId);
+    return () => {
+      window.cancelAnimationFrame(firstFrame);
+      window.cancelAnimationFrame(secondFrame);
+    };
   }, [theme]);
 
   return null;
 }
+
+let themeSwitchId = 0;
 
 function getViewportWidth() {
   if (typeof window === 'undefined') {

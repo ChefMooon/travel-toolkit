@@ -25,6 +25,7 @@ import IconChoiceModal from '../IconChoiceModal';
 import ColorChoiceModal from '../ColorChoiceModal';
 import RegionSelector from '../RegionSelector';
 import Tooltip from '@/components/Tooltip';
+import { useResolvedTheme } from '@/store/theme';
 
 interface SortableGroupProps {
   couple: { id: string; name: string; iconIndex: number; colorIndex: number };
@@ -168,7 +169,7 @@ function SortableGroup({
 export default function GroupSetup() {
   const couples = useTripStore((s) => s.couples);
   const nonPayingTravellers = useTripStore((s) => s.nonPayingTravellers);
-  const theme = useTripStore((s) => s.theme);
+  const theme = useResolvedTheme();
   const addCouple = useTripStore((s) => s.addCouple);
   const removeCouple = useTripStore((s) => s.removeCouple);
   const renameCouple = useTripStore((s) => s.renameCouple);

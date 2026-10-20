@@ -27,13 +27,11 @@ const mockStoreState: {
   couples: Couple[];
   globalMarkup: number;
   region: Region;
-  theme: 'light' | 'dark';
   addCouple: ReturnType<typeof vi.fn>;
 } = {
   couples: mockCouples,
   globalMarkup: 66,
   region: 'Europe',
-  theme: 'light',
   addCouple: vi.fn(() => 'c4'),
 };
 
@@ -74,7 +72,6 @@ describe('EditRow', () => {
     mockStoreState.couples = mockCouples;
     mockStoreState.globalMarkup = 66;
     mockStoreState.region = 'Europe';
-    mockStoreState.theme = 'light';
     mockStoreState.addCouple = vi.fn(() => 'c4');
 
     (useTripStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(

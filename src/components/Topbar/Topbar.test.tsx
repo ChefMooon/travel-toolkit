@@ -28,6 +28,7 @@ vi.mock('@/components/Logo', () => ({
 import { useTripStore } from '@/store/tripStore';
 import { useSaveSlotStore } from '@/store/saveSlotStore';
 import { useToastStore } from '@/store/toastStore';
+import { useSettingsStore } from '@/store/settingsStore';
 
 const mockStoreState = {
   tripId: '123456',
@@ -35,8 +36,6 @@ const mockStoreState = {
   setTripName: vi.fn(),
   globalMarkup: 66,
   setGlobalMarkup: vi.fn(),
-  theme: 'light' as 'light' | 'dark',
-  setTheme: vi.fn(),
   isDirty: false,
   getSnapshot: vi.fn(),
   resetTrip: vi.fn(),
@@ -57,7 +56,7 @@ describe('Topbar', () => {
     vi.clearAllMocks();
     mockStoreState.tripName = 'Spring Trip';
     mockStoreState.globalMarkup = 66;
-    mockStoreState.theme = 'light';
+    useSettingsStore.setState({ themePreference: 'light' });
     mockStoreState.isDirty = false;
     mockStoreState.getSnapshot.mockReturnValue({
       tripId: '123456',
@@ -67,7 +66,6 @@ describe('Topbar', () => {
       nonPayingTravellers: [],
       costs: [],
       exchangeRates: [],
-      theme: 'light',
       region: 'Europe',
       targetCurrency: 'USD',
     });
@@ -135,12 +133,24 @@ describe('Topbar', () => {
     expect(mockStoreState.setGlobalMarkup).not.toHaveBeenCalled();
   });
 
-  it('FE-TOP-005 toggles theme from light to dark', () => {
+  it('FE-TOP-005 updates the site-wide theme preference', () => {
     render(<Topbar />);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Toggle theme' }));
+    const systemRadio = screen.getByRole('radio', { name: 'System theme' });
+    const lightRadio = screen.getByRole('radio', { name: 'Light theme' });
+    const darkRadio = screen.getByRole('radio', { name: 'Dark theme' });
+    fireEvent.click(systemRadio);
+    expect(useSettingsStore.getState().themePreference).toBe('system');
+    expect(systemRadio).toHaveAttribute('aria-checked', 'true');
 
-    expect(mockStoreState.setTheme).toHaveBeenCalledWith('dark');
+    fireEvent.click(darkRadio);
+
+    expect(useSettingsStore.getState().themePreference).toBe('dark');
+    expect(darkRadio).toHaveAttribute('aria-checked', 'true');
+
+    fireEvent.click(lightRadio);
+    expect(useSettingsStore.getState().themePreference).toBe('light');
+    expect(lightRadio).toHaveAttribute('aria-checked', 'true');
   });
 
   it('FE-TOP-006 opens reset modal and confirms reset', () => {

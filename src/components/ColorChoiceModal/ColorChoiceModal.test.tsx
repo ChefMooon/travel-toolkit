@@ -1,10 +1,11 @@
 /// <reference types="vitest" />
 /// <reference types="@testing-library/jest-dom" />
 
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { render, fireEvent, screen } from '@testing-library/react';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { act, render, fireEvent, screen } from '@testing-library/react';
 import ColorChoiceModal from './ColorChoiceModal';
-import { COUPLE_COLORS } from '../../store/types';
+import { COUPLE_COLORS, getColorThemeValue } from '../../store/types';
+import { useSettingsStore } from '../../store/settingsStore';
 
 describe('ColorChoiceModal', () => {
   const mockOnConfirm = vi.fn();
@@ -12,12 +13,7 @@ describe('ColorChoiceModal', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Set default theme to light
-    document.documentElement.dataset.theme = 'light';
-  });
-
-  afterEach(() => {
-    delete document.documentElement.dataset.theme;
+    useSettingsStore.setState({ themePreference: 'light' });
   });
 
   it('should render 10 color swatches in a grid', () => {
@@ -34,7 +30,7 @@ describe('ColorChoiceModal', () => {
   });
 
   it('should display colors correctly in light mode', () => {
-    document.documentElement.dataset.theme = 'light';
+    useSettingsStore.setState({ themePreference: 'light' });
 
     render(
       <ColorChoiceModal
@@ -53,7 +49,7 @@ describe('ColorChoiceModal', () => {
   });
 
   it('should display colors correctly in dark mode', () => {
-    document.documentElement.dataset.theme = 'dark';
+    useSettingsStore.setState({ themePreference: 'dark' });
 
     render(
       <ColorChoiceModal
@@ -175,28 +171,20 @@ describe('ColorChoiceModal', () => {
     expect(mockOnCancel).toHaveBeenCalled();
   });
 
-  it('should adapt colors when theme changes from light to dark', () => {
-    document.documentElement.dataset.theme = 'light';
-
-    const { rerender } = render(
+  it('updates an already-open modal when the resolved theme changes', () => {
+    render(
       <ColorChoiceModal
         colorIndex={1}
         onConfirm={mockOnConfirm}
         onCancel={mockOnCancel}
       />
     );
+    const firstSwatch = document.querySelector('.color-swatch');
+    expect(firstSwatch).toHaveStyle({ backgroundColor: getColorThemeValue(1, 'light') });
 
-    document.documentElement.dataset.theme = 'dark';
-    rerender(
-      <ColorChoiceModal
-        colorIndex={1}
-        onConfirm={mockOnConfirm}
-        onCancel={mockOnCancel}
-      />
-    );
+    act(() => useSettingsStore.getState().setThemePreference('dark'));
 
-    const swatches = document.querySelectorAll('.color-swatch');
-    expect(swatches.length).toBe(10);
+    expect(firstSwatch).toHaveStyle({ backgroundColor: getColorThemeValue(1, 'dark') });
   });
 
   it('should render portal to document body', () => {
@@ -213,7 +201,7 @@ describe('ColorChoiceModal', () => {
   });
 
   it('should use correct color values from COUPLE_COLORS', () => {
-    document.documentElement.dataset.theme = 'light';
+    useSettingsStore.setState({ themePreference: 'light' });
 
     render(
       <ColorChoiceModal

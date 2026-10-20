@@ -46,8 +46,14 @@ function ensureLabelArrayLength(labels: string[]): string[] {
   });
 }
 
+function sanitizeSnapshot(snapshot: TripSnapshot): TripSnapshot {
+  const sanitized = { ...snapshot } as TripSnapshot & { theme?: unknown };
+  delete sanitized.theme;
+  return sanitized;
+}
+
 function snapshotsEqual(a: TripSnapshot, b: TripSnapshot): boolean {
-  return JSON.stringify(a) === JSON.stringify(b);
+  return JSON.stringify(sanitizeSnapshot(a)) === JSON.stringify(sanitizeSnapshot(b));
 }
 
 export function findRelatedOlderSlotIndex(
@@ -100,12 +106,11 @@ function normalizePersistedSlot(
     return null;
   }
 
-  const snapshot = data as TripSnapshot;
+  const snapshot = sanitizeSnapshot(data as TripSnapshot);
   const hasRequiredSnapshot =
     typeof snapshot.tripId === 'string' &&
     typeof snapshot.tripName === 'string' &&
     typeof snapshot.targetCurrency === 'string' &&
-    typeof snapshot.theme === 'string' &&
     typeof snapshot.region === 'string' &&
     Array.isArray(snapshot.couples) &&
     Array.isArray(snapshot.nonPayingTravellers) &&
@@ -159,7 +164,7 @@ export function normalizePersistedSaveSlotState(
 
 function migrateSlot(slot: SaveSlot): SaveSlot | null {
   if (slot.schemaVersion === SAVE_SLOT_SCHEMA_VERSION) {
-    return slot;
+    return { ...slot, data: sanitizeSnapshot(slot.data) };
   }
 
   return null;
@@ -173,24 +178,32 @@ function findDuplicateTripId(
   return slots.findIndex((slot, index) => index !== targetSlotIndex && slot?.tripId === tripId);
 }
 
+let persistNormalizedSlots: (() => void) | undefined;
+
 export const useSaveSlotStore = create<SaveSlotStore>()(
   persist(
-    (set, get) => ({
-      ...createDefaultState(),
+    (set, get) => {
+      persistNormalizedSlots = () => {
+        set((state) => normalizePersistedSaveSlotState(state));
+      };
+
+      return {
+        ...createDefaultState(),
 
       saveToSlot: (slotIndex, tripSnapshot) => {
         if (!isValidSlotIndex(slotIndex)) {
           return false;
         }
 
+        const snapshot = sanitizeSnapshot(tripSnapshot);
         const slots = ensureSlotArrayLength(get().slots);
         const labels = ensureLabelArrayLength(get().labels);
-        const duplicateIndex = findDuplicateTripId(slots, tripSnapshot.tripId, slotIndex);
+        const duplicateIndex = findDuplicateTripId(slots, snapshot.tripId, slotIndex);
         if (duplicateIndex >= 0) {
           useToastStore.getState().pushToast({
             type: 'warning',
             title: 'Duplicate trip ID',
-            message: `Trip ID ${tripSnapshot.tripId} is already saved in ${labels[duplicateIndex] ?? getDefaultSlotLabel(duplicateIndex)}.`,
+            message: `Trip ID ${snapshot.tripId} is already saved in ${labels[duplicateIndex] ?? getDefaultSlotLabel(duplicateIndex)}.`,
           });
           return false;
         }
@@ -201,13 +214,13 @@ export const useSaveSlotStore = create<SaveSlotStore>()(
           slotIndex,
           schemaVersion: SAVE_SLOT_SCHEMA_VERSION,
           label: nextLabel,
-          tripId: tripSnapshot.tripId,
-          tripName: tripSnapshot.tripName,
+          tripId: snapshot.tripId,
+          tripName: snapshot.tripName,
           savedAt: new Date().toISOString(),
-          coupleCount: tripSnapshot.couples.length,
-          costCount: tripSnapshot.costs.length,
-          targetCurrency: tripSnapshot.targetCurrency,
-          data: tripSnapshot,
+          coupleCount: snapshot.couples.length,
+          costCount: snapshot.costs.length,
+          targetCurrency: snapshot.targetCurrency,
+          data: snapshot,
         };
 
         set((state) => {
@@ -304,7 +317,8 @@ export const useSaveSlotStore = create<SaveSlotStore>()(
           return { slots: nextSlots, labels };
         });
       },
-    }),
+      };
+    },
     {
       name: 'travel-toolkit-save-slots',
       version: 1,
@@ -313,6 +327,13 @@ export const useSaveSlotStore = create<SaveSlotStore>()(
         ...currentState,
         ...normalizePersistedSaveSlotState(persistedState as PersistedSaveSlotStore),
       }),
+      onRehydrateStorage: () => (_state, error) => {
+        if (error) {
+          console.error('Unable to hydrate save slots.', error);
+          return;
+        }
+        persistNormalizedSlots?.();
+      },
     }
   )
 );
