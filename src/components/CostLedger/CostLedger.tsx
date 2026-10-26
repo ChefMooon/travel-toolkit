@@ -186,7 +186,7 @@ export default function CostLedger() {
 
   return (
     <>
-      <div className="card" style={{ marginTop: 16 }}>
+      <div className="card cost-ledger-card" style={{ marginTop: 16 }}>
         <div className="card-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
             <h2 id="cost-ledger-heading" className="card-title">Cost Ledger</h2>

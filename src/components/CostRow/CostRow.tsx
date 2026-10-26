@@ -559,7 +559,7 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
           <Tooltip content="Change type">
             <button
               ref={typeBtnRef}
-              className="type-trigger-btn"
+              className={`type-trigger-btn${typeEntry ? '' : ' is-empty'}`}
               type="button"
               aria-label={`Change type for ${cost.name}${typeEntry ? `; current type: ${typeEntry.type_name}` : '; no type selected'}`}
               aria-expanded={typePopoverOpen}
@@ -567,12 +567,12 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
               onClick={() => {
                 if (!typePopoverOpen && typeBtnRef.current) {
                   const rect = typeBtnRef.current.getBoundingClientRect();
-                  setTypePopoverPos({ top: rect.bottom + 4, left: Math.max(8, rect.left - 60) });
+                  setTypePopoverPos({ top: rect.bottom + 4, left: Math.max(8, Math.min(rect.left, document.documentElement.clientWidth - 158)) });
                 }
                 setTypePopoverOpen(!typePopoverOpen);
               }}
             >
-              {typeEntry ? typeEntry.symbol : '·'}
+              {typeEntry ? typeEntry.symbol : 'Set type'}
             </button>
           </Tooltip>
         </div>
