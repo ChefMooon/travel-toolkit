@@ -2959,13 +2959,13 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
   table.ledger th:nth-child(11) { width: 90px; }     /* actions */
 }
 
-/* ── MOBILE CARD LAYOUT (≤850px) ──
+/* ── COMPACT CARD LAYOUT (ledger container ≤1000px) ──
    Transforms each table row into a 3-row card:
    Row 1: [name ·····················] [edit] [duplicate] [delete]
    Row 2: [currency] [amount] [markup < > ↺]
    Row 3: [split · who ·····] [type] [total]
 ─────────────────────────────────────────────────────────────── */
-@media (max-width: 850px) {
+@container cost-ledger (max-width: 1000px) {
   table.ledger,
   table.ledger tbody { display: block; }
 
@@ -3123,7 +3123,7 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
 }
 
 /* Wider cards keep details together; phone cards retain three rows. */
-@media (max-width: 850px) {
+@container cost-ledger (max-width: 1000px) {
   @container cost-ledger (min-width: 650px) {
     table.ledger tbody tr:not(.edit-row):not(.add-row) {
       grid-template-columns: auto 90px auto auto minmax(0, 1fr) auto auto;
