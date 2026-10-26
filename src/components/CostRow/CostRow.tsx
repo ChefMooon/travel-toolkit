@@ -329,7 +329,8 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
         />
       </td>
       <td>
-        {editingField === 'name' ? (
+        <div className="ledger-inline-field">
+        {editingField === 'name' && (
           <input
             ref={nameInputRef}
             className="inline-edit-input"
@@ -340,18 +341,21 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
             onBlur={handleNameSave}
             onKeyDown={handleNameKeyDown}
           />
-        ) : (
+        )}
+        <div style={{ visibility: editingField === 'name' ? 'hidden' : undefined }} aria-hidden={editingField === 'name' || undefined}>
           <Tooltip content={cost.name}>
             <button
               type="button"
               className="cost-name cell-edit-trigger"
               aria-label={`Edit name for ${cost.name}`}
               onClick={handleNameEdit}
+              tabIndex={editingField === 'name' ? -1 : undefined}
             >
               {cost.name}
             </button>
           </Tooltip>
-        )}
+        </div>
+        </div>
       </td>
       <td>
         <select
@@ -366,7 +370,8 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
         </select>
       </td>
       <td>
-        {editingField === 'amount' ? (
+        <div className="ledger-inline-field">
+        {editingField === 'amount' && (
           <input
             ref={amountInputRef}
             className="inline-edit-input mono"
@@ -379,16 +384,19 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
             onBlur={handleAmountSave}
             onKeyDown={handleAmountKeyDown}
           />
-        ) : (
+        )}
+        <div style={{ visibility: editingField === 'amount' ? 'hidden' : undefined }} aria-hidden={editingField === 'amount' || undefined}>
           <button
             type="button"
             className="amt cell-edit-trigger"
             aria-label={`Edit amount for ${cost.name}`}
             onClick={handleAmountEdit}
+            tabIndex={editingField === 'amount' ? -1 : undefined}
           >
             {cost.value.toFixed(2)}
           </button>
-        )}
+        </div>
+        </div>
       </td>
       <td>
         <div className="markup-inline">

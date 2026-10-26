@@ -3197,6 +3197,12 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
 }
 
 .cost-name { font-weight: 700; color: var(--text); }
+.ledger-inline-field { position: relative; min-width: 0; min-height: 26px; display: grid; align-items: center; }
+table.ledger td:nth-child(3) .ledger-inline-field { width: 100%; }
+table.ledger .ledger-inline-field > .inline-edit-input {
+  position: absolute; inset: 0;
+  width: 100%; min-width: 0; max-width: 100%; height: 100%;
+}
 .cell-edit-trigger {
   border: 0;
   padding: 0;
