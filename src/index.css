@@ -1998,9 +1998,14 @@ body::before {
 }
 
 .forecast-badge-attribution .forecast-popover {
-  left: 0;
-  right: auto;
   width: min(260px, calc(100vw - 32px));
+}
+
+@media (max-width: 479px) {
+  .forecast-badge-attribution .forecast-popover {
+    left: 0;
+    right: auto;
+  }
 }
 
 /* ── View Toggle Pill ── */
