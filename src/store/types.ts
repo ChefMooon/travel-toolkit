@@ -187,7 +187,7 @@ export const COUPLE_COLORS: Record<
   6: { name: 'Lagoon', light: '#44798A', dark: '#67AABC' },
   7: { name: 'Coral', light: '#D8724C', dark: '#F4956D' },
   8: { name: 'Ochre', light: '#A8923E', dark: '#CCB85E' },
-  9: { name: 'Navy', light: '#2B4563', dark: '#5A7DB8' },
+  9: { name: 'Navy', light: '#2B4563', dark: '#8AA8D8' },
   10: { name: 'Mulberry', light: '#8D627C', dark: '#B887A1' },
 };
 

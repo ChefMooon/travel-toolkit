@@ -16,6 +16,7 @@
   --surface: #FFFFFF; --surface-2: #F8F8F5;
   --border: #E2E0D8; --border-2: #D0CEC4;
   --text: #2A2824; --text-2: #6B6860; --text-3: #767169;
+  --conversion-text: #53639A;
   --tool-icon-filter: sepia(0.34) saturate(1.2) hue-rotate(304deg) brightness(0.84) contrast(1.06);
   --shadow: 0 1px 4px rgba(42,40,36,0.07), 0 6px 20px rgba(42,40,36,0.05);
   --shadow-sm: 0 1px 2px rgba(42,40,36,0.06);
@@ -30,6 +31,7 @@
   --surface: #FFFFFF; --surface-2: #F8F8F5;
   --border: #E2E0D8; --border-2: #D0CEC4;
   --text: #2A2824; --text-2: #6B6860; --text-3: #767169;
+  --conversion-text: #53639A;
   --tool-icon-filter: sepia(0.34) saturate(1.2) hue-rotate(304deg) brightness(0.84) contrast(1.06);
   --shadow: 0 1px 4px rgba(42,40,36,0.07), 0 6px 20px rgba(42,40,36,0.05);
   --shadow-sm: 0 1px 2px rgba(42,40,36,0.06);
@@ -44,6 +46,7 @@
   --surface: #1E1C22; --surface-2: #252330;
   --border: #322F3A; --border-2: #403D4C;
   --text: #EEEAE6; --text-2: #9E9B96; --text-3: #A39F9B;
+  --conversion-text: #98A8D9;
   --tool-icon-filter: invert(85%) sepia(8%) saturate(430%) hue-rotate(307deg) brightness(0.98) contrast(0.96);
   --shadow: 0 1px 4px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.2);
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.25);
@@ -3827,7 +3830,8 @@ tr.add-row td { padding: 0; border: none; }
 .sline { display: flex; justify-content: space-between; align-items: center; padding: 2px 0; font-size: 12px; }
 .sline-lbl { color: var(--text-2); font-weight: 600; }
 .sline-num { font-family: 'JetBrains Mono', monospace; font-weight: 600; color: var(--text); }
-.sline-dim { opacity: 0.3; }
+.sline-dim .sline-lbl,
+.sline-dim .sline-num { color: var(--text-3); }
 .sline.stotal { border-top: 1px solid var(--border); margin-top: 4px; padding-top: 5px; font-weight: 800; }
 .sline.stotal .sline-num { font-size: 13px; }
 
@@ -3912,7 +3916,7 @@ tr.add-row td { padding: 0; border: none; }
 
 .usd-eq {
   font-size: 11px; font-family: 'JetBrains Mono', monospace; font-weight: 600;
-  text-align: right; color: var(--c3); padding: 2px 9px 0;
+  text-align: right; color: var(--conversion-text); padding: 2px 9px 0;
 }
 
 .sdivider { border: none; border-top: 1px solid var(--border); margin: 9px 0; }

@@ -1,12 +1,13 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useTripStore } from '@/store/tripStore';
 import { formatCurrency } from '@/lib/calculations';
-import { CURRENCY_FLAGS, COUPLE_ICONS, getColorThemeValue, CURRENCY_SYMBOLS } from '@/store/types';
+import { CURRENCY_FLAGS, COUPLE_ICONS, CURRENCY_SYMBOLS } from '@/store/types';
 import IconChoiceModal from '../IconChoiceModal';
 import ColorChoiceModal from '../ColorChoiceModal';
 import Tooltip from '@/components/Tooltip';
 import type { CoupleSummary } from '@/store/types';
 import { useResolvedTheme } from '@/store/theme';
+import { getGroupPresentation } from '@/lib/groupPresentation';
 
 interface CoupleCardProps {
   summary: CoupleSummary;
@@ -28,18 +29,8 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
 
   const ci = summary.colorIndex;
   const icon = COUPLE_ICONS[summary.iconIndex]?.symbol ?? '🧳';
-  const colorDotColor = useMemo(
-    () => getColorThemeValue(summary.colorIndex, theme),
-    [summary.colorIndex, theme]
-  );
-  const cardBorderColor = useMemo(
-    () => `color-mix(in srgb, ${colorDotColor} 30%, white)`,
-    [colorDotColor]
-  );
-  const cardSoftBackground = useMemo(
-    () => `color-mix(in srgb, ${colorDotColor} 18%, transparent)`,
-    [colorDotColor]
-  );
+  const groupPresentation = getGroupPresentation(summary.colorIndex, theme);
+  const { foreground, totalForeground, borderColor, softBackground, headerBackground, headerForeground } = groupPresentation;
 
   const handleIconConfirm = (iconIndex: number) => {
     updateCoupleIcon(summary.coupleId, iconIndex);
@@ -58,15 +49,15 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
       <div
         className={`s-card s-card-c${ci}`}
         data-testid="s-card"
-        style={{ borderColor: cardBorderColor }}
+        style={{ borderColor }}
       >
-        <div className="s-head" style={{ background: colorDotColor }}>
+        <div className="s-head" style={{ background: headerBackground }}>
           <Tooltip content="Choose a different group icon">
             <button
               type="button"
               className="icon-with-tint"
               onClick={() => setIconModalOpen(true)}
-              style={{ position: 'relative', zIndex: 10, '--group-color': colorDotColor } as React.CSSProperties}
+              style={{ position: 'relative', zIndex: 10, '--group-color': foreground } as React.CSSProperties}
               aria-label={`Change icon for ${summary.coupleName}`}
               data-testid="s-head-icon"
             >
@@ -81,7 +72,8 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
               style={{
                 position: 'relative',
                 zIndex: 10,
-                '--group-color': colorDotColor,
+                '--group-color': foreground,
+                color: foreground,
               } as React.CSSProperties}
               aria-label={`Change color for ${summary.coupleName}`}
               data-testid="color-dot"
@@ -89,7 +81,7 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
               ●
             </button>
           </Tooltip>
-          <span className="s-head-name">{summary.coupleName}</span>
+          <span className="s-head-name" style={{ color: headerForeground }}>{summary.coupleName}</span>
         </div>
         <div className="s-body">
           {summary.currencies.map((curr, idx) => {
@@ -256,7 +248,7 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
             );
           })}
         </div>
-        <div className="s-grand" style={{ background: cardSoftBackground }}>
+        <div className="s-grand" style={{ background: softBackground }}>
           <span className="s-grand-lbl">
             Grand Total
             {summary.targetCurrency !== 'USD' && (
@@ -264,7 +256,7 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
             )}
           </span>
           <span className="s-grand-values">
-            <span className="s-grand-num" style={{ color: colorDotColor }}>
+            <span className="s-grand-num" style={{ color: totalForeground }}>
               {summary.grandTotal !== null ? `${targetSymbol}${summary.grandTotal.toFixed(2)}` : '—'}
             </span>
             {share !== undefined && summary.grandTotal !== null && (

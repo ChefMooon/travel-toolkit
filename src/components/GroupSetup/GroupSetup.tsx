@@ -26,6 +26,7 @@ import ColorChoiceModal from '../ColorChoiceModal';
 import RegionSelector from '../RegionSelector';
 import Tooltip from '@/components/Tooltip';
 import { useResolvedTheme } from '@/store/theme';
+import { getGroupPresentation } from '@/lib/groupPresentation';
 
 interface SortableGroupProps {
   couple: { id: string; name: string; iconIndex: number; colorIndex: number };
@@ -56,7 +57,8 @@ function SortableGroup({
     transition,
     isDragging,
   } = useSortable({ id: couple.id });
-  const coupleColor = getColorThemeValue(couple.colorIndex, theme);
+  const groupPresentation = getGroupPresentation(couple.colorIndex, theme);
+  const coupleColor = groupPresentation.foreground;
 
   return (
     <div
@@ -72,8 +74,8 @@ function SortableGroup({
         <div
           className="chip"
           style={{
-            background: `color-mix(in srgb, ${coupleColor} 18%, transparent)`,
-            borderColor: `color-mix(in srgb, ${coupleColor} 30%, white)`,
+            background: groupPresentation.softBackground,
+            borderColor: groupPresentation.borderColor,
             color: coupleColor,
           }}
         >
@@ -142,8 +144,8 @@ function SortableGroup({
               key={child.id}
               className="chip chip-child"
               style={{
-                background: `color-mix(in srgb, ${coupleColor} 18%, transparent)`,
-                borderColor: `color-mix(in srgb, ${coupleColor} 30%, white)`,
+                background: groupPresentation.softBackground,
+                borderColor: groupPresentation.borderColor,
                 color: coupleColor,
               }}
             >
