@@ -1,4 +1,5 @@
 import { Suspense, lazy, useState } from 'react';
+import type { RefObject } from 'react';
 import { LocateFixed, Settings } from 'lucide-react';
 import { useTimezoneStore } from '@/store/timezoneStore';
 import Tooltip from '@/components/Tooltip';
@@ -6,10 +7,12 @@ import TimezoneSelect from './TimezoneSelect';
 
 const ConfigModal = lazy(() => import('./ConfigModal/ConfigModal'));
 
-export default function TimezoneNavbar() {
+export default function TimezoneNavbar({ manageRef }: { manageRef?: RefObject<(() => void) | null> }) {
   const localTz = useTimezoneStore((state) => state.localTz);
   const setLocalTz = useTimezoneStore((state) => state.setLocalTz);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const openConfig = () => setIsConfigOpen(true);
+  if (manageRef) manageRef.current = openConfig;
   const handleDetect = () => {
     setLocalTz(Intl.DateTimeFormat().resolvedOptions().timeZone);
   };
@@ -20,7 +23,7 @@ export default function TimezoneNavbar() {
         <div className="card-body" style={{ display: 'grid', gap: 10 }}>
           <span className="card-title" style={{ marginBottom: 0 }}>Local Timezone</span>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr auto auto', gap: 10, alignItems: 'end' }}>
+          <div className="timezone-navbar-controls">
             <TimezoneSelect
               value={localTz}
               onChange={setLocalTz}
@@ -42,7 +45,7 @@ export default function TimezoneNavbar() {
             <Tooltip content="Manage tracked timezones">
               <button
                 className="btn-add tz-settings-btn"
-                onClick={() => setIsConfigOpen(true)}
+                onClick={openConfig}
                 aria-label="Manage tracked timezones"
               >
                 <Settings size={14} />

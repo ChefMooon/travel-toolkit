@@ -38,10 +38,22 @@ describe('ClockCard', () => {
 
   it('FE-TZ-008b displayMode=analog renders an SVG clock face', () => {
     const { container } = render(
-      <ClockCard zone={makeZone({ displayMode: 'analog' })} now={mockNow} />,
+      <ClockCard zone={makeZone({ displayMode: 'analog', showUTC: true })} now={mockNow} />,
     );
 
     expect(screen.getByText('UTC Time')).toBeInTheDocument();
     expect(container.querySelector('svg[aria-hidden="true"]')).toBeInTheDocument();
+    expect(container.querySelector('.card-header')).toHaveTextContent('UTC+00:00');
+    expect(container.querySelector('.timezone-visually-hidden')).toHaveTextContent('12:00:00 PM');
+  });
+
+  it('places UTC in the header for digital mode and respects showUTC', () => {
+    const { container, rerender } = render(
+      <ClockCard zone={makeZone({ showUTC: true })} now={mockNow} />,
+    );
+    expect(container.querySelector('.card-header')).toHaveTextContent('UTC+00:00');
+    expect(container.querySelector('.card-body')).not.toHaveTextContent('UTC+00:00');
+    rerender(<ClockCard zone={makeZone({ showUTC: false })} now={mockNow} />);
+    expect(container.querySelector('.card-header')).not.toHaveTextContent('UTC+00:00');
   });
 });

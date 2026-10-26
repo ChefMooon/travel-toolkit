@@ -47,18 +47,6 @@ export default function DigitalClock({ displayData, zone }: DigitalClockProps) {
         </div>
       )}
 
-      {zone.showUTC && (
-        <div
-          style={{
-            fontFamily: '"JetBrains Mono", monospace',
-            fontSize: 11,
-            color: 'var(--text-3)',
-            fontWeight: 700,
-          }}
-        >
-          {displayData.utcLabel}
-        </div>
-      )}
     </div>
   );
 }

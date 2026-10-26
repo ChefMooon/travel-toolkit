@@ -3,14 +3,15 @@ import type { CSSProperties } from 'react';
 import { buildTimezoneOptions, type TimezoneOption } from './timezones';
 import Select from '@/components/Select/Select';
 
-let cachedOptions: TimezoneOption[] | null = null;
+let cachedOptions: { minute: number; options: TimezoneOption[] } | null = null;
 
-function getAllOptions(): TimezoneOption[] {
-  if (!cachedOptions) {
-    cachedOptions = buildTimezoneOptions();
+function getAllOptions(now = Date.now()): TimezoneOption[] {
+  const minute = Math.floor(now / 60_000);
+  if (!cachedOptions || cachedOptions.minute !== minute) {
+    cachedOptions = { minute, options: buildTimezoneOptions(new Date(now)) };
   }
 
-  return cachedOptions;
+  return cachedOptions.options;
 }
 
 interface TimezoneSelectProps {
@@ -36,6 +37,7 @@ export default function TimezoneSelect({
   addedTimezones = [],
 }: TimezoneSelectProps) {
   const [query, setQuery] = useState('');
+  const [options, setOptions] = useState(() => getAllOptions());
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [popoverPosition, setPopoverPosition] = useState<PopoverPosition | null>(null);
@@ -44,8 +46,28 @@ export default function TimezoneSelect({
   const pointerDownOnResultsRef = useRef(false);
   const listboxId = useId();
 
+  useEffect(() => {
+    let timer = 0;
+    const refresh = () => {
+      setOptions(getAllOptions());
+      window.clearTimeout(timer);
+      timer = window.setTimeout(refresh, 60_000 - (Date.now() % 60_000) + 20);
+    };
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') refresh();
+    };
+    refresh();
+    window.addEventListener('focus', refreshWhenVisible);
+    document.addEventListener('visibilitychange', refreshWhenVisible);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('focus', refreshWhenVisible);
+      document.removeEventListener('visibilitychange', refreshWhenVisible);
+    };
+  }, []);
+
   const filtered = useMemo(() => {
-    const allOptions = getAllOptions();
+    const allOptions = options;
 
     if (!searchable) return allOptions;
 
@@ -58,7 +80,7 @@ export default function TimezoneSelect({
         option.label.toLowerCase().includes(normalized) ||
         option.offset.toLowerCase().includes(normalized)
     );
-  }, [query, searchable]);
+  }, [options, query, searchable]);
 
   const showResults = searchable && isOpen && query.trim().length > 0;
 
@@ -273,7 +295,7 @@ export default function TimezoneSelect({
       options={[...(value ? [] : ['']), ...filtered.map((option) => option.tz)]}
       getOptionLabel={(tz) => {
         if (!tz) return placeholder;
-        const option = filtered.find((candidate) => candidate.tz === tz) ?? getAllOptions().find((candidate) => candidate.tz === tz);
+        const option = filtered.find((candidate) => candidate.tz === tz) ?? options.find((candidate) => candidate.tz === tz);
         return option ? `${option.label} (${option.offset})` : tz;
       }}
       onChange={onChange}

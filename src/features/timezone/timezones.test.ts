@@ -24,6 +24,15 @@ describe('timezone utilities', () => {
     }
   });
 
+  it('buildTimezoneOptions calculates DST offsets from one supplied instant', () => {
+    const winter = buildTimezoneOptions(new Date('2026-01-15T12:00:00Z'));
+    const summer = buildTimezoneOptions(new Date('2026-07-15T12:00:00Z'));
+    const winterNewYork = winter.find((item) => item.tz === 'America/New_York');
+    const summerNewYork = summer.find((item) => item.tz === 'America/New_York');
+    expect(winterNewYork?.offset).toBe('UTC-05:00');
+    expect(summerNewYork?.offset).toBe('UTC-04:00');
+  });
+
   it('buildTimezoneOptions falls back when Intl.supportedValuesOf is unavailable', () => {
     const fallbackTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 

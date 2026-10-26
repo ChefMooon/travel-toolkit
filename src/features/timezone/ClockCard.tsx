@@ -16,7 +16,7 @@ export default function ClockCard({ zone, now }: ClockCardProps) {
     <div className="card" style={{ height: '100%' }}>
       <div className="card-header">
         <span className="card-title">{zone.label}</span>
-        {zone.displayMode === 'analog' && zone.showUTC && (
+        {zone.showUTC && (
           <span
             style={{
               fontFamily: '"JetBrains Mono", monospace',
@@ -43,6 +43,9 @@ export default function ClockCard({ zone, now }: ClockCardProps) {
       >
         {zone.displayMode === 'analog' ? (
           <>
+            <span className="timezone-visually-hidden">
+              {data.time12}{zone.showDate ? `, ${data.date}` : ''}
+            </span>
             <AnalogClock hourDeg={data.hourDeg} minuteDeg={data.minuteDeg} secondDeg={data.secondDeg} />
             {zone.showDate && (
               <div style={{ fontSize: 12, color: 'var(--text-2)', fontWeight: 700, marginTop: 4 }}>

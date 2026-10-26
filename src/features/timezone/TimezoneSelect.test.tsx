@@ -1,9 +1,11 @@
 /// <reference types="vitest" />
 /// <reference types="@testing-library/jest-dom" />
 
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { afterEach, describe, it, expect, vi } from 'vitest';
+import { act, render, screen, fireEvent } from '@testing-library/react';
 import TimezoneSelect from '@/features/timezone/TimezoneSelect';
+
+afterEach(() => vi.useRealTimers());
 
 describe('TimezoneSelect', () => {
   it('FE-TZ-007a renders a large list of IANA timezone options', () => {
@@ -99,5 +101,30 @@ describe('TimezoneSelect', () => {
     fireEvent.pointerUp(window);
     fireEvent.pointerDown(document.body);
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+  });
+
+  it('refreshes mounted offsets after focus crosses a DST boundary', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-08T06:59:00Z'));
+    render(<TimezoneSelect value="America/New_York" onChange={vi.fn()} searchable={false} />);
+
+    expect(screen.getByRole('combobox')).toHaveTextContent('America/New York (UTC-05:00)');
+
+    vi.setSystemTime(new Date('2026-03-08T07:01:00Z'));
+    fireEvent.focus(window);
+
+    expect(screen.getByRole('combobox')).toHaveTextContent('America/New York (UTC-04:00)');
+  });
+
+  it('refreshes mounted offsets at the next minute boundary', () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-03-08T06:59:30Z'));
+    render(<TimezoneSelect value="America/New_York" onChange={vi.fn()} searchable={false} />);
+    expect(screen.getByRole('combobox')).toHaveTextContent('America/New York (UTC-05:00)');
+
+    vi.setSystemTime(new Date('2026-03-08T07:00:00Z'));
+    act(() => vi.advanceTimersByTime(30_050));
+
+    expect(screen.getByRole('combobox')).toHaveTextContent('America/New York (UTC-04:00)');
   });
 });

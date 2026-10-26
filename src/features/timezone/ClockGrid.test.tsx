@@ -2,7 +2,7 @@
 /// <reference types="@testing-library/jest-dom" />
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { DateTime } from 'luxon';
 import ClockGrid from '@/features/timezone/ClockGrid';
 import type { TrackedZone } from '@/store/timezoneStore';
@@ -66,8 +66,11 @@ describe('ClockGrid', () => {
         selector({ trackedZones: [] }),
     );
 
-    render(<ClockGrid now={mockNow} />);
+    const onAddTimezone = vi.fn();
+    render(<ClockGrid now={mockNow} onAddTimezone={onAddTimezone} />);
 
     expect(screen.getByText(/No timezones tracked yet/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Add timezone/i }));
+    expect(onAddTimezone).toHaveBeenCalledOnce();
   });
 });

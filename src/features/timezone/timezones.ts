@@ -7,11 +7,11 @@ export interface TimezoneOption {
   offsetMinutes: number;
 }
 
-function buildOffsetInfo(tz: string): { offset: string; offsetMinutes: number } {
+function buildOffsetInfo(tz: string, instant: Date): { offset: string; offsetMinutes: number } {
   const parts = new Intl.DateTimeFormat('en-US', {
     timeZone: tz,
     timeZoneName: 'longOffset',
-  }).formatToParts(new Date());
+  }).formatToParts(instant);
 
   const zoneName = parts.find((part) => part.type === 'timeZoneName')?.value ?? 'GMT+00:00';
   const match = zoneName.match(/([+-])(\d{1,2}):(\d{2})/);
@@ -31,7 +31,7 @@ function buildOffsetInfo(tz: string): { offset: string; offsetMinutes: number } 
   };
 }
 
-export function buildTimezoneOptions(): TimezoneOption[] {
+export function buildTimezoneOptions(instant: Date = new Date()): TimezoneOption[] {
   const intlWithSupported = Intl as typeof Intl & {
     supportedValuesOf?: (key: 'timeZone') => string[];
   };
@@ -41,7 +41,7 @@ export function buildTimezoneOptions(): TimezoneOption[] {
 
   return zones
     .map((tz) => {
-      const { offset, offsetMinutes } = buildOffsetInfo(tz);
+      const { offset, offsetMinutes } = buildOffsetInfo(tz, instant);
 
       return {
         tz,
