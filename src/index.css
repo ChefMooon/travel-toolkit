@@ -363,7 +363,8 @@ body::before {
   border-left: 0;
   border-radius: 0 22px 22px 0;
 }
-.trip-history-controls button:not(:disabled):hover { background: var(--bg-2); }
+@media (hover: hover) {
+.trip-history-controls button:not(:disabled):hover { background: var(--bg-2); } }
 .trip-history-controls button:disabled { color: var(--text-3); opacity: 0.5; cursor: default; }
 .trip-history-controls button:focus-visible { outline: 2px solid var(--c3); outline-offset: 2px; position: relative; z-index: 1; }
 
@@ -421,7 +422,8 @@ body::before {
   width: 100%;
   min-width: 0;
 }
-.trip-pill:hover { border-color: var(--c3); }
+@media (hover: hover) {
+.trip-pill:hover { border-color: var(--c3); } }
 .trip-pill-text {
   font-size: 13px; font-weight: 700; color: var(--text);
   border: none; background: transparent; outline: none;
@@ -441,7 +443,8 @@ body::before {
   flex-shrink: 0;
   transition: color 0.15s;
 }
-.trip-pill-clear:hover { color: var(--text); }
+@media (hover: hover) {
+.trip-pill-clear:hover { color: var(--text); } }
 .trip-id-pill {
   display: inline-flex;
   align-items: center;
@@ -491,7 +494,8 @@ body::before {
   white-space: nowrap;
   font-family: 'Nunito', sans-serif;
 }
-.markup-pill:hover { border-color: var(--c3); }
+@media (hover: hover) {
+.markup-pill:hover { border-color: var(--c3); } }
 
 .markup-num {
   font-family: 'JetBrains Mono', monospace;
@@ -616,10 +620,11 @@ body::before {
   background: transparent;
   color: var(--text-2);
   white-space: nowrap;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s;
   min-height: 36px;
 }
-.btn-new-trip:hover { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
+@media (hover: hover) {
+.btn-new-trip:hover { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); } }
 .btn-save-panel {
   position: relative;
   width: 36px;
@@ -634,10 +639,11 @@ body::before {
   cursor: pointer;
   transition: background 0.15s, border-color 0.15s;
 }
+@media (hover: hover) {
 .btn-save-panel:hover {
   background: var(--bg-2);
   border-color: var(--c3);
-}
+} }
 .btn-save-panel img {
   width: 16px;
   height: 16px;
@@ -2608,7 +2614,9 @@ body::before {
   position: relative;
   z-index: 1;
 }
-.chip:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+@media (hover: hover) {
+  .chip:hover { transform: translateY(-1px); box-shadow: var(--shadow-sm); }
+}
 
 @media (max-width: 767px) {
   .chip {
@@ -2654,7 +2662,8 @@ body::before {
   opacity: 0.4; cursor: pointer; font-size: 13px; margin-left: 2px;
   background: none; border: none; color: inherit; padding: 0; line-height: 1;
 }
-.chip-x:hover { opacity: 1; color: var(--danger); }
+@media (hover: hover) {
+.chip-x:hover { opacity: 1; color: var(--danger); } }
 .chip-grip,
 .chip-x {
   font-family: inherit;
@@ -2689,7 +2698,7 @@ body::before {
 /* Icon interactive styling */
 .icon-interactive {
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: transform 0.15s ease;
   border-radius: 6px;
   display: inline-flex;
   align-items: center;
@@ -2746,7 +2755,7 @@ body::before {
 /* Color dot interactive styling with dynamic ring */
 .color-dot-interactive {
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: transform 0.15s ease;
   border-radius: 50%;
   display: inline-flex;
   align-items: center;
@@ -2818,7 +2827,7 @@ body::before {
 /* Icon container with hover tint (for cards/rows) */
 .icon-with-tint {
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: transform 0.15s ease;
   border-radius: 6px;
   padding: 4px;
   display: inline-flex;
@@ -2916,7 +2925,7 @@ body::before {
   cursor: pointer;
   border: 1.5px dashed var(--border-2);
   background: transparent; color: var(--text-2);
-  transition: all 0.14s;
+  transition: background-color 0.14s, color 0.14s;
   min-height: 44px;
 }
 .btn-add:disabled { cursor: not-allowed; opacity: 0.5; color: var(--text-3); border-color: var(--border); }
@@ -2967,7 +2976,8 @@ body::before {
   field-sizing: content;
   cursor: text;
 }
-.group-name-input:hover { border-bottom: 1px dashed currentColor; }
+@media (hover: hover) {
+.group-name-input:hover { border-bottom: 1px dashed currentColor; } }
 .group-name-input:focus { border-bottom: 1px dashed currentColor; }
 
 /* ══════════════════════════════════════════ LEDGER TABLE */
@@ -3036,11 +3046,13 @@ body::before {
   box-shadow: var(--shadow-sm);
   transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
 }
-.bulk-delete:hover {
-  background: color-mix(in srgb, var(--danger) 88%, black 12%);
-  border-color: color-mix(in srgb, var(--danger) 64%, black 36%);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(184,92,92,0.22);
+@media (hover: hover) {
+  .bulk-delete:hover {
+    background: color-mix(in srgb, var(--danger) 88%, black 12%);
+    border-color: color-mix(in srgb, var(--danger) 64%, black 36%);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 18px rgba(184,92,92,0.22);
+  }
 }
 .bulk-delete:active,
 .bulk-apply:active,
@@ -3064,11 +3076,13 @@ body::before {
   box-shadow: var(--shadow-sm);
   transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
 }
-.bulk-clear:hover {
-  background: rgba(255,255,255,0.24);
-  border-color: rgba(255,255,255,0.42);
-  transform: translateY(-1px);
-  box-shadow: 0 8px 16px rgba(15,18,35,0.14);
+@media (hover: hover) {
+  .bulk-clear:hover {
+    background: rgba(255,255,255,0.24);
+    border-color: rgba(255,255,255,0.42);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 16px rgba(15,18,35,0.14);
+  }
 }
 .bulk-sel:focus-visible,
 .bulk-apply:focus-visible,
@@ -3133,7 +3147,8 @@ table.ledger thead th {
 }
 
 table.ledger tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
-table.ledger tbody tr:hover { background: var(--bg-2); }
+@media (hover: hover) {
+table.ledger tbody tr:hover { background: var(--bg-2); } }
 table.ledger tbody tr.sel { background: var(--c3-soft); }
 
 table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13px; }
@@ -3178,7 +3193,8 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
     background: var(--surface);
     transition: background 0.1s;
   }
-  table.ledger tbody tr:hover { background: var(--bg-2); }
+  @media (hover: hover) {
+  table.ledger tbody tr:hover { background: var(--bg-2); } }
   table.ledger tbody tr.sel { background: var(--c3-soft); }
 
   table.ledger tbody td {
@@ -3349,7 +3365,7 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
   font-size: 15px;
   display: flex;
   align-items: center;
-  transition: all 0.15s ease;
+  transition: transform 0.15s ease;
   padding-left: 4px;
 }
 .drag-h.dragging { cursor: grabbing; }
@@ -3376,7 +3392,7 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
   place-content: center;
   background: transparent;
   cursor: pointer;
-  transition: all 0.12s;
+  transition: background-color 0.12s, border-color 0.12s, color 0.12s;
 }
 .chk:checked {
   background: var(--c3);
@@ -3449,7 +3465,8 @@ table.ledger .ledger-inline-field > .inline-edit-input {
   min-width: 70px;
 }
 .cur-select:focus { outline: none; border-color: var(--focus); box-shadow: 0 0 0 2px rgba(123,135,190,0.15); }
-.cur-select:hover { border-color: var(--border-2); background-color: var(--bg-3); }
+@media (hover: hover) {
+.cur-select:hover { border-color: var(--border-2); background-color: var(--bg-3); } }
 
 .ef-select {
   appearance: none; -webkit-appearance: none;
@@ -3518,10 +3535,12 @@ table.ledger .ledger-inline-field > .inline-edit-input {
   width: 27px; height: 27px; border-radius: 7px;
   border: 1.5px solid transparent; background: transparent;
   cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
-  font-size: 13px; color: var(--text-3); transition: all 0.12s;
+  font-size: 13px; color: var(--text-3); transition: background-color 0.12s, border-color 0.12s, color 0.12s;
 }
-.ibtn:hover { background: var(--bg-2); border-color: var(--border); color: var(--text); }
-.ibtn.del:hover { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); }
+@media (hover: hover) {
+.ibtn:hover { background: var(--bg-2); border-color: var(--border); color: var(--text); } }
+@media (hover: hover) {
+.ibtn.del:hover { background: var(--danger-soft); border-color: var(--danger); color: var(--danger); } }
 
 /* ── INLINE EDITING ── */
 .inline-edit-input {
@@ -3584,13 +3603,14 @@ table.ledger .ledger-inline-field > .inline-edit-input {
   border-radius: 4px;
   display: flex; align-items: center; justify-content: center;
   color: var(--text-2);
-  transition: all 0.12s;
+  transition: background-color 0.12s, border-color 0.12s, color 0.12s;
 }
+@media (hover: hover) {
 .arrow-btn:hover {
   background: var(--bg-3);
   border-color: var(--border);
   color: var(--text);
-}
+} }
 .arrow-btn.left { }
 .arrow-btn.right { }
 
@@ -3644,10 +3664,11 @@ table.ledger .ledger-inline-field > .inline-edit-input {
   min-width: 18px;
   text-align: center;
 }
+@media (hover: hover) {
 .reset-markup-btn:hover {
   background: var(--bg-3);
   color: var(--text);
-}
+} }
 
 /* ── POPOVERS ── */
 .split-popover-container,
@@ -3690,9 +3711,11 @@ table.ledger .ledger-inline-field > .inline-edit-input {
   .type-trigger-label { display: none; }
 }
 
+@media (hover: hover) {
+
 .type-trigger-btn:hover {
   filter: brightness(1.05);
-}
+} }
 .type-trigger-btn.is-empty {
   min-height: 26px;
   border: none;
@@ -3706,7 +3729,8 @@ table.ledger .ledger-inline-field > .inline-edit-input {
   white-space: nowrap;
   padding: 3px 8px;
 }
-.type-trigger-btn.is-empty:hover { background: var(--c3-soft); filter: brightness(1.05); }
+@media (hover: hover) {
+.type-trigger-btn.is-empty:hover { background: var(--c3-soft); filter: brightness(1.05); } }
 @container cost-ledger (min-width: 700px) {
   .type-trigger-btn { width: 150px; }
 }
@@ -3740,15 +3764,16 @@ table.ledger .ledger-inline-field > .inline-edit-input {
   font-family: inherit;
   font-size: 12px; font-weight: 700;
   color: var(--text-2);
-  transition: all 0.12s;
+  transition: background-color 0.12s, border-color 0.12s, color 0.12s;
   white-space: nowrap;
 }
 .popover-item:first-child { border-radius: 7px 7px 0 0; }
 .popover-item:last-child { border-radius: 0 0 7px 7px; }
+@media (hover: hover) {
 .popover-item:hover {
   background: var(--bg-2);
   color: var(--text);
-}
+} }
 .popover-item.selected {
   background: var(--c3-soft);
   color: var(--c3);
@@ -3783,9 +3808,10 @@ table.ledger .ledger-inline-field > .inline-edit-input {
   font-weight: 600;
   transition: background 0.12s;
 }
+@media (hover: hover) {
 .couple-option:hover {
   background: var(--bg-2);
-}
+} }
 .couple-option input {
   cursor: pointer;
   width: 15px; height: 15px;
@@ -3796,12 +3822,13 @@ table.ledger .ledger-inline-field > .inline-edit-input {
   border: none;
   padding: 3px 9px;
   cursor: pointer;
-  transition: all 0.12s;
+  transition: background-color 0.12s, border-color 0.12s, color 0.12s;
   background: var(--bg-2);
 }
+@media (hover: hover) {
 .split:hover {
   filter: brightness(1.05);
-}
+} }
 
 .who-dots-btn {
   background: transparent;
@@ -3811,11 +3838,12 @@ table.ledger .ledger-inline-field > .inline-edit-input {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.12s;
+  transition: background-color 0.12s, border-color 0.12s, color 0.12s;
 }
+@media (hover: hover) {
 .who-dots-btn:hover .who-dot {
   filter: brightness(1.1);
-}
+} }
 
 .who-label {
   font-size: 10px;
@@ -3888,13 +3916,14 @@ tr.edit-row td {
   background: var(--bg-2);
   font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700;
   cursor: pointer; color: var(--text-2); border-radius: 9px;
-  transition: all 0.12s;
+  transition: background-color 0.12s, border-color 0.12s, color 0.12s;
   min-height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.seg-btn:hover { border-color: var(--c3); color: var(--c3); }
+@media (hover: hover) {
+.seg-btn:hover { border-color: var(--c3); color: var(--c3); } }
 .seg-btn.on { background: var(--c3); border-color: var(--c3); color: white; }
 
 .subset-picks {
@@ -4000,7 +4029,9 @@ tr.edit-row td {
   transition: transform 0.1s, box-shadow 0.1s;
   min-height: 44px;
 }
-.btn-save:hover { transform: translateY(-1px); box-shadow: 0 3px 0 rgba(140,60,65,0.25); }
+@media (hover: hover) {
+  .btn-save:hover { transform: translateY(-1px); box-shadow: 0 3px 0 rgba(140,60,65,0.25); }
+}
 
 @media (max-width: 479px) {
   .btn-save {
@@ -4032,9 +4063,10 @@ tr.add-row td { padding: 0; border: none; }
   color: var(--text-3);
   font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700;
   cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
-  transition: all 0.14s;
+  transition: background-color 0.14s, color 0.14s;
 }
-.add-row-btn:hover { color: var(--accent); background: var(--accent-soft); }
+@media (hover: hover) {
+.add-row-btn:hover { color: var(--accent); background: var(--accent-soft); } }
 
 /* ══════════════════════════════════════════ SUMMARY PANEL */
 .s-cards {
@@ -4050,7 +4082,9 @@ tr.add-row td { padding: 0; border: none; }
   border: 1.5px solid; box-shadow: var(--shadow-sm);
   transition: transform 0.2s, box-shadow 0.2s;
 }
-.s-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+@media (hover: hover) {
+  .s-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+}
 
 .s-card-c1 { border-color: var(--c1-border); }
 .s-card-c2 { border-color: var(--c2-border); }
@@ -4706,7 +4740,8 @@ table.ledger .ledger-inline-field > .numeric-input {
   border: none; background: none; width: 100%; text-align: left;
   color: var(--text); font-family: 'Nunito', sans-serif;
 }
-.child-picker-item:hover { background: var(--bg-2); }
+@media (hover: hover) {
+.child-picker-item:hover { background: var(--bg-2); } }
 
 /* Drag overlay */
 .drag-overlay {
@@ -4772,10 +4807,12 @@ table.ledger .ledger-inline-field > .numeric-input {
   transition: background 0.2s, color 0.2s;
 }
 
+@media (hover: hover) {
+
 .split-modal-close:hover {
   background: var(--bg-2);
   color: var(--text);
-}
+} }
 
 .split-modal-couples {
   display: flex;
@@ -4785,6 +4822,7 @@ table.ledger .ledger-inline-field > .numeric-input {
   margin-bottom: 16px;
   flex: 1;
   overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .split-modal-create-row {
@@ -4809,11 +4847,13 @@ table.ledger .ledger-inline-field > .numeric-input {
   transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
+@media (hover: hover) {
+
 .split-modal-create-btn:hover {
   background: var(--bg-3);
   color: var(--text);
   border-color: var(--border);
-}
+} }
 
 .split-modal-empty {
   font-size: 12px;
@@ -4838,9 +4878,11 @@ table.ledger .ledger-inline-field > .numeric-input {
   font-weight: 600;
 }
 
+@media (hover: hover) {
+
 .split-modal-couple:hover {
   background: var(--bg-3);
-}
+} }
 
 .split-modal-couple-btn {
   width: 100%;
@@ -4887,7 +4929,7 @@ table.ledger .ledger-inline-field > .numeric-input {
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
 }
 
 /* ══════════════════════════════════════════ SAVE DATA PANEL */
@@ -5083,10 +5125,10 @@ table.ledger .ledger-inline-field > .numeric-input {
   text-align: left;
   width: 100%;
 }
-.save-data-io-dropdown-item:hover,
-.save-data-io-dropdown-item.is-active {
-  background: var(--surface-2);
+@media (hover: hover) {
+  .save-data-io-dropdown-item:hover { background: var(--surface-2); }
 }
+.save-data-io-dropdown-item.is-active { background: var(--surface-2); }
 .save-data-io-dropdown-dot {
   width: 8px;
   height: 8px;
@@ -5316,14 +5358,16 @@ table.ledger .ledger-inline-field > .numeric-input {
   color: var(--text);
   box-shadow: var(--shadow-sm);
 }
+@media (hover: hover) {
 .save-slot-swap-action.is-primary:hover {
   background: var(--surface-2);
-}
+} }
+@media (hover: hover) {
 .save-slot-swap-action.is-clear:hover {
   border-color: var(--c1-border);
   background: var(--surface);
   color: var(--text);
-}
+} }
 .save-slot-swap-action:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
@@ -5407,9 +5451,11 @@ table.ledger .ledger-inline-field > .numeric-input {
   color: var(--text-2);
 }
 
+@media (hover: hover) {
+
 .split-modal-btn.cancel:hover {
   background: var(--bg-2);
-}
+} }
 
 .split-modal-btn.confirm {
   background: var(--accent);
@@ -5417,9 +5463,11 @@ table.ledger .ledger-inline-field > .numeric-input {
   box-shadow: 0 2px 0 rgba(196, 115, 122, 0.3);
 }
 
+@media (hover: hover) {
+
 .split-modal-btn.confirm:hover {
   background: var(--c1-mid);
-}
+} }
 
 .split-modal-btn.confirm:disabled {
   opacity: 0.5;
@@ -5443,10 +5491,12 @@ table.ledger .ledger-inline-field > .numeric-input {
   transition: background 0.2s, color 0.2s, border-color 0.2s;
 }
 
+@media (hover: hover) {
+
 .split-select-inline-btn:hover {
   background: var(--bg-3);
   color: var(--text);
-}
+} }
 
 .split-select-inline-btn.with-dots {
   background: var(--bg-1);
@@ -5454,9 +5504,11 @@ table.ledger .ledger-inline-field > .numeric-input {
   padding: 4px 8px;
 }
 
+@media (hover: hover) {
+
 .split-select-inline-btn.with-dots:hover {
   background: var(--bg-2);
-}
+} }
 
 
 /* ══════════════════════════════════════════ ICON CHOICE MODAL */
@@ -5513,10 +5565,12 @@ table.ledger .ledger-inline-field > .numeric-input {
   transition: background 0.2s, color 0.2s;
 }
 
+@media (hover: hover) {
+
 .icon-modal-close:hover {
   background: var(--bg-2);
   color: var(--text);
-}
+} }
 
 .icon-grid {
   display: grid;
@@ -5534,15 +5588,17 @@ table.ledger .ledger-inline-field > .numeric-input {
   background: var(--bg-2);
   font-size: 32px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
   padding: 0;
 }
+
+@media (hover: hover) {
 
 .icon-item:hover {
   background: var(--bg-3);
   border-color: var(--text-2);
   transform: translateY(-2px);
-}
+} }
 
 .icon-item.selected {
   border-color: var(--accent);
@@ -5604,10 +5660,12 @@ table.ledger .ledger-inline-field > .numeric-input {
   transition: background 0.2s, color 0.2s;
 }
 
+@media (hover: hover) {
+
 .color-modal-close:hover {
   background: var(--bg-2);
   color: var(--text);
-}
+} }
 
 .color-grid {
   display: grid;
@@ -5623,15 +5681,17 @@ table.ledger .ledger-inline-field > .numeric-input {
   border: 2px solid var(--border);
   border-radius: 10px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s, border-color 0.2s, color 0.2s, transform 0.2s, box-shadow 0.2s;
   padding: 0;
   position: relative;
 }
 
+@media (hover: hover) {
+
 .color-swatch:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
+} }
 
 .color-swatch.selected {
   border-color: var(--text);
@@ -5727,10 +5787,12 @@ table.ledger .ledger-inline-field > .numeric-input {
   flex-shrink: 0;
 }
 
+@media (hover: hover) {
+
 .ie-settings-close:hover {
   color: var(--text);
   background: var(--bg-2);
-}
+} }
 
 .ie-settings-section {
   display: flex;
@@ -5785,9 +5847,11 @@ table.ledger .ledger-inline-field > .numeric-input {
   width: 100%;
 }
 
+@media (hover: hover) {
+
 .ie-settings-option:hover {
   background: var(--surface);
-}
+} }
 
 .ie-settings-option.is-active {
   background: var(--surface);
@@ -5831,10 +5895,12 @@ table.ledger .ledger-inline-field > .numeric-input {
   flex-shrink: 0;
 }
 
+@media (hover: hover) {
+
 .save-data-io-cog-btn:hover {
   color: var(--text);
   border-color: var(--text-3);
-}
+} }
 
 .consent-banner {
   position: fixed;
@@ -6023,9 +6089,42 @@ table.ledger .ledger-inline-field > .numeric-input {
 .type-picker-form { width: 100%; }
 .type-trigger-btn.type-picker-form-trigger { width: 100%; min-height: 44px; justify-content: flex-start; padding: 6px 9px; font-size: 13px; }
 .type-picker-form-trigger .type-trigger-label { display: inline; }
-.type-picker-menu { z-index: 1500; margin-top: 0; box-sizing: border-box; }
+.type-picker-menu {
+  z-index: 1500;
+  margin-top: 0;
+  box-sizing: border-box;
+  max-height: min(60vh, 360px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
 .shared-select.bulk-sel { min-height: 28px; padding: 4px 8px; gap: 7px; background-image: none; }
 
 @media (hover: hover) and (pointer: fine) {
   .shared-select-option:hover { background: var(--surface-2); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-section="party"], [data-section="costs"], [data-section="summary"],
+  .modal, .child-picker, .split-modal, .icon-choice-modal, .color-choice-modal,
+  .ie-settings-modal {
+    animation: none;
+  }
+  .chip:hover,
+  .icon-interactive:hover, .icon-interactive:active,
+  .color-dot-interactive:hover, .color-dot-interactive:active,
+  .icon-with-tint:hover, .icon-with-tint:active,
+  .chip-grip:hover, .chip-grip:active,
+  .drag-h:hover, .drag-h:active,
+  .bulk-delete:hover, .bulk-delete:active,
+  .bulk-apply:active, .bulk-clear:hover, .bulk-clear:active,
+  .btn-save:hover, .btn-save:active, .s-card:hover,
+  .icon-item:hover, .color-swatch:hover {
+    transform: none;
+  }
+}
+
+/* Contain scrolling within trip dialogs and popovers. */
+.modal, .split-modal, .save-data-panel, .icon-choice-modal, .color-choice-modal,
+.ie-settings-modal, .couple-popover, .child-picker {
+  overscroll-behavior: contain;
 }
