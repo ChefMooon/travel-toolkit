@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { COST_ENTRY_TYPES } from '@/store/types';
 import Tooltip from '@/components/Tooltip';
@@ -20,7 +20,7 @@ export default function CostTypePicker({ value, onChange, optionsId, groupLabel,
   const menuRef = useRef<HTMLDivElement>(null);
   const selected = COST_ENTRY_TYPES.find((entry) => entry.id === value);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return;
     const place = () => {
       const rect = triggerRef.current?.getBoundingClientRect();

@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
+import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, ChevronDown } from 'lucide-react';
 
@@ -26,7 +26,7 @@ export default function Select({ id, value, options, onChange, className = '', s
   const typeaheadTimer = useRef<number | undefined>(undefined);
   const activeId = `${controlId}-option-${options.indexOf(active)}`;
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return;
     const update = () => {
       const rect = triggerRef.current?.getBoundingClientRect();
