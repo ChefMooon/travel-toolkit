@@ -2,7 +2,7 @@
 /// <reference types="@testing-library/jest-dom" />
 
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import TripToolbar from '@/components/TripToolbar';
 import { importWorkbook } from '@/lib/xlsx/importWorkbook';
 import { useTripStore } from '@/store/tripStore';
@@ -241,11 +241,11 @@ describe('TripToolbar', () => {
     fireEvent.click(screen.getByRole('button', { name: /Markup/i }));
     const input = screen.getByLabelText('Global markup percentage');
     const increase = screen.getByRole('button', { name: 'Increase Global markup percentage' });
-    input.focus();
+    act(() => input.focus());
     fireEvent.blur(input, { relatedTarget: increase });
     expect(input).toBeInTheDocument();
     expect(mockStoreState.setGlobalMarkup).not.toHaveBeenCalled();
-    increase.focus();
+    act(() => increase.focus());
     fireEvent.keyDown(increase, { key: 'ArrowUp' });
     fireEvent.click(increase);
     expect(input).toHaveValue(50.1);

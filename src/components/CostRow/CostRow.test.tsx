@@ -2,7 +2,7 @@
 /// <reference types="@testing-library/jest-dom" />
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { act, render, screen, fireEvent } from '@testing-library/react';
 import CostRow from '@/components/CostRow';
 import type { CostEntry, Couple } from '@/store/types';
 
@@ -98,7 +98,7 @@ describe('CostRow - Who Field Clickability', () => {
     expect(input).toBeInTheDocument();
     expect(mockStoreState.editCost).not.toHaveBeenCalled();
 
-    increase.focus();
+    act(() => increase.focus());
     fireEvent.keyDown(increase, { key: 'Enter' });
     fireEvent.click(increase);
     expect(input).toHaveValue(203.01);

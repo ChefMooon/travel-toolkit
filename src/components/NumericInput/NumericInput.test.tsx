@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import NumericInput from './NumericInput';
@@ -23,10 +23,10 @@ describe('NumericInput', () => {
     const onSubmit = vi.fn((event: React.FormEvent) => event.preventDefault());
     render(<form onSubmit={onSubmit}><ControlledInput onBlur={onBlur} /><button type="submit">Save</button></form>);
     const input = screen.getByRole('spinbutton', { name: 'Quantity' });
-    input.focus();
+    act(() => input.focus());
     const increment = screen.getByRole('button', { name: 'Increase Quantity' });
     const pointer = new PointerEvent('pointerdown', { bubbles: true, cancelable: true });
-    increment.dispatchEvent(pointer);
+    act(() => { increment.dispatchEvent(pointer); });
     expect(pointer.defaultPrevented).toBe(true);
     fireEvent.click(increment);
     expect(input).toHaveValue(1.25);
@@ -53,7 +53,7 @@ describe('NumericInput', () => {
     const decrease = screen.getByRole('button', { name: 'Decrease Quantity' });
     expect(increase).toHaveAttribute('type', 'button');
     expect(increase).not.toHaveAttribute('tabindex', '-1');
-    increase.focus();
+    act(() => increase.focus());
     fireEvent.keyDown(increase, { key: 'Enter' });
     fireEvent.click(increase);
     expect(screen.getByRole('spinbutton', { name: 'Quantity' })).toHaveValue(1.25);

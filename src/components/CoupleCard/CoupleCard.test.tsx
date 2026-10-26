@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, fireEvent, waitFor, screen } from '@testing-library/react';
+import { act, render, fireEvent, waitFor, screen } from '@testing-library/react';
 import { useTripStore } from '../../store/tripStore';
 import CoupleCard from './CoupleCard';
 import { COUPLE_ICONS, type CoupleSummary } from '../../store/types';
@@ -425,10 +425,10 @@ describe('CoupleCard', () => {
       await waitFor(() => expect(screen.getByLabelText('Exchange rate for EUR in US dollars')).toBeInTheDocument());
       const input = screen.getByLabelText('Exchange rate for EUR in US dollars');
       fireEvent.change(input, { target: { value: '1.25' } });
-      input.focus();
+      act(() => input.focus());
       const outside = document.createElement('button');
       document.body.append(outside);
-      outside.focus();
+      act(() => outside.focus());
       outside.remove();
       await waitFor(() => {
         const rate = useTripStore.getState().exchangeRates.find((r) => r.currency === 'EUR');
@@ -445,18 +445,18 @@ describe('CoupleCard', () => {
       const increase = screen.getByRole('button', { name: 'Increase Exchange rate for EUR in US dollars' });
       const originalRate = useTripStore.getState().exchangeRates.find((rate) => rate.currency === 'EUR')?.rateToUSD;
       fireEvent.change(input, { target: { value: '1.2500' } });
-      input.focus();
-      increase.focus();
+      act(() => input.focus());
+      act(() => increase.focus());
       expect(input).toBeInTheDocument();
       expect(useTripStore.getState().exchangeRates.find((rate) => rate.currency === 'EUR')?.rateToUSD).toBe(originalRate);
-      increase.focus();
+      act(() => increase.focus());
       fireEvent.keyDown(increase, { key: 'ArrowUp' });
       fireEvent.click(increase);
       expect(input).toHaveValue(1.2501);
       expect(useTripStore.getState().exchangeRates.find((rate) => rate.currency === 'EUR')?.rateToUSD).toBe(originalRate);
       const outside = document.createElement('button');
       document.body.append(outside);
-      outside.focus();
+      act(() => outside.focus());
       outside.remove();
       await waitFor(() => {
         expect(useTripStore.getState().exchangeRates.find((rate) => rate.currency === 'EUR')?.rateToUSD).toBe(1.2501);
