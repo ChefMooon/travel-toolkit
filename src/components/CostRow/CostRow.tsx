@@ -564,10 +564,13 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
       </td>
       <td>
         <div className="type-popover-container">
-          <Tooltip content="Change type">
+          <Tooltip content={typeEntry ? `Change type: ${typeEntry.type_name}` : 'Change type'}>
             <button
               ref={typeBtnRef}
               className={`type-trigger-btn${typeEntry ? '' : ' is-empty'}`}
+              style={typeEntry ? {
+                '--cost-type-color': typeEntry.color,
+              } as React.CSSProperties : undefined}
               type="button"
               aria-label={`Change type for ${cost.name}${typeEntry ? `; current type: ${typeEntry.type_name}` : '; no type selected'}`}
               aria-expanded={typePopoverOpen}
@@ -580,7 +583,7 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
                 setTypePopoverOpen(!typePopoverOpen);
               }}
             >
-              {typeEntry ? typeEntry.symbol : 'Set type'}
+              {typeEntry ? <><span aria-hidden="true">{typeEntry.symbol}</span><span className="type-trigger-label">{typeEntry.type_name}</span></> : 'Set type'}
             </button>
           </Tooltip>
         </div>
