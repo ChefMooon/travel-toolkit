@@ -15,10 +15,9 @@ import {
   SortableContext,
   arrayMove,
   sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
+  rectSortingStrategy,
   useSortable,
 } from '@dnd-kit/sortable';
-import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { CSS } from '@dnd-kit/utilities';
 import Modal from '../Modal';
 import IconChoiceModal from '../IconChoiceModal';
@@ -66,7 +65,7 @@ function SortableGroup({
       className="group-group"
       style={{
         opacity: isDragging ? 0.5 : 1,
-        transform: CSS.Transform.toString(transform),
+        transform: CSS.Translate.toString(transform),
         transition,
       }}
     >
@@ -280,16 +279,15 @@ export default function GroupSetup() {
               <div className="empty-state-sub">Add groups to start splitting costs</div>
             </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div className="party-groups">
               <DndContext
                 sensors={sensors}
                 collisionDetection={closestCenter}
                 onDragEnd={handleDragEnd}
-                modifiers={[restrictToVerticalAxis]}
               >
                 <SortableContext
                   items={couples.map((couple) => couple.id)}
-                  strategy={verticalListSortingStrategy}
+                  strategy={rectSortingStrategy}
                 >
                   {couples.map((couple) => (
                     <SortableGroup

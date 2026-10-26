@@ -493,13 +493,17 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
       expect(document.querySelector('[role="tooltip"]')).toHaveTextContent('Drag to reorder group');
     });
 
-    it('reorders groups using the keyboard drag sensor', async () => {
+    it.each([
+      { direction: 'ArrowDown', x: 0, y: 100 },
+      { direction: 'ArrowRight', x: 300, y: 0 },
+      { direction: 'ArrowDown', x: 300, y: 100 },
+    ])('reorders groups using $direction at ($x, $y)', async ({ direction, x, y }) => {
       const mockStore = createMockStore();
       (useTripStore as any).mockImplementation((selector: any) => selector(mockStore));
       vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (this: HTMLElement) {
         const groups = Array.from(document.querySelectorAll('.group-group'));
         const index = groups.indexOf(this);
-        return new DOMRect(0, Math.max(index, 0) * 100, 240, 40);
+        return new DOMRect(Math.max(index, 0) * x, Math.max(index, 0) * y, 240, 40);
       });
 
       render(<GroupSetup />);
@@ -510,7 +514,7 @@ describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
         fireEvent.keyDown(firstGrip, { key: ' ', code: 'Space', keyCode: 32 });
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
-      act(() => fireEvent.keyDown(firstGrip, { key: 'ArrowDown', code: 'ArrowDown', keyCode: 40 }));
+      act(() => fireEvent.keyDown(firstGrip, { key: direction, code: direction }));
       act(() => fireEvent.keyDown(firstGrip, { key: ' ', code: 'Space', keyCode: 32 }));
 
       expect(mockStore.reorderCouples).toHaveBeenCalledWith(['couple2', 'couple1']);
