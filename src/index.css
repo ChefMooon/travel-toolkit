@@ -3636,7 +3636,7 @@ tr.edit-row td {
 
 .edit-grid {
   display: grid;
-  grid-template-columns: 1.5fr 60px 100px auto auto;
+  grid-template-columns: minmax(0, 1fr) 88px 100px auto auto;
   gap: 5px; align-items: end; margin-bottom: 11px;
 }
 

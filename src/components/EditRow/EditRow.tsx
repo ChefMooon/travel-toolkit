@@ -273,7 +273,7 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
             />
           </div>
           <div className="ef">
-            <label className="ef-lbl" htmlFor={`${fieldPrefix}-amount`} style={{ textAlign: 'right' }}>Amount</label>
+            <label className="ef-lbl" htmlFor={`${fieldPrefix}-amount`}>Amount</label>
             <input
               id={`${fieldPrefix}-amount`}
               className="ef-inp mono"
