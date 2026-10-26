@@ -29,7 +29,7 @@ describe('RegionSelector', () => {
   it('FE-REG-001 renders the current region value', () => {
     render(<RegionSelector />);
 
-    expect(screen.getByRole('combobox', { name: 'Region' })).toHaveValue('Europe');
+    expect(screen.getByRole('combobox', { name: 'Region' })).toHaveTextContent('Europe');
   });
 
   it('provides a visible section heading and programmatic label for the region selector', () => {
@@ -42,9 +42,8 @@ describe('RegionSelector', () => {
   it('FE-REG-002 renders all region options', () => {
     render(<RegionSelector />);
 
-    const options = Array.from(screen.getByRole('combobox').querySelectorAll('option')).map(
-      (o) => o.value
-    );
+    fireEvent.click(screen.getByRole('combobox', { name: 'Region' }));
+    const options = screen.getAllByRole('option').map((option) => option.textContent);
 
     expect(options).toEqual([
       'North America',
@@ -59,9 +58,8 @@ describe('RegionSelector', () => {
   it('FE-REG-003 updates region through store action', () => {
     render(<RegionSelector />);
 
-    fireEvent.change(screen.getByRole('combobox'), {
-      target: { value: 'Asia' },
-    });
+    fireEvent.click(screen.getByRole('combobox', { name: 'Region' }));
+    fireEvent.click(screen.getByRole('option', { name: 'Asia' }));
 
     expect(mockStoreState.setRegion).toHaveBeenCalledWith('Asia');
   });

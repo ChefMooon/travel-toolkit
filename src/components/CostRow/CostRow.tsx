@@ -10,6 +10,8 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import SplitAssignmentModal from '../SplitAssignmentModal';
 import Tooltip from '@/components/Tooltip';
+import Select from '@/components/Select/Select';
+import CostTypePicker from '@/components/CostTypePicker/CostTypePicker';
 
 interface CostRowProps {
   cost: CostEntry;
@@ -38,8 +40,6 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
   const [splitModalOpen, setSplitModalOpen] = useState(false);
   const [pendingSplitType, setPendingSplitType] = useState<Extract<SplitType, 'subset' | 'individual'> | null>(null);
   const [tempAssignedCouples, setTempAssignedCouples] = useState<string[]>([]);
-  const [typePopoverOpen, setTypePopoverOpen] = useState(false);
-  const [typePopoverPos, setTypePopoverPos] = useState<{ top: number; left: number } | null>(null);
   const nameInputRef = useRef<HTMLInputElement>(null);
   const amountInputRef = useRef<HTMLInputElement>(null);
   const splitPopoverRef = useRef<HTMLDivElement>(null);
@@ -47,8 +47,6 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
   const splitPortalRef = useRef<HTMLDivElement>(null);
   const [splitPopoverPos, setSplitPopoverPos] = useState<{ top: number; left: number } | null>(null);
   const couplePopoverRef = useRef<HTMLDivElement>(null);
-  const typeBtnRef = useRef<HTMLButtonElement>(null);
-  const typePortalRef = useRef<HTMLDivElement>(null);
 
   const {
     attributes,
@@ -61,7 +59,6 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
 
   const typeEntry = COST_ENTRY_TYPES.find((t) => t.id === cost.type) ?? null;
   const splitOptionsId = `cost-${cost.id}-split-options`;
-  const typeOptionsId = `cost-${cost.id}-type-options`;
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -104,18 +101,12 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
         }
         setCouplePopoverOpen(false);
       }
-      if (
-        typeBtnRef.current && !typeBtnRef.current.contains(e.target as Node) &&
-        (!typePortalRef.current || !typePortalRef.current.contains(e.target as Node))
-      ) {
-        setTypePopoverOpen(false);
-      }
     };
-    if (splitPopoverOpen || couplePopoverOpen || typePopoverOpen) {
+    if (splitPopoverOpen || couplePopoverOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [splitPopoverOpen, couplePopoverOpen, typePopoverOpen, cost.splitType, cost.assignedCoupleIds, previousSplitType, cost.id, editCost, previousAssignedCouples]);
+  }, [splitPopoverOpen, couplePopoverOpen, cost.splitType, cost.assignedCoupleIds, previousSplitType, cost.id, editCost, previousAssignedCouples]);
 
   // Handle name edit
   const handleNameEdit = () => {
@@ -276,12 +267,6 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
     setTempAssignedCouples((prev) => (prev.includes(newCoupleId) ? prev : [...prev, newCoupleId]));
   };
 
-  // Handle type change
-  const handleTypeChange = (typeId: string | null) => {
-    editCost(cost.id, { type: typeId });
-    setTypePopoverOpen(false);
-  };
-
   // Handle who-dots click to open split modal
   const handleWhoDotsClick = () => {
     if (cost.splitType === 'subset') {
@@ -358,16 +343,13 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
         </div>
       </td>
       <td>
-        <select
+        <Select
           className="cur-select"
           aria-label={`Currency for ${cost.name}`}
           value={cost.currency}
-          onChange={(e) => editCost(cost.id, { currency: e.target.value })}
-        >
-          {getAvailableCurrencies(region).map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
+          options={getAvailableCurrencies(region)}
+          onChange={(value) => editCost(cost.id, { currency: value })}
+        />
       </td>
       <td>
         <div className="ledger-inline-field">
@@ -563,78 +545,13 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
         </div>
       </td>
       <td>
-        <div className="type-popover-container">
-          <Tooltip content={typeEntry ? `Change type: ${typeEntry.type_name}` : 'Change type'}>
-            <button
-              ref={typeBtnRef}
-              className={`type-trigger-btn${typeEntry ? '' : ' is-empty'}`}
-              style={typeEntry ? {
-                '--cost-type-color': typeEntry.color,
-              } as React.CSSProperties : undefined}
-              type="button"
-              aria-label={`Change type for ${cost.name}${typeEntry ? `; current type: ${typeEntry.type_name}` : '; no type selected'}`}
-              aria-expanded={typePopoverOpen}
-              aria-controls={typeOptionsId}
-              onClick={() => {
-                if (!typePopoverOpen && typeBtnRef.current) {
-                  const rect = typeBtnRef.current.getBoundingClientRect();
-                  setTypePopoverPos({ top: rect.bottom + 4, left: Math.max(8, Math.min(rect.left, document.documentElement.clientWidth - 158)) });
-                }
-                setTypePopoverOpen(!typePopoverOpen);
-              }}
-            >
-              {typeEntry ? <><span aria-hidden="true">{typeEntry.symbol}</span><span className="type-trigger-label">{typeEntry.type_name}</span></> : 'Set type'}
-            </button>
-          </Tooltip>
-        </div>
-        {typeof document !== 'undefined' && createPortal(
-          <div
-            ref={typePortalRef}
-            id={typeOptionsId}
-            className="popover split-popover"
-            role="group"
-            aria-label={`Cost type for ${cost.name}`}
-            hidden={!typePopoverOpen || !typePopoverPos}
-            style={{
-              position: 'fixed',
-              top: typePopoverPos?.top ?? 0,
-              left: typePopoverPos?.left ?? 0,
-              minWidth: 150,
-              display: typePopoverOpen && typePopoverPos ? 'flex' : 'none',
-            }}
-          >
-            <button
-              type="button"
-              className={`popover-item${!cost.type ? ' selected' : ''}`}
-              aria-pressed={!cost.type}
-              onClick={() => handleTypeChange(null)}
-            >
-              ✕ None
-            </button>
-            {COST_ENTRY_TYPES.map((t) => {
-              const isSel = cost.type === t.id;
-              return (
-                <button
-                  key={t.id}
-                  type="button"
-                  className="popover-item"
-                  aria-pressed={isSel}
-                  style={{
-                    backgroundColor: isSel ? t.color + '33' : t.color + '20',
-                    color: isSel ? t.color : undefined,
-                    fontWeight: isSel ? 800 : undefined,
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = t.color + '40'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = isSel ? t.color + '33' : t.color + '20'; }}
-                  onClick={() => handleTypeChange(t.id)}
-                >
-                  {t.symbol} {t.type_name}
-                </button>
-              );
-            })}
-          </div>,
-          document.body
-        )}
+        <CostTypePicker
+          value={cost.type ?? null}
+          onChange={(type) => editCost(cost.id, { type })}
+          optionsId={`cost-${cost.id}-type-options`}
+          label={`Change type for ${cost.name}${typeEntry ? `; current type: ${typeEntry.type_name}` : '; no type selected'}`}
+          groupLabel={`Cost type for ${cost.name}`}
+        />
       </td>
       <td>
         <span className="total-num">{formatCurrency(totalWithMarkup, cost.currency)}</span>

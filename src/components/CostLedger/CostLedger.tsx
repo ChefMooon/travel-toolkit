@@ -22,6 +22,7 @@ import Modal from '../Modal';
 import { Plus } from 'lucide-react';
 import { getAvailableCurrencies, getDefaultCurrency, type SplitType, MAX_COST_ENTRIES } from '@/store/types';
 import { getSaveFailureCopy, useToastStore } from '@/store/toastStore';
+import Select from '@/components/Select/Select';
 
 export default function CostLedger() {
   const rawCosts = useTripStore((s) => s.costs);
@@ -202,18 +203,16 @@ export default function CostLedger() {
             >
               Default currency
             </label>
-            <select
+            <Select
               id="default-entry-currency-select"
               data-testid="default-entry-currency-select"
               className="tool-input"
               style={{ width: 'auto', fontSize: 12, padding: '2px 8px', lineHeight: 1.1, minHeight: 28 }}
               value={defaultEntryCurrency}
-              onChange={(e) => setDefaultEntryCurrency(e.target.value)}
-            >
-              {availableBulkCurrencies.map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+              options={availableBulkCurrencies}
+              onChange={setDefaultEntryCurrency}
+              aria-label="Default currency"
+            />
           </div>
         </div>
 

@@ -1,6 +1,7 @@
 import { useTripStore } from '@/store/tripStore';
 import { REGION_LIST } from '@/store/types';
 import type { Region } from '@/store/types';
+import Select from '@/components/Select/Select';
 
 export default function RegionSelector() {
   const region = useTripStore((s) => s.region);
@@ -13,28 +14,14 @@ export default function RegionSelector() {
       </div>
       <div style={{ padding: '12px 16px' }}>
         <label htmlFor="trip-region-select" className="sr-only">Region</label>
-        <select
+        <Select
           id="trip-region-select"
           value={region}
-          onChange={(e) => setRegion(e.target.value as Region)}
-          style={{
-            width: '100%',
-            padding: '8px 12px',
-            borderRadius: '6px',
-            border: '1px solid var(--border)',
-            backgroundColor: 'var(--bg-2)',
-            color: 'var(--text)',
-            fontSize: '14px',
-            fontFamily: 'inherit',
-            cursor: 'pointer',
-          }}
-        >
-          {REGION_LIST.map((r) => (
-            <option key={r} value={r}>
-              {r}
-            </option>
-          ))}
-        </select>
+          options={REGION_LIST}
+          onChange={(value) => setRegion(value as Region)}
+          className="shared-select-full"
+          aria-label="Region"
+        />
       </div>
     </div>
   );

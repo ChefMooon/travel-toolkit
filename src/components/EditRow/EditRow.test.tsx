@@ -106,6 +106,35 @@ describe('EditRow', () => {
     });
   });
 
+  it('selects and clears a cost type in the editor before saving', () => {
+    const { onSave } = renderEditRow();
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Dinner' } });
+    fireEvent.change(screen.getByLabelText('Amount'), { target: { value: '10' } });
+    const trigger = screen.getByLabelText('Type');
+    fireEvent.click(trigger);
+    fireEvent.click(screen.getByRole('button', { name: /Food/ }));
+    expect(trigger).toHaveTextContent('Food');
+    expect(trigger).toHaveFocus();
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(onSave).toHaveBeenLastCalledWith(expect.objectContaining({ type: 'food' }));
+    fireEvent.click(trigger);
+    fireEvent.click(screen.getByRole('button', { name: /None/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(onSave).toHaveBeenLastCalledWith(expect.objectContaining({ type: null }));
+  });
+
+  it('places the type menu above the control when there is little room below', () => {
+    renderEditRow();
+    const trigger = screen.getByLabelText('Type');
+    vi.spyOn(trigger, 'getBoundingClientRect').mockReturnValue({
+      x: 100, y: 700, left: 100, right: 200, top: 700, bottom: 740, width: 100, height: 40, toJSON: () => ({}),
+    });
+    fireEvent.click(trigger);
+    const menu = screen.getByRole('group', { name: 'Cost type' });
+    expect(menu.style.top).toBe('auto');
+    expect(menu.style.bottom).not.toBe('');
+  });
+
   it('FE-EDT-002 does not save when required fields are invalid', () => {
     const { onSave } = renderEditRow();
 
@@ -222,10 +251,11 @@ describe('EditRow', () => {
     mockStoreState.region = 'Europe';
     renderEditRow();
 
-    const currencySelect = screen.getAllByRole('combobox').find(
-      (el) => (el as HTMLSelectElement).options[0]?.value !== ''
-    ) as HTMLSelectElement;
-    const options = Array.from(currencySelect.querySelectorAll('option')).map((o) => o.value);
+    const currencySelect = screen.getByRole('combobox', { name: 'Currency' });
+    fireEvent.click(currencySelect);
+    const options = Array.from(screen.getByRole('listbox').querySelectorAll('[role="option"]')).map(
+      (option) => option.textContent
+    );
 
     expect(options).toEqual(['CAD', 'EUR', 'GBP', 'USD']);
   });

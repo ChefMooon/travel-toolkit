@@ -1,4 +1,5 @@
 import { Trash2 } from 'lucide-react';
+import Select from '@/components/Select/Select';
 
 interface BulkActionBarProps {
   selectedCount: number;
@@ -25,16 +26,13 @@ export default function BulkActionBar({
     <div className="bulk-bar">
       <span className="bulk-count">{selectedCount} selected</span>
       <label className="bulk-label" htmlFor="bulk-currency-select">Bulk currency:</label>
-      <select
+      <Select
         id="bulk-currency-select"
         className="bulk-sel"
         value={bulkCurrency}
-        onChange={(e) => onBulkCurrencyChange(e.target.value)}
-      >
-        {currencies.map((c) => (
-          <option key={c} value={c}>{c}</option>
-        ))}
-      </select>
+        onChange={onBulkCurrencyChange}
+        options={currencies}
+      />
       <button type="button" className="bulk-apply" onClick={() => onApply(bulkCurrency)}>
         Apply
       </button>

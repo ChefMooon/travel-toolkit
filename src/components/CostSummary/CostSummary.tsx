@@ -3,6 +3,7 @@ import { useTripStore } from '@/store/tripStore';
 import { buildSummary, formatCurrency } from '@/lib/calculations';
 import { getAvailableCurrencies } from '@/store/types';
 import { useTripRates } from '@/features/currency/useTripRates';
+import Select from '@/components/Select/Select';
 import CoupleCard from '../CoupleCard';
 
 function formatRateDate(dateStr: string) {
@@ -70,18 +71,16 @@ export default function CostSummary() {
           >
             Convert to
           </label>
-          <select
+          <Select
             id="target-currency-select"
             data-testid="target-currency-select"
             className="tool-input"
             style={{ width: 'auto', fontSize: 12, padding: '2px 8px', lineHeight: 1.1, minHeight: 28 }}
             value={targetCurrency}
-            onChange={(e) => setTargetCurrency(e.target.value)}
-          >
-            {availableCurrencies.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
+            options={availableCurrencies}
+            onChange={setTargetCurrency}
+            aria-label="Convert to"
+          />
         </div>
       </div>
       <div className="card-body" style={{ padding: '15px 16px' }}>

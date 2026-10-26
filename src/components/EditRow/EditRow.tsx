@@ -1,7 +1,9 @@
 import { useState, useCallback } from 'react';
 import { useTripStore } from '@/store/tripStore';
 import { useToastStore } from '@/store/toastStore';
-import { getAvailableCurrencies, getDefaultCurrency, getColorThemeValue, COST_ENTRY_TYPES, MAX_COST_NAME_LENGTH } from '@/store/types';
+import { getAvailableCurrencies, getDefaultCurrency, getColorThemeValue, MAX_COST_NAME_LENGTH } from '@/store/types';
+import Select from '@/components/Select/Select';
+import CostTypePicker from '@/components/CostTypePicker/CostTypePicker';
 import type { SplitType } from '@/store/types';
 import { useResolvedTheme } from '@/store/theme';
 import SplitAssignmentModal from '../SplitAssignmentModal';
@@ -262,16 +264,13 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
           </div>
           <div className="ef">
             <label className="ef-lbl" htmlFor={`${fieldPrefix}-currency`}>Currency</label>
-            <select
+            <Select
               id={`${fieldPrefix}-currency`}
               className="ef-select"
               value={currency}
-              onChange={(e) => setCurrency(e.target.value)}
-            >
-              {getAvailableCurrencies(region).map((c) => (
-                <option key={c} value={c}>{c}</option>
-              ))}
-            </select>
+              options={getAvailableCurrencies(region)}
+              onChange={setCurrency}
+            />
           </div>
           <div className="ef">
             <label className="ef-lbl" htmlFor={`${fieldPrefix}-amount`} style={{ textAlign: 'right' }}>Amount</label>
@@ -317,17 +316,14 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
           </div>
           <div className="ef">
             <label className="ef-lbl" htmlFor={`${fieldPrefix}-type`}>Type</label>
-            <select
+            <CostTypePicker
               id={`${fieldPrefix}-type`}
-              className="ef-select"
-              value={type ?? ''}
-              onChange={(e) => setType(e.target.value || null)}
-            >
-              <option value="">None</option>
-              {COST_ENTRY_TYPES.map((t) => (
-                <option key={t.id} value={t.id}>{t.symbol} {t.type_name}</option>
-              ))}
-            </select>
+              value={type}
+              onChange={setType}
+              optionsId={`${fieldPrefix}-type-options`}
+              groupLabel="Cost type"
+              form
+            />
           </div>
         </div>
 

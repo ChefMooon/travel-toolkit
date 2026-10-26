@@ -55,7 +55,8 @@ describe('BulkActionBar', () => {
       />
     );
 
-    fireEvent.change(screen.getByRole('combobox', { name: 'Bulk currency:' }), { target: { value: 'EUR' } });
+    fireEvent.click(screen.getByRole('combobox', { name: 'Bulk currency:' }));
+    fireEvent.click(screen.getByRole('option', { name: 'EUR' }));
 
     expect(onBulkCurrencyChange).toHaveBeenCalledWith('EUR');
   });
@@ -138,6 +139,7 @@ describe('BulkActionBar', () => {
       />
     );
 
+    fireEvent.click(screen.getByRole('combobox', { name: 'Bulk currency:' }));
     const options = screen.getAllByRole('option').map((option) => option.textContent);
     expect(options).toEqual(['EUR', 'GBP']);
     expect(screen.queryByRole('option', { name: 'USD' })).not.toBeInTheDocument();

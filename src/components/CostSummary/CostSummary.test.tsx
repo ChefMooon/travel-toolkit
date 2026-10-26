@@ -353,7 +353,8 @@ describe('CostSummary', () => {
   it('FE-SUM-005 target currency dropdown triggers setTargetCurrency', () => {
     render(<CostSummary />);
     const select = screen.getByTestId('target-currency-select');
-    fireEvent.change(select, { target: { value: 'EUR' } });
+    fireEvent.click(select);
+    fireEvent.click(screen.getByRole('option', { name: 'EUR' }));
     expect(mockStoreState.setTargetCurrency).toHaveBeenCalledWith('EUR');
   });
 
