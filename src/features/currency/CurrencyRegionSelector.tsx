@@ -12,24 +12,13 @@ export default function CurrencyRegionSelector() {
       <div className="card-header">
         <span className="card-title">Region</span>
       </div>
-      <div style={{ padding: '12px 16px' }}>
+      <div className="currency-region-body">
         <Select
           aria-label="Currency region"
-          className="shared-select-full"
+          className="shared-select-full currency-region-select"
           value={region}
           options={REGION_LIST}
           onChange={(value) => setRegion(value as Region)}
-          style={{
-            width: '100%',
-            padding: '8px 12px',
-            borderRadius: '6px',
-            border: '1px solid var(--border)',
-            backgroundColor: 'var(--bg-2)',
-            color: 'var(--text)',
-            fontSize: '14px',
-            fontFamily: 'inherit',
-            cursor: 'pointer',
-          }}
         />
       </div>
     </div>

@@ -41,6 +41,8 @@ describe('useCurrencySnapshot', () => {
       }),
     );
 
+    expect((useQuery as ReturnType<typeof vi.fn>).mock.calls[0]?.[0]).not.toHaveProperty('placeholderData');
+
     const queryOptions = (useQuery as ReturnType<typeof vi.fn>).mock.calls[0]?.[0];
     await queryOptions.queryFn();
 

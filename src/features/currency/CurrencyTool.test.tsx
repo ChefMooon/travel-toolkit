@@ -2,7 +2,7 @@
 /// <reference types="@testing-library/jest-dom" />
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import CurrencyTool from '@/features/currency/CurrencyTool';
 
 vi.mock('@/features/currency/useCurrencySnapshot', () => ({
@@ -141,6 +141,40 @@ describe('CurrencyTool', () => {
     expect(screen.getByText('$0.00')).toBeInTheDocument();
   });
 
+  it('preserves a zero amount as a valid conversion', () => {
+    useCurrencyStore.setState({ amount: '0' });
+    render(<CurrencyTool />);
+    expect(screen.getByText('CA$0.00')).toBeInTheDocument();
+    expect(screen.getByText('$0.00')).toBeInTheDocument();
+  });
+
+  it.each([
+    ['missing', undefined],
+    ['zero', 0],
+    ['negative', -1],
+    ['non-finite', Number.NaN],
+  ])('marks a %s target rate unavailable', (_label, rate) => {
+    (useCurrencySnapshot as ReturnType<typeof vi.fn>).mockReturnValue({
+      ...successQuery,
+      data: { ...successQuery.data, rates: { ...mockRates, USD: rate } },
+    });
+    render(<CurrencyTool />);
+    expect(screen.getByText('Rate unavailable')).toBeInTheDocument();
+    expect(screen.getByText('Conversion unavailable')).toBeInTheDocument();
+  });
+
+  it('does not show the old snapshot while the selected base query is pending', () => {
+    const { rerender } = render(<CurrencyTool />);
+    act(() => useCurrencyStore.setState({ baseCurrency: 'EUR', targetCurrency: 'USD' }));
+    (useCurrencySnapshot as ReturnType<typeof vi.fn>).mockReturnValue({
+      ...pendingQuery,
+      data: successQuery.data,
+    });
+    rerender(<CurrencyTool />);
+    expect(screen.getByText('Loading rates...')).toBeInTheDocument();
+    expect(screen.queryByText('Rate Snapshot')).not.toBeInTheDocument();
+  });
+
   it('FE-CUR-007 swap button swaps from and to currencies', () => {
     render(<CurrencyTool />);
 
@@ -174,29 +208,45 @@ describe('CurrencyTool', () => {
     // Toggle button is visible with correct label
     const toggle = screen.getByRole('button', { name: /Sources for CAD/i });
     expect(toggle).toBeInTheDocument();
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(toggle).toHaveAttribute('aria-controls', 'currency-provider-list');
+    expect(document.getElementById('currency-provider-list')).toHaveAttribute('hidden');
 
     // Provider rows are hidden by default
     expect(screen.queryByRole('link', { name: /European Central Bank/i })).not.toBeInTheDocument();
 
     // Click to open
     fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
     expect(screen.getByRole('link', { name: /European Central Bank/i })).toBeInTheDocument();
 
     // BOC covers CAD + USD, which is the default pair
     expect(screen.getByRole('link', { name: /Bank of Canada/i })).toBeInTheDocument();
   });
 
-  it('FE-CUR-010 sources toggle arrow changes on open/close', () => {
+  it('FE-CUR-010 sources disclosure exposes its expanded state', () => {
     render(<CurrencyTool />);
 
     const toggle = screen.getByRole('button', { name: /Sources for CAD/i });
-    expect(toggle.textContent).toContain('▸');
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
 
     fireEvent.click(toggle);
-    expect(toggle.textContent).toContain('▾');
+    expect(toggle).toHaveAttribute('aria-expanded', 'true');
 
     fireEvent.click(toggle);
-    expect(toggle.textContent).toContain('▸');
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('keeps the Frankfurter link separate from the details disclosure', () => {
+    render(<CurrencyTool />);
+    const toggle = screen.getByRole('button', { name: /Rates are sourced from/i });
+    const link = screen.getByRole('link', { name: /Frankfurter/i });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    expect(toggle).toHaveAttribute('aria-controls', 'currency-rate-details');
+    expect(document.getElementById('currency-rate-details')).toHaveAttribute('hidden');
+    expect(toggle).not.toContainElement(link);
+    fireEvent.click(link);
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
   });
 
   it('FE-CUR-012 dropdowns show raw code when metadata is unavailable', () => {

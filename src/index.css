@@ -1359,6 +1359,18 @@ body::before {
   line-height: normal;
 }
 
+.currency-region-body { padding: 12px 16px; }
+.currency-controls .tool-input,
+.currency-controls .numeric-input-field {
+  box-sizing: border-box;
+  border-radius: 9px;
+  border-color: var(--border-2);
+  background: var(--bg-2);
+}
+.currency-controls .numeric-input { min-height: 44px; }
+.currency-controls .numeric-input-field { min-height: 44px; padding: 8px 42px 8px 12px; font-size: 14px; }
+.currency-controls .shared-select.tool-input { border-radius: 9px; }
+
 .timezone-select.shared-select.tool-input {
   width: 100%;
 }
@@ -1375,10 +1387,6 @@ body::before {
   font-size: 18px;
   line-height: 1;
   cursor: pointer;
-}
-
-.currency-swap-button:hover {
-  border-color: var(--c3);
 }
 
 .currency-swap-button:focus-visible {
@@ -1402,11 +1410,6 @@ body::before {
   transition: border-color 0.15s, color 0.15s;
 }
 
-.currency-reset-button:hover {
-  border-color: var(--c3);
-  color: var(--text);
-}
-
 .currency-reset-button:focus-visible {
   outline: 3px solid color-mix(in oklab, var(--c3) 45%, white);
   outline-offset: 2px;
@@ -1423,6 +1426,52 @@ body::before {
   display: grid;
   gap: 16px;
   text-align: center;
+}
+
+.currency-disclosures {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1.5px solid var(--border);
+  padding: 12px 20px;
+}
+.currency-disclosure { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; }
+.currency-disclosure-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-2);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+}
+.currency-disclosure-toggle svg { flex: 0 0 auto; }
+.currency-disclosure-toggle:focus-visible,
+.currency-provider-link:focus-visible,
+.currency-provider-card:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.currency-provider-link { display: inline-flex; align-items: center; gap: 4px; color: var(--text); font-size: 13px; font-weight: 700; text-decoration: none; border-bottom: 1px solid var(--border); }
+.currency-disclosure-copy { flex-basis: 100%; margin: 4px 0 0 19px; color: var(--text-2); font-size: 13px; line-height: 1.5; }
+.currency-sources-toggle { font-size: 11px; letter-spacing: .06em; text-transform: uppercase; }
+.currency-provider-list { display: flex; flex-direction: column; gap: 6px; }
+.currency-provider-list[hidden] { display: none; }
+.currency-provider-card { display: flex; flex-direction: column; gap: 6px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-2); color: var(--text); text-decoration: none; }
+.currency-provider-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; font-weight: 600; }
+.currency-provider-heading svg { color: var(--text-2); flex: 0 0 auto; }
+.currency-provider-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.currency-provider-chip { padding: 1px 6px; border: 1px solid var(--border); border-radius: 5px; color: var(--text-2); font-size: 11px; }
+.currency-provider-chip.is-active { background: var(--bg-3); color: var(--text); font-weight: 700; }
+
+@media (hover: hover) and (pointer: fine) {
+  .currency-swap-button:hover { border-color: var(--c3); }
+  .currency-reset-button:hover { border-color: var(--c3); color: var(--text); }
+  .currency-provider-card:hover { border-color: var(--border-2); background: var(--surface-2); }
+  .currency-controls .shared-select.tool-input:hover,
+  .currency-controls .numeric-input-field:hover { border-color: var(--border-2); }
 }
 
 .currency-rate {
@@ -4134,7 +4183,6 @@ table.ledger .ledger-inline-field > .numeric-input {
   cursor: pointer;
 }
 .numeric-input-controls button + button { border-top: 1px solid var(--border); }
-.numeric-input-controls button:hover:not(:disabled) { background: var(--c3-soft); color: var(--c3); }
 .numeric-input-controls button:disabled { color: var(--text-3); cursor: default; opacity: .55; }
 .numeric-input-controls button:focus-visible { z-index: 1; outline: 2px solid var(--focus); outline-offset: -2px; }
 .numeric-input-controls svg { width: 9px; height: 6px; fill: none; stroke: currentColor; stroke-width: 1.5; }
@@ -4148,6 +4196,10 @@ table.ledger .ledger-inline-field > .numeric-input {
 .markup-pill--editing .numeric-input-controls { flex-basis: 22px; border: 0; border-left: 1px solid var(--border); background: transparent; }
 .markup-pill--editing .numeric-input-controls button + button { border-top: 1px solid var(--border); }
 .numeric-input:has(.ex-inp) .numeric-input-controls { flex-basis: 18px; }
+
+@media (hover: hover) and (pointer: fine) {
+  .numeric-input-controls button:hover:not(:disabled) { background: var(--c3-soft); color: var(--c3); }
+}
 
 .usd-eq {
   font-size: 11px; font-family: 'JetBrains Mono', monospace; font-weight: 600;
@@ -5897,6 +5949,7 @@ table.ledger .ledger-inline-field > .numeric-input {
 .shared-select:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .shared-select-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .shared-select-full { width: 100%; min-height: 38px; padding: 8px 12px; font-size: 14px; }
+.currency-region-select.shared-select-full { min-height: 44px; border-radius: 12px; }
 .shared-select-listbox {
   box-sizing: border-box;
   overflow-y: auto;
@@ -5924,7 +5977,7 @@ table.ledger .ledger-inline-field > .numeric-input {
   text-align: left;
   cursor: pointer;
 }
-.shared-select-option:hover, .shared-select-option.is-active { background: var(--surface-2); }
+.shared-select-option.is-active { background: var(--surface-2); }
 .shared-select-option[aria-selected="true"] { font-weight: 700; }
 .shared-select-option svg { flex: 0 0 auto; }
 .shared-select.cur-select { width: 70px; min-width: 70px; min-height: 30px; padding: 4px 6px 4px 8px; font: 600 11px 'JetBrains Mono', monospace; }
@@ -5939,3 +5992,7 @@ table.ledger .ledger-inline-field > .numeric-input {
 .type-picker-form-trigger .type-trigger-label { display: inline; }
 .type-picker-menu { z-index: 1500; margin-top: 0; box-sizing: border-box; }
 .shared-select.bulk-sel { min-height: 28px; padding: 4px 8px; gap: 7px; background-image: none; }
+
+@media (hover: hover) and (pointer: fine) {
+  .shared-select-option:hover { background: var(--surface-2); }
+}

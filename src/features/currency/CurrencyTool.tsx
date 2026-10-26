@@ -8,6 +8,7 @@ import CurrencyRegionSelector from './CurrencyRegionSelector';
 import Tooltip from '@/components/Tooltip';
 import Select from '@/components/Select/Select';
 import NumericInput from '@/components/NumericInput/NumericInput';
+import { ArrowLeftRight, ArrowRight, ChevronDown, ChevronRight, ExternalLink } from 'lucide-react';
 
 function formatRateDate(dateStr: string) {
   // API date is YYYY-MM-DD (UTC); parse as UTC to avoid day-offset in negative-offset timezones
@@ -72,10 +73,11 @@ export default function CurrencyTool() {
   const providersQuery = useCurrencyProviders();
 
   const converted = useMemo(() => {
-    if (!snapshotQuery.data) return 0;
-    const rate = snapshotQuery.data.rates[targetCurrency] ?? 0;
+    if (!snapshotQuery.data || snapshotQuery.data.base !== baseCurrency) return null;
+    const rate = snapshotQuery.data.rates[targetCurrency];
+    if (typeof rate !== 'number' || !Number.isFinite(rate) || rate <= 0) return null;
     return amount * rate;
-  }, [amount, snapshotQuery.data, targetCurrency]);
+  }, [amount, baseCurrency, snapshotQuery.data, targetCurrency]);
 
   const relevantProviders = useMemo(() => {
     if (!providersQuery.data) return [];
@@ -161,7 +163,7 @@ export default function CurrencyTool() {
               onClick={handleSwapCurrencies}
               aria-label="Swap from and to currencies"
             >
-              ↔
+              <ArrowLeftRight size={18} aria-hidden="true" />
             </button>
           </Tooltip>
 
@@ -191,7 +193,7 @@ export default function CurrencyTool() {
         </div>
       ) : null}
 
-      {snapshotQuery.data ? (
+      {snapshotQuery.data && snapshotQuery.data.base === baseCurrency ? (
         <div className="card">
           <div className="card-header">
             <p className="card-title">Rate Snapshot</p>
@@ -204,78 +206,52 @@ export default function CurrencyTool() {
               <span>1 {baseCurrency}</span>
               <span>=</span>
               <span>
-                {(snapshotQuery.data.rates[targetCurrency] ?? 0).toFixed(4)} {targetCurrency}
+                {typeof snapshotQuery.data.rates[targetCurrency] === 'number' && Number.isFinite(snapshotQuery.data.rates[targetCurrency]) && snapshotQuery.data.rates[targetCurrency] > 0
+                  ? `${snapshotQuery.data.rates[targetCurrency].toFixed(4)} ${targetCurrency}`
+                  : 'Rate unavailable'}
               </span>
             </div>
             <div className="currency-total">
               <span className="currency-total-from">{formatMoney(amount, baseCurrency)}</span>
-              <span className="currency-total-arrow">→</span>
-              <span className="currency-total-to">{formatMoney(converted, targetCurrency)}</span>
+              <span className="currency-total-arrow" aria-hidden="true"><ArrowRight size={18} /></span>
+              <span className="currency-total-to">{converted === null ? 'Conversion unavailable' : formatMoney(converted, targetCurrency)}</span>
             </div>
           </div>
-          <div style={{ borderTop: '1.5px solid var(--border)', padding: '12px 20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            <div>
+          <div className="currency-disclosures">
+            <section className="currency-disclosure">
               <button
                 type="button"
                 onClick={() => setDetailsOpen((o) => !o)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  background: 'none',
-                  border: 'none',
-                  padding: '0 0 0',
-                  cursor: 'pointer',
-                  fontSize: '13px',
-                  color: 'var(--text-2)',
-                }}
+                className="currency-disclosure-toggle"
+                aria-expanded={detailsOpen}
+                aria-controls="currency-rate-details"
               >
-                <span style={{ fontSize: '10px' }}>{detailsOpen ? '▾' : '▸'}</span>
-                Rates are sourced from{' '}
-                <a
-                  href="https://frankfurter.dev"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={(e) => e.stopPropagation()}
-                  style={{ color: 'var(--text)', fontWeight: 600, textDecoration: 'none', borderBottom: '1px solid var(--border)' }}
-                >
-                  Frankfurter
-                </a>
+                {detailsOpen ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
+                <span>Rates are sourced from</span>
               </button>
-              {detailsOpen && (
-                <p style={{ color: 'var(--text-2)', fontSize: '13px', margin: '8px 0 0 15px' }}>
+              <a className="currency-provider-link" href="https://frankfurter.dev" target="_blank" rel="noopener noreferrer">
+                Frankfurter <ExternalLink size={12} aria-hidden="true" />
+              </a>
+              <p id="currency-rate-details" className="currency-disclosure-copy" hidden={!detailsOpen}>
                   Frankfurter aggregates data from central banks and official institutions. Rates
                   update on business days — the ECB (European Central Bank) publishes reference 
                   rates around 16:00 CET. Weekends and public holidays use the most recent prior
                   business day's rates.
-                </p>
-              )}
-            </div>
+              </p>
+            </section>
             {relevantProviders.length > 0 ? (
               <div>
                 <button
                   type="button"
                   onClick={() => setSourcesOpen((o) => !o)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '5px',
-                    background: 'none',
-                    border: 'none',
-                    padding: '0 0 8px',
-                    cursor: 'pointer',
-                    fontSize: '11px',
-                    fontWeight: 600,
-                    letterSpacing: '0.06em',
-                    textTransform: 'uppercase',
-                    color: 'var(--text-2)',
-                  }}
+                  className="currency-disclosure-toggle currency-sources-toggle"
+                  aria-expanded={sourcesOpen}
+                  aria-controls="currency-provider-list"
                 >
-                  <span style={{ fontSize: '10px' }}>{sourcesOpen ? '▾' : '▸'}</span>
-                  Sources for {baseCurrency} → {targetCurrency}
+                  {sourcesOpen ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
+                  Sources for {baseCurrency} <ArrowRight size={12} aria-hidden="true" /> {targetCurrency}
                 </button>
-                {sourcesOpen && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                <div id="currency-provider-list" className="currency-provider-list" hidden={!sourcesOpen}>
                     {relevantProviders.map((p) => {
                       const chips = p.currencies.filter((c) =>
                         (availableCurrencies as string[]).includes(c),
@@ -286,38 +262,20 @@ export default function CurrencyTool() {
                           href={p.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: '6px',
-                            padding: '8px 12px',
-                            borderRadius: '6px',
-                            border: '1px solid var(--border)',
-                            backgroundColor: 'var(--bg-2)',
-                            color: 'var(--text)',
-                            textDecoration: 'none',
-                          }}
+                          className="currency-provider-card"
                         >
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ fontSize: '13px', fontWeight: 500 }}>{p.name}</span>
-                            <span style={{ fontSize: '11px', color: 'var(--text-2)' }}>↗</span>
+                          <div className="currency-provider-heading">
+                            <span>{p.name}</span>
+                            <ExternalLink size={13} aria-hidden="true" />
                           </div>
                           {chips.length > 0 && (
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                            <div className="currency-provider-chips">
                               {chips.map((c) => {
                                 const active = c === baseCurrency || c === targetCurrency;
                                 return (
                                   <span
                                     key={c}
-                                    style={{
-                                      padding: '1px 6px',
-                                      borderRadius: '4px',
-                                      fontSize: '11px',
-                                      border: '1px solid var(--border)',
-                                      fontWeight: active ? 600 : 400,
-                                      backgroundColor: active ? 'var(--bg-3)' : 'transparent',
-                                      color: active ? 'var(--text)' : 'var(--text-2)',
-                                    }}
+                                    className={`currency-provider-chip${active ? ' is-active' : ''}`}
                                   >
                                     {c}
                                   </span>
@@ -328,8 +286,7 @@ export default function CurrencyTool() {
                         </a>
                       );
                     })}
-                  </div>
-                )}
+                </div>
               </div>
             ) : null}
           </div>
