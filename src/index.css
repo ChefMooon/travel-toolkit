@@ -15,7 +15,7 @@
   --bg: #FAFAF7; --bg-2: #F3F2EE; --bg-3: #EAEAE4;
   --surface: #FFFFFF; --surface-2: #F8F8F5;
   --border: #E2E0D8; --border-2: #D0CEC4;
-  --text: #2A2824; --text-2: #6B6860; --text-3: #A8A59E;
+  --text: #2A2824; --text-2: #6B6860; --text-3: #767169;
   --tool-icon-filter: sepia(0.34) saturate(1.2) hue-rotate(304deg) brightness(0.84) contrast(1.06);
   --shadow: 0 1px 4px rgba(42,40,36,0.07), 0 6px 20px rgba(42,40,36,0.05);
   --shadow-sm: 0 1px 2px rgba(42,40,36,0.06);
@@ -29,7 +29,7 @@
   --bg: #FAFAF7; --bg-2: #F3F2EE; --bg-3: #EAEAE4;
   --surface: #FFFFFF; --surface-2: #F8F8F5;
   --border: #E2E0D8; --border-2: #D0CEC4;
-  --text: #2A2824; --text-2: #6B6860; --text-3: #A8A59E;
+  --text: #2A2824; --text-2: #6B6860; --text-3: #767169;
   --tool-icon-filter: sepia(0.34) saturate(1.2) hue-rotate(304deg) brightness(0.84) contrast(1.06);
   --shadow: 0 1px 4px rgba(42,40,36,0.07), 0 6px 20px rgba(42,40,36,0.05);
   --shadow-sm: 0 1px 2px rgba(42,40,36,0.06);
@@ -43,7 +43,7 @@
   --bg: #18171A; --bg-2: #211F24; --bg-3: #2A2830;
   --surface: #1E1C22; --surface-2: #252330;
   --border: #322F3A; --border-2: #403D4C;
-  --text: #EEEAE6; --text-2: #9E9B96; --text-3: #625F5A;
+  --text: #EEEAE6; --text-2: #9E9B96; --text-3: #A39F9B;
   --tool-icon-filter: invert(85%) sepia(8%) saturate(430%) hue-rotate(307deg) brightness(0.98) contrast(0.96);
   --shadow: 0 1px 4px rgba(0,0,0,0.3), 0 6px 20px rgba(0,0,0,0.2);
   --shadow-sm: 0 1px 2px rgba(0,0,0,0.25);
