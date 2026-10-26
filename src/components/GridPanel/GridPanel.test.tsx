@@ -48,7 +48,10 @@ describe('GridPanel', () => {
     const triggerRef = { current: document.createElement('button') };
     render(<GridPanel open={true} onClose={onClose} triggerRef={triggerRef} />);
 
-    fireEvent.click(screen.getByRole('link', { name: 'Trip Cost' }));
+    const link = screen.getByRole('link', { name: 'Trip Cost' });
+    // The router is mocked as an anchor; jsdom cannot perform document navigation.
+    link.addEventListener('click', (event) => event.preventDefault(), { once: true });
+    fireEvent.click(link);
 
     expect(onClose).toHaveBeenCalledTimes(1);
   });
