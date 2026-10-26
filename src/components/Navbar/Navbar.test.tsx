@@ -6,6 +6,16 @@ import { act, render, screen, fireEvent } from '@testing-library/react';
 import Navbar from '@/components/Navbar';
 import { useSettingsStore } from '@/store/settingsStore';
 
+vi.mock('@tanstack/react-router', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@tanstack/react-router')>();
+  return {
+    ...actual,
+    Link: ({ to, children, ...props }: React.ComponentProps<'a'> & { to: string }) => (
+      <a href={to} {...props}>{children}</a>
+    ),
+  };
+});
+
 vi.mock('@/components/Logo', () => ({
   default: () => <div data-testid="logo">Logo</div>,
 }));

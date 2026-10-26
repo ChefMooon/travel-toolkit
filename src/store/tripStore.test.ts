@@ -126,6 +126,99 @@ describe('tripStore — new actions', () => {
     });
   });
 
+  describe('undo and redo history', () => {
+    it('undoes and redoes edits, returning to the saved clean baseline', () => {
+      useTripStore.getState().setTripName('First edit');
+      expect(useTripStore.getState().canUndo).toBe(true);
+      useTripStore.getState().markClean();
+      useTripStore.getState().setTripName('Second edit');
+      expect(useTripStore.getState().isDirty).toBe(true);
+      useTripStore.getState().undo();
+      expect(useTripStore.getState().tripName).toBe('First edit');
+      expect(useTripStore.getState().isDirty).toBe(false);
+      useTripStore.getState().redo();
+      expect(useTripStore.getState().tripName).toBe('Second edit');
+      expect(useTripStore.getState().isDirty).toBe(true);
+    });
+
+    it('clears redo after a new edit and starts clean history after load/reset', () => {
+      useTripStore.getState().setTripName('One');
+      useTripStore.getState().setTripName('Two');
+      useTripStore.getState().undo();
+      useTripStore.getState().setTripName('Three');
+      expect(useTripStore.getState().canRedo).toBe(false);
+      useTripStore.getState().loadSnapshot(useTripStore.getState().getSnapshot());
+      expect(useTripStore.getState().canUndo).toBe(false);
+      expect(useTripStore.getState().isDirty).toBe(false);
+      useTripStore.getState().resetTrip();
+      expect(useTripStore.getState().canUndo).toBe(false);
+      expect(useTripStore.getState().canRedo).toBe(false);
+    });
+
+    it('does not add automatic exchange-rate hydration to history or dirty state', () => {
+      useTripStore.getState().markClean();
+      useTripStore.getState().hydrateExchangeRates({ EUR: 0.9 });
+      expect(useTripStore.getState().isDirty).toBe(false);
+      expect(useTripStore.getState().canUndo).toBe(false);
+    });
+
+    it('ignores fetched rate changes in saved history and recalculates dirty state at the baseline', () => {
+      useTripStore.getState().hydrateExchangeRates({ EUR: 0.9 });
+      useTripStore.getState().markClean();
+      useTripStore.getState().setTripName('Changed');
+      useTripStore.getState().hydrateExchangeRates({ EUR: 0.8 });
+      useTripStore.getState().undo();
+      expect(useTripStore.getState().tripName).toBe('My Trip');
+      expect(useTripStore.getState().isDirty).toBe(false);
+      expect(useTripStore.getState().exchangeRates.find((rate) => rate.currency === 'EUR')?.rateToUSD).toBeCloseTo(1 / 0.8);
+      useTripStore.getState().setTripName('Changed');
+      useTripStore.getState().setTripName('My Trip');
+      expect(useTripStore.getState().isDirty).toBe(false);
+    });
+
+    it('restores exchange-rate overrides without duplicating a currency', () => {
+      useTripStore.getState().hydrateExchangeRates({ EUR: 0.9 });
+      useTripStore.getState().markClean();
+      useTripStore.getState().setExchangeRate('EUR', 1.5);
+      useTripStore.getState().undo();
+      expect(useTripStore.getState().exchangeRates.filter((rate) => rate.currency === 'EUR')).toHaveLength(1);
+      expect(useTripStore.getState().exchangeRates.find((rate) => rate.currency === 'EUR')?.isOverridden).toBe(false);
+      useTripStore.getState().redo();
+      expect(useTripStore.getState().exchangeRates.filter((rate) => rate.currency === 'EUR')).toHaveLength(1);
+      expect(useTripStore.getState().exchangeRates.find((rate) => rate.currency === 'EUR')?.rateToUSD).toBe(1.5);
+    });
+
+    it('clears dirty state when a nested edit returns to its saved value', () => {
+      const coupleId = useTripStore.getState().addCouple('Group A');
+      useTripStore.getState().addCost({ name: 'Train', currency: 'EUR', value: 10, markupOverride: null, splitType: 'shared', assignedCoupleIds: [], type: null });
+      useTripStore.getState().markClean();
+      useTripStore.getState().renameCouple(coupleId, 'Group B');
+      const costId = useTripStore.getState().costs[0]!.id;
+      useTripStore.getState().editCost(costId, { name: 'Flight' });
+      expect(useTripStore.getState().isDirty).toBe(true);
+      useTripStore.getState().editCost(costId, { name: 'Train' });
+      useTripStore.getState().renameCouple(coupleId, 'Group A');
+      expect(useTripStore.getState().isDirty).toBe(false);
+      expect(useTripStore.getState().canUndo).toBe(true);
+    });
+
+    it('does not create history or retain dirty state for semantic no-op array updates', () => {
+      useTripStore.getState().addCouple('Group A');
+      useTripStore.getState().markClean();
+      const canUndoBeforeNoOp = useTripStore.getState().canUndo;
+      useTripStore.getState().renameCouple('missing-id', 'No change');
+      expect(useTripStore.getState().isDirty).toBe(false);
+      expect(useTripStore.getState().canUndo).toBe(canUndoBeforeNoOp);
+    });
+
+    it('keeps transient undo and redo availability out of persisted trip data', () => {
+      useTripStore.getState().setTripName('Changed');
+      const persisted = JSON.parse(localStorage.getItem('travel-toolkit-trip-data') ?? '{}').state;
+      expect(persisted).not.toHaveProperty('canUndo');
+      expect(persisted).not.toHaveProperty('canRedo');
+    });
+  });
+
   describe('hydrateExchangeRates', () => {
     it('inverts incoming rate and stores rateToUSD', () => {
       useTripStore.getState().hydrateExchangeRates({ EUR: 0.91 });

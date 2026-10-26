@@ -6,6 +6,7 @@ interface ModalProps {
   title: string;
   body: string;
   confirmLabel: string;
+  cancelLabel?: string;
   onConfirm: () => void;
   secondaryActionLabel?: string;
   onSecondaryAction?: () => void;
@@ -17,6 +18,7 @@ export default function Modal({
   title,
   body,
   confirmLabel,
+  cancelLabel = 'Cancel',
   onConfirm,
   secondaryActionLabel,
   onSecondaryAction,
@@ -103,7 +105,7 @@ export default function Modal({
             <div className="modal-title" id={titleId}>{title}</div>
             <div className="modal-body" id={bodyId}>{body}</div>
             <div className="modal-acts">
-              <button className="btn-m-cancel" onClick={onCancel}>Cancel</button>
+              <button className="btn-m-cancel" onClick={onCancel}>{cancelLabel}</button>
               {secondaryActionLabel && onSecondaryAction ? (
                 <button className="btn-m-secondary" onClick={onSecondaryAction}>{secondaryActionLabel}</button>
               ) : null}

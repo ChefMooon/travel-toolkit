@@ -16,6 +16,7 @@ vi.mock('@/store/toastStore', () => ({
 
 import { useTripStore } from '@/store/tripStore';
 import { useToastStore } from '@/store/toastStore';
+import { useDraftStore } from '@/store/draftStore';
 
 const mockCouples: Couple[] = [
   { id: 'c1', name: 'Group 1', colorIndex: 1, iconIndex: 1, sortOrder: 0 },
@@ -68,6 +69,7 @@ describe('EditRow', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    useDraftStore.getState().setDraft('new-cost-entry', false);
 
     mockStoreState.couples = mockCouples;
     mockStoreState.globalMarkup = 66;
@@ -81,6 +83,15 @@ describe('EditRow', () => {
     (useToastStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(
       (selector: (state: typeof mockToastState) => unknown) => selector(mockToastState)
     );
+  });
+
+  it('tracks only modified cost form drafts and clears the draft on unmount', () => {
+    const view = renderEditRow();
+    expect(useDraftStore.getState().dirtyDrafts).toBe(0);
+    fireEvent.change(screen.getByPlaceholderText('e.g. Hotel Night 1'), { target: { value: 'Dinner' } });
+    expect(useDraftStore.getState().dirtyDrafts).toBe(1);
+    view.unmount();
+    expect(useDraftStore.getState().dirtyDrafts).toBe(0);
   });
 
   it('FE-EDT-001 saves a valid shared cost with global markup', () => {

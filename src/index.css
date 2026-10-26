@@ -341,6 +341,32 @@ body::before {
   gap: 10px;
 }
 
+.trip-history-controls {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.trip-history-controls button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1.5px solid var(--border-2);
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.trip-history-controls button:first-child { border-radius: 22px 0 0 22px; }
+.trip-history-controls button:last-child {
+  border-left: 0;
+  border-radius: 0 22px 22px 0;
+}
+.trip-history-controls button:not(:disabled):hover { background: var(--bg-2); }
+.trip-history-controls button:disabled { color: var(--text-3); opacity: 0.5; cursor: default; }
+.trip-history-controls button:focus-visible { outline: 2px solid var(--c3); outline-offset: 2px; position: relative; z-index: 1; }
+
 /* — Container — */
 .topbar {
   background: var(--surface);
@@ -712,6 +738,11 @@ body::before {
   }
   .btn-new-trip span { display: none; }
   .btn-save-panel { width: 34px; height: 34px; }
+}
+
+@media (max-width: 430px) {
+  .trip-toolbar { grid-template-rows: auto auto auto; }
+  .trip-toolbar-right { grid-row: 3; grid-column: 1 / -1; }
 }
 
 /* ══════════════════════════════════════════ LAYOUT */

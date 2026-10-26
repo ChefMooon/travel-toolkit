@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Outlet, createRootRoute, useLocation } from '@tanstack/react-router';
+import { Outlet, createRootRoute, useLocation, useBlocker } from '@tanstack/react-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
@@ -13,6 +13,19 @@ import { useConsentStore } from '@/store/consentStore';
 import Navbar from '@/components/Navbar';
 import ToastViewport from '@/components/ToastViewport';
 import ConsentBanner from '@/components/ConsentBanner';
+import Modal from '@/components/Modal';
+import { useTripStore } from '@/store/tripStore';
+import { useDraftStore } from '@/store/draftStore';
+
+function UnsavedChangesGuard() {
+  const { pathname } = useLocation();
+  const isDirty = useTripStore((s) => s.isDirty);
+  const dirtyDrafts = useDraftStore((s) => s.dirtyDrafts);
+  const shouldWarn = isDirty || dirtyDrafts > 0;
+  const isTripRoute = pathname === '/trip';
+  const blocker = useBlocker({ shouldBlockFn: ({ current, next }) => current.pathname === '/trip' && next.pathname !== '/trip' && shouldWarn, enableBeforeUnload: () => isTripRoute && shouldWarn, withResolver: true });
+  return blocker.status === 'blocked' ? <Modal icon="⚠️" title="Leave with unsaved changes?" body="Your trip has unsaved changes. Leave this page and discard them?" cancelLabel="Stay" confirmLabel="Leave" onConfirm={blocker.proceed} onCancel={blocker.reset} /> : null;
+}
 
 function ThemeSync() {
   const theme = useResolvedTheme();
@@ -137,6 +150,7 @@ export default function RootLayout() {
     <QueryClientProvider client={queryClient}>
       <ThemeSync />
       <AnalyticsBridge />
+      <UnsavedChangesGuard />
       <div className={`app-shell${showFooter ? '' : ' app-shell--mobile-trip'}`}>
         <Navbar />
         <ToastViewport />

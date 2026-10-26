@@ -25,6 +25,7 @@ vi.mock('@tanstack/react-router', () => ({
   Outlet: () => null,
   createRootRoute: (options: unknown) => options,
   useLocation: useLocationMock,
+  useBlocker: () => ({ status: 'idle', proceed: undefined, reset: undefined }),
 }));
 
 vi.mock('@/components/Footer', () => ({ default: () => null }));

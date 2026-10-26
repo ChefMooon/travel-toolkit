@@ -4,6 +4,7 @@ import Logo from '@/components/Logo';
 import GridPanel from '@/components/GridPanel';
 import Tooltip from '@/components/Tooltip';
 import ThemeSelector from '@/components/ThemeSelector/ThemeSelector';
+import { Link } from '@tanstack/react-router';
 
 export default function Navbar() {
   const [gridOpen, setGridOpen] = useState(false);
@@ -15,9 +16,9 @@ export default function Navbar() {
 
   return (
     <header className="navbar">
-      <a className="brand" href="/" aria-label="Go to home page">
+      <Link className="brand" to="/" aria-label="Go to home page">
         <Logo />
-      </a>
+      </Link>
 
       <div className="navbar-actions">
         <Tooltip content={gridOpen ? '' : 'Open tool navigation'}>

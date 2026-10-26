@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useTripStore } from '@/store/tripStore';
 import { useToastStore } from '@/store/toastStore';
 import { getAvailableCurrencies, getDefaultCurrency, getColorThemeValue, MAX_COST_NAME_LENGTH } from '@/store/types';
@@ -8,6 +8,7 @@ import type { SplitType } from '@/store/types';
 import { useResolvedTheme } from '@/store/theme';
 import SplitAssignmentModal from '../SplitAssignmentModal';
 import Tooltip from '@/components/Tooltip';
+import { useDraftStore } from '@/store/draftStore';
 
 interface EditRowProps {
   initial?: {
@@ -63,6 +64,9 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
   const [modalOriginSplitType, setModalOriginSplitType] = useState<SplitType | null>(null);
   const [modalOriginAssignedCouples, setModalOriginAssignedCouples] = useState<string[]>([]);
   const fieldPrefix = initial?.id ? `edit-cost-${initial.id}` : 'new-cost-entry';
+  const setDraft = useDraftStore((s) => s.setDraft);
+  const changed = name !== (initial?.name ?? '') || currency !== (initial?.currency ?? defaultCurrency ?? getDefaultCurrency(region)) || value !== (initial?.value?.toString() ?? '') || splitType !== (initial?.splitType ?? 'shared') || JSON.stringify(assignedCoupleIds) !== JSON.stringify(initial?.assignedCoupleIds ?? []) || type !== (initial?.type ?? null) || (!useGlobalMarkup && markupOverride !== String(initial?.markupOverride ?? globalMarkup));
+  useEffect(() => { setDraft(fieldPrefix, changed); return () => setDraft(fieldPrefix, false); }, [changed, fieldPrefix, setDraft]);
   const assignedGroupNames = couples
     .filter((couple) => assignedCoupleIds.includes(couple.id))
     .map((couple) => couple.name)

@@ -12,6 +12,7 @@ import SplitAssignmentModal from '../SplitAssignmentModal';
 import Tooltip from '@/components/Tooltip';
 import Select from '@/components/Select/Select';
 import CostTypePicker from '@/components/CostTypePicker/CostTypePicker';
+import { useDraftStore } from '@/store/draftStore';
 
 interface CostRowProps {
   cost: CostEntry;
@@ -46,6 +47,13 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
   const splitBtnRef = useRef<HTMLButtonElement>(null);
   const splitPortalRef = useRef<HTMLDivElement>(null);
   const [splitPopoverPos, setSplitPopoverPos] = useState<{ top: number; left: number } | null>(null);
+  const setDraft = useDraftStore((s) => s.setDraft);
+  const hasModifiedInlineDraft = (editingField === 'name' && editName !== cost.name) || (editingField === 'amount' && editAmount !== cost.value.toString());
+  useEffect(() => {
+    const key = `cost-row-${cost.id}`;
+    setDraft(key, hasModifiedInlineDraft);
+    return () => setDraft(key, false);
+  }, [cost.id, hasModifiedInlineDraft, setDraft]);
   const couplePopoverRef = useRef<HTMLDivElement>(null);
 
   const {

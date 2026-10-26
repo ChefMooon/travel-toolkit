@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Undo2, Redo2 } from 'lucide-react';
 import { useTripStore } from '@/store/tripStore';
 import { useToastStore } from '@/store/toastStore';
 import Modal from '@/components/Modal';
@@ -11,6 +11,7 @@ import {
 } from '@/store/saveSlotStore';
 import SaveDataPanel from '@/components/SaveDataPanel';
 import Tooltip from '@/components/Tooltip';
+import { useDraftStore } from '@/store/draftStore';
 
 function getTripSaveStatusMessage(
   status: TripSaveStatus,
@@ -43,11 +44,16 @@ export default function TripToolbar() {
   const globalMarkup = useTripStore((s) => s.globalMarkup);
   const setGlobalMarkup = useTripStore((s) => s.setGlobalMarkup);
   const isDirty = useTripStore((s) => s.isDirty);
+  const canUndo = useTripStore((s) => s.canUndo);
+  const canRedo = useTripStore((s) => s.canRedo);
+  const undo = useTripStore((s) => s.undo);
+  const redo = useTripStore((s) => s.redo);
   const getSnapshot = useTripStore((s) => s.getSnapshot);
   const resetTrip = useTripStore((s) => s.resetTrip);
   const slots = useSaveSlotStore((s) => s.slots);
   const labels = useSaveSlotStore((s) => s.labels);
   const pushToast = useToastStore((s) => s.pushToast);
+  const setDraft = useDraftStore((s) => s.setDraft);
 
   const [showReset, setShowReset] = useState(false);
   const [tripSaveStatus, setTripSaveStatus] = useState<TripSaveStatus | null>(null);
@@ -63,6 +69,16 @@ export default function TripToolbar() {
   useEffect(() => {
     setTripIdInput(tripId);
   }, [tripId]);
+
+  useEffect(() => {
+    setDraft('trip-id', tripIdInput !== tripId);
+    return () => setDraft('trip-id', false);
+  }, [setDraft, tripId, tripIdInput]);
+
+  useEffect(() => {
+    setDraft('trip-markup', editingMarkup && markupInput !== String(globalMarkup));
+    return () => setDraft('trip-markup', false);
+  }, [editingMarkup, globalMarkup, markupInput, setDraft]);
 
   useEffect(() => {
     if (editingMarkup) return;
@@ -215,6 +231,14 @@ export default function TripToolbar() {
         </div>
 
         <div className="trip-toolbar-right">
+          <div className="trip-history-controls" role="group" aria-label="Trip history">
+            <Tooltip content="Undo">
+              <button type="button" aria-label="Undo" disabled={!canUndo} onClick={undo}><Undo2 size={16} /></button>
+            </Tooltip>
+            <Tooltip content="Redo">
+              <button type="button" aria-label="Redo" disabled={!canRedo} onClick={redo}><Redo2 size={16} /></button>
+            </Tooltip>
+          </div>
           {editingMarkup ? (
             <div className="markup-pill" role="group" aria-label="Markup editor">
               <span>Markup</span>

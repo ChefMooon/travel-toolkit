@@ -39,6 +39,10 @@ interface TripStore {
   region: Region;
   targetCurrency: string;
   isDirty: boolean;
+  canUndo: boolean;
+  canRedo: boolean;
+  undo: () => void;
+  redo: () => void;
 
   // Actions
   setTripId: (tripId: string) => void;
@@ -101,12 +105,71 @@ const initialState = {
   region: 'Europe' as const,
   targetCurrency: 'USD',
   isDirty: false,
+  canUndo: false,
+  canRedo: false,
 };
+
+type HistorySnapshot = Pick<TripStore, 'tripId' | 'tripName' | 'globalMarkup' | 'couples' | 'nonPayingTravellers' | 'costs' | 'exchangeRates' | 'region' | 'targetCurrency'>;
+const HISTORY_LIMIT = 100;
+let past: HistorySnapshot[] = [];
+let future: HistorySnapshot[] = [];
+let baseline: HistorySnapshot | null = null;
+let historyReady = false;
+let applyingHistory = false;
+let suppressHistory = false;
+function snapshotOf(state: HistorySnapshot): HistorySnapshot {
+  // Zustand actions replace arrays/objects instead of mutating them, so retaining
+  // these references gives us cheap snapshots with structural sharing.
+  return { tripId: state.tripId, tripName: state.tripName, globalMarkup: state.globalMarkup, couples: state.couples, nonPayingTravellers: state.nonPayingTravellers, costs: state.costs, exchangeRates: state.exchangeRates, region: state.region, targetCurrency: state.targetCurrency };
+}
+function sameOverrides(a: ExchangeRate[], b: ExchangeRate[]): boolean {
+  const left = a.filter((rate) => rate.isOverridden);
+  const right = b.filter((rate) => rate.isOverridden);
+  return left.length === right.length && left.every((rate, index) => {
+    const other = right[index];
+    return !!other && rate.currency === other.currency && rate.rateToUSD === other.rateToUSD;
+  });
+}
+function same(a: HistorySnapshot, b: HistorySnapshot): boolean {
+  return a.tripId === b.tripId && a.tripName === b.tripName && a.globalMarkup === b.globalMarkup &&
+    sameArray(a.couples, b.couples) && sameArray(a.nonPayingTravellers, b.nonPayingTravellers) && sameArray(a.costs, b.costs) &&
+    (a.exchangeRates === b.exchangeRates || sameOverrides(a.exchangeRates, b.exchangeRates)) &&
+    a.region === b.region && a.targetCurrency === b.targetCurrency;
+}
+function sameArray<T>(a: T[], b: T[]): boolean {
+  if (a === b) return true;
+  if (a.length !== b.length) return false;
+  return a.every((item, index) => {
+    const other = b[index];
+    return item === other || JSON.stringify(item) === JSON.stringify(other);
+  });
+}
+function restoreRates(current: ExchangeRate[], snapshot: ExchangeRate[]): ExchangeRate[] {
+  const byCurrency = new Map<string, ExchangeRate>();
+  for (const rate of snapshot) if (!rate.isOverridden) byCurrency.set(rate.currency, rate);
+  for (const rate of current) if (!rate.isOverridden) byCurrency.set(rate.currency, rate);
+  for (const rate of snapshot) if (rate.isOverridden) byCurrency.set(rate.currency, rate);
+  return [...byCurrency.values()];
+}
 
 export const useTripStore = create<TripStore>()(
   persist(
     (set, get) => ({
       ...initialState,
+      undo: () => {
+        if (!past.length) return;
+        const current = snapshotOf(get());
+        const previous = past.pop()!;
+        future.push(current);
+        applyingHistory = true; set({ ...previous, exchangeRates: restoreRates(get().exchangeRates, previous.exchangeRates), canUndo: past.length > 0, canRedo: true, isDirty: !baseline || !same(previous, baseline) }); applyingHistory = false;
+      },
+      redo: () => {
+        if (!future.length) return;
+        const current = snapshotOf(get());
+        const next = future.pop()!;
+        past.push(current);
+        applyingHistory = true; set({ ...next, exchangeRates: restoreRates(get().exchangeRates, next.exchangeRates), canUndo: true, canRedo: future.length > 0, isDirty: !baseline || !same(next, baseline) }); applyingHistory = false;
+      },
 
       setTripId: (tripId) => {
         const normalized = tripId.trim();
@@ -359,7 +422,8 @@ export const useTripStore = create<TripStore>()(
           };
         }),
 
-      hydrateExchangeRates: (freshRates) =>
+      hydrateExchangeRates: (freshRates) => {
+        suppressHistory = true;
         set((state) => {
           const newRates = [...state.exchangeRates];
           for (const [currency, rate] of Object.entries(freshRates)) {
@@ -375,7 +439,9 @@ export const useTripStore = create<TripStore>()(
             }
           }
           return { exchangeRates: newRates };
-        }),
+        });
+        suppressHistory = false;
+      },
 
       clearExchangeRateOverride: (currency) =>
         set((state) => ({
@@ -403,20 +469,30 @@ export const useTripStore = create<TripStore>()(
       loadSnapshot: (snapshot) => {
         const sanitizedSnapshot = { ...snapshot } as TripSnapshot & { theme?: unknown };
         delete sanitizedSnapshot.theme;
+        past = []; future = [];
+        suppressHistory = true;
         set({
           ...sanitizedSnapshot,
           isDirty: false,
         });
+        suppressHistory = false;
+        past = []; future = []; baseline = snapshotOf(sanitizedSnapshot); historyReady = true;
+        set({ canUndo: false, canRedo: false });
       },
 
-      markClean: () => set({ isDirty: false }),
+      markClean: () => { baseline = snapshotOf(get()); historyReady = true; set({ isDirty: false }); },
 
-      resetTrip: () =>
+      resetTrip: () => {
+        past = []; future = []; baseline = null; historyReady = true; suppressHistory = true;
         set({
           ...initialState,
           tripId: generateTripId(),
           isDirty: false,
-        }),
+          canUndo: false, canRedo: false,
+        });
+        baseline = snapshotOf(get());
+        suppressHistory = false;
+      },
     }),
     {
       name: 'travel-toolkit-trip-data',
@@ -453,3 +529,19 @@ export const useTripStore = create<TripStore>()(
     }
   )
 );
+
+useTripStore.subscribe((state, previous) => {
+  if (applyingHistory || suppressHistory) return;
+  if (!historyReady) { baseline ??= snapshotOf(previous); historyReady = true; }
+  const didChange = !same(snapshotOf(state), snapshotOf(previous));
+  if (didChange && state !== previous) {
+    past.push(snapshotOf(previous));
+    if (past.length > HISTORY_LIMIT) past.shift();
+    future = [];
+    baseline ??= snapshotOf(previous);
+  }
+  const expectedDirty = !baseline || !same(snapshotOf(state), baseline);
+  if ((didChange && (!state.canUndo || state.canRedo)) || state.isDirty !== expectedDirty) {
+    useTripStore.setState({ ...(didChange ? { canUndo: past.length > 0, canRedo: false } : {}), isDirty: expectedDirty });
+  }
+});
