@@ -3628,7 +3628,6 @@ table.ledger .ledger-inline-field > .inline-edit-input {
 
 /* ── EDIT ROW ── */
 tr.edit-row td {
-  background: var(--surface);
   padding: 14px 11px;
   border-top: 2px solid var(--c3);
   border-bottom: 2px solid var(--c3);
