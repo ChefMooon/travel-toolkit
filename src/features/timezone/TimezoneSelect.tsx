@@ -1,6 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { buildTimezoneOptions, type TimezoneOption } from './timezones';
+import Select from '@/components/Select/Select';
 
 let cachedOptions: TimezoneOption[] | null = null;
 
@@ -266,19 +267,18 @@ export default function TimezoneSelect({
       )}
     </div>
   ) : (
-    <select
-      className="tool-input"
+    <Select
+      className="tool-input timezone-select"
       value={value}
-      onChange={(event) => onChange(event.target.value)}
+      options={[...(value ? [] : ['']), ...filtered.map((option) => option.tz)]}
+      getOptionLabel={(tz) => {
+        if (!tz) return placeholder;
+        const option = filtered.find((candidate) => candidate.tz === tz) ?? getAllOptions().find((candidate) => candidate.tz === tz);
+        return option ? `${option.label} (${option.offset})` : tz;
+      }}
+      onChange={onChange}
       aria-label={placeholder}
-    >
-      {!value && <option value="">{placeholder}</option>}
-      {filtered.map((option) => (
-        <option key={option.tz} value={option.tz}>
-          {option.label} ({option.offset})
-        </option>
-      ))}
-    </select>
+    />
   );
 
   return (

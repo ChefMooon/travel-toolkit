@@ -6,6 +6,8 @@ import { useCurrencyMetadata } from './useCurrencyMetadata';
 import { useCurrencyProviders } from './useCurrencyProviders';
 import CurrencyRegionSelector from './CurrencyRegionSelector';
 import Tooltip from '@/components/Tooltip';
+import Select from '@/components/Select/Select';
+import NumericInput from '@/components/NumericInput/NumericInput';
 
 function formatRateDate(dateStr: string) {
   // API date is YYYY-MM-DD (UTC); parse as UTC to avoid day-offset in negative-offset timezones
@@ -123,38 +125,34 @@ export default function CurrencyTool() {
           </Tooltip>
         </div>
         <div className="card-body currency-controls">
-          <label className="tool-field">
+          <div className="tool-field">
             <span className="tool-label">Amount</span>
-            <input
+            <NumericInput
               className="tool-input mono"
-              type="number"
+              aria-label="Amount"
               min="0"
               step="0.01"
               value={amountInput}
               onChange={(event) => setAmountInput(event.target.value)}
             />
-          </label>
+          </div>
 
-          <label className="tool-field">
+          <div className="tool-field">
             <span className="tool-label">From</span>
-            <select
-              className="tool-input"
+            <Select
+              className="tool-input currency-select"
+              aria-label="From currency"
               value={baseCurrency}
-              onChange={(event) => {
-                const newBase = event.target.value;
+              options={availableCurrencies}
+              getOptionLabel={getCurrencyLabel}
+              onChange={(newBase) => {
                 setBaseCurrency(newBase);
                 if (targetCurrency === newBase) {
                   setTargetCurrency(availableCurrencies.find((c) => c !== newBase) ?? newBase);
                 }
               }}
-            >
-              {availableCurrencies.map((currency) => (
-                <option key={currency} value={currency}>
-                  {getCurrencyLabel(currency)}
-                </option>
-              ))}
-            </select>
-          </label>
+            />
+          </div>
 
           <Tooltip content="Swap currencies">
             <button
@@ -167,22 +165,17 @@ export default function CurrencyTool() {
             </button>
           </Tooltip>
 
-          <label className="tool-field">
+          <div className="tool-field">
             <span className="tool-label">To</span>
-            <select
-              className="tool-input"
+            <Select
+              className="tool-input currency-select"
+              aria-label="To currency"
               value={targetCurrency}
-              onChange={(event) => setTargetCurrency(event.target.value)}
-            >
-              {availableCurrencies
-                .filter((c) => c !== baseCurrency)
-                .map((currency) => (
-                  <option key={currency} value={currency}>
-                    {getCurrencyLabel(currency)}
-                  </option>
-                ))}
-            </select>
-          </label>
+              options={availableCurrencies.filter((c) => c !== baseCurrency)}
+              getOptionLabel={getCurrencyLabel}
+              onChange={setTargetCurrency}
+            />
+          </div>
         </div>
       </div>
 

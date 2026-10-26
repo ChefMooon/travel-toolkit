@@ -15,6 +15,18 @@ describe('Select', () => {
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
   });
 
+  it('shows option labels while retaining raw values for selection and typeahead', () => {
+    const onChange = vi.fn();
+    const labels: Record<string, string> = { CAD: 'CAD — Canadian Dollar', EUR: 'EUR — Euro' };
+    render(<Select aria-label="Currency" value="CAD" options={['CAD', 'EUR']} getOptionLabel={(value) => labels[value] ?? value} onChange={onChange} />);
+    const trigger = screen.getByRole('combobox', { name: 'Currency' });
+    expect(trigger).toHaveTextContent('CAD — Canadian Dollar');
+    fireEvent.keyDown(trigger, { key: 'e' });
+    expect(screen.getByRole('option', { name: 'EUR — Euro' })).toHaveClass('is-active');
+    fireEvent.click(screen.getByRole('option', { name: 'EUR — Euro' }));
+    expect(onChange).toHaveBeenCalledWith('EUR');
+  });
+
   it('supports keyboard navigation, typeahead, escape, and tab dismissal', () => {
     const onChange = vi.fn();
     render(<Select aria-label="Region" value="Europe" options={['Europe', 'Asia', 'Africa']} onChange={onChange} />);
@@ -97,6 +109,19 @@ describe('Select', () => {
     unmount();
     Object.defineProperty(window, 'innerWidth', { configurable: true, value: originalWidth });
     Object.defineProperty(window, 'innerHeight', { configurable: true, value: originalHeight });
+  });
+
+  it('keeps the listbox out of document flow during its initial measurement', () => {
+    render(<Select aria-label="Timezone" value="Toronto" options={['Toronto', 'London']} onChange={vi.fn()} />);
+    const trigger = screen.getByRole('combobox', { name: 'Timezone' });
+    vi.spyOn(trigger, 'getBoundingClientRect').mockImplementation(() => {
+      const listbox = screen.getByRole('listbox', { hidden: true });
+      expect(listbox.style.position).toBe('fixed');
+      expect(listbox.style.visibility).toBe('hidden');
+      return { x: 20, y: 20, left: 20, top: 20, right: 320, bottom: 64, width: 300, height: 44, toJSON: () => ({}) };
+    });
+    fireEvent.click(trigger);
+    expect(screen.getByRole('listbox').style.width).toBe('300px');
   });
 
   it('scrolls only the listbox to reveal the active option', () => {

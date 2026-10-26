@@ -1,6 +1,7 @@
 import { useCurrencyStore } from '@/store/currencyStore';
 import { REGION_LIST } from '@/store/types';
 import type { Region } from '@/store/types';
+import Select from '@/components/Select/Select';
 
 export default function CurrencyRegionSelector() {
   const region = useCurrencyStore((s) => s.region);
@@ -12,9 +13,12 @@ export default function CurrencyRegionSelector() {
         <span className="card-title">Region</span>
       </div>
       <div style={{ padding: '12px 16px' }}>
-        <select
+        <Select
+          aria-label="Currency region"
+          className="shared-select-full"
           value={region}
-          onChange={(e) => setRegion(e.target.value as Region)}
+          options={REGION_LIST}
+          onChange={(value) => setRegion(value as Region)}
           style={{
             width: '100%',
             padding: '8px 12px',
@@ -26,13 +30,7 @@ export default function CurrencyRegionSelector() {
             fontFamily: 'inherit',
             cursor: 'pointer',
           }}
-        >
-          {REGION_LIST.map((r) => (
-            <option key={r} value={r}>
-              {r}
-            </option>
-          ))}
-        </select>
+        />
       </div>
     </div>
   );

@@ -94,8 +94,8 @@ describe('CurrencyTool', () => {
     // CurrencyRegionSelector is mocked — only base + target selects are in the DOM
     const selects = screen.getAllByRole('combobox');
     expect(selects).toHaveLength(2);
-    expect(selects[0]).toHaveValue('CAD');
-    expect(selects[1]).toHaveValue('USD');
+    expect(selects[0]).toHaveTextContent('CAD — Canadian Dollar');
+    expect(selects[1]).toHaveTextContent('USD — US Dollar');
   });
 
   it('FE-CUR-002 shows loading status while query is pending', () => {
@@ -126,7 +126,8 @@ describe('CurrencyTool', () => {
     render(<CurrencyTool />);
 
     const selects = screen.getAllByRole('combobox');
-    fireEvent.change(selects[1]!, { target: { value: 'GBP' } });
+    fireEvent.click(selects[1]!);
+    fireEvent.click(screen.getByRole('option', { name: 'GBP — British Pound' }));
 
     expect(screen.getByText(/0\.5700/)).toBeInTheDocument();
     expect(screen.getByText('£57.00')).toBeInTheDocument();
@@ -144,8 +145,8 @@ describe('CurrencyTool', () => {
     render(<CurrencyTool />);
 
     const selects = screen.getAllByRole('combobox');
-    expect(selects[0]).toHaveValue('CAD');
-    expect(selects[1]).toHaveValue('USD');
+    expect(selects[0]).toHaveTextContent('CAD — Canadian Dollar');
+    expect(selects[1]).toHaveTextContent('USD — US Dollar');
 
     const swapButton = screen.getByRole('button', { name: 'Swap from and to currencies' });
     expect(swapButton).not.toHaveAttribute('title');
@@ -153,8 +154,8 @@ describe('CurrencyTool', () => {
     expect(screen.getByRole('tooltip')).toHaveTextContent('Swap currencies');
     fireEvent.click(swapButton);
 
-    expect(selects[0]).toHaveValue('USD');
-    expect(selects[1]).toHaveValue('CAD');
+    expect(selects[0]).toHaveTextContent('USD — US Dollar');
+    expect(selects[1]).toHaveTextContent('CAD — Canadian Dollar');
   });
 
   it('FE-CUR-008 dropdowns show full currency names from metadata', () => {
@@ -162,10 +163,9 @@ describe('CurrencyTool', () => {
 
     const selects = screen.getAllByRole('combobox');
     const baseSelect = selects[0]!;
-    expect(baseSelect.querySelector('option[value="CAD"]')?.textContent).toBe(
-      'CAD — Canadian Dollar',
-    );
-    expect(baseSelect.querySelector('option[value="EUR"]')?.textContent).toBe('EUR — Euro');
+    fireEvent.click(baseSelect);
+    expect(screen.getByRole('option', { name: 'CAD — Canadian Dollar' })).toBeInTheDocument();
+    expect(screen.getByRole('option', { name: 'EUR — Euro' })).toBeInTheDocument();
   });
 
   it('FE-CUR-009 relevant providers toggle shows/hides provider rows', () => {
@@ -204,7 +204,7 @@ describe('CurrencyTool', () => {
     render(<CurrencyTool />);
 
     const selects = screen.getAllByRole('combobox');
-    expect(selects[0]!.querySelector('option[value="CAD"]')?.textContent).toBe('CAD');
+    expect(selects[0]!).toHaveTextContent('CAD');
   });
 
   it('FE-CUR-013 sources toggle not rendered when no relevant providers', () => {

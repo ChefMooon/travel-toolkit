@@ -6,6 +6,7 @@ interface SelectProps {
   id?: string;
   value: string;
   options: readonly string[];
+  getOptionLabel?: (value: string) => string;
   onChange: (value: string) => void;
   'aria-label'?: string;
   className?: string;
@@ -14,12 +15,14 @@ interface SelectProps {
   'data-testid'?: string;
 }
 
-export default function Select({ id, value, options, onChange, className = '', style, disabled = false, ...attrs }: SelectProps) {
+export default function Select({ id, value, options, onChange, getOptionLabel = (option) => option, className = '', style, disabled = false, ...attrs }: SelectProps) {
   const generatedId = useId();
   const controlId = id ?? `select-${generatedId}`;
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(value);
-  const [placement, setPlacement] = useState<CSSProperties>({});
+  // Keep the portal out of document flow before its first measurement so it
+  // cannot introduce a page scrollbar and change the trigger's width.
+  const [placement, setPlacement] = useState<CSSProperties>({ position: 'fixed', visibility: 'hidden' });
   const triggerRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const typeahead = useRef('');
@@ -85,7 +88,7 @@ export default function Select({ id, value, options, onChange, className = '', s
       typeahead.current += event.key.toLocaleLowerCase();
       window.clearTimeout(typeaheadTimer.current);
       typeaheadTimer.current = window.setTimeout(() => { typeahead.current = ''; }, 700);
-      const match = options.find((option) => option.toLocaleLowerCase().startsWith(typeahead.current));
+      const match = options.find((option) => getOptionLabel(option).toLocaleLowerCase().startsWith(typeahead.current));
       if (match) { event.preventDefault(); setActive(match); if (!open) setOpen(true); }
     }
   };
@@ -95,14 +98,14 @@ export default function Select({ id, value, options, onChange, className = '', s
       aria-controls={`${controlId}-listbox`} aria-activedescendant={open ? activeId : undefined} aria-label={attrs['aria-label']}
       data-testid={attrs['data-testid']} className={`shared-select ${className}`} style={style} onKeyDown={keyDown}
       onBlur={() => setOpen(false)} onClick={() => open ? setOpen(false) : openAt()}>
-      <span className="shared-select-value">{value}</span><ChevronDown aria-hidden="true" size={14} />
+      <span className="shared-select-value">{getOptionLabel(value)}</span><ChevronDown aria-hidden="true" size={14} />
     </button>
     {open && createPortal(<div ref={listRef} id={`${controlId}-listbox`} role="listbox" aria-labelledby={controlId}
       className="shared-select-listbox" style={placement}>
       {options.map((option, index) => <button key={option} id={`${controlId}-option-${index}`} type="button" role="option" tabIndex={-1}
         aria-selected={option === value} className={`shared-select-option${option === active ? ' is-active' : ''}`}
         onMouseDown={(event) => event.preventDefault()} onMouseEnter={() => setActive(option)} onClick={() => commit(option)}>
-        <span>{option}</span>{option === value && <Check size={14} aria-hidden="true" />}
+        <span>{getOptionLabel(option)}</span>{option === value && <Check size={14} aria-hidden="true" />}
       </button>)}
     </div>, document.body)}
   </>;

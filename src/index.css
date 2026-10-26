@@ -1342,6 +1342,23 @@ body::before {
   gap: 12px;
 }
 
+.currency-controls > .tool-field > .numeric-input,
+.currency-controls > .tool-field > .numeric-input .numeric-input-field {
+  width: 100%;
+}
+
+.currency-controls .shared-select.tool-input,
+.timezone-select.shared-select.tool-input {
+  min-height: 44px;
+  padding: 10px 12px;
+  font-size: 14px;
+  line-height: normal;
+}
+
+.timezone-select.shared-select.tool-input {
+  width: 100%;
+}
+
 .currency-swap-button {
   min-height: 44px;
   width: 44px;

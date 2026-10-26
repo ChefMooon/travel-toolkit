@@ -17,11 +17,11 @@ describe('TimezoneSelect', () => {
     );
 
     const localTimezoneSelect = screen.getByRole('combobox');
-    expect(localTimezoneSelect).toBeInstanceOf(HTMLSelectElement);
+    expect(localTimezoneSelect).toBeInstanceOf(HTMLButtonElement);
     expect(screen.queryByLabelText('Search timezones')).not.toBeInTheDocument();
-
-    const options = localTimezoneSelect.querySelectorAll('option');
-    expect(options.length).toBeGreaterThan(50);
+    fireEvent.click(localTimezoneSelect);
+    expect(screen.getAllByRole('option').length).toBeGreaterThan(50);
+    expect(localTimezoneSelect).toHaveTextContent('UTC');
   });
 
   it('FE-TZ-007b typing in the search input narrows the timezone list', () => {
