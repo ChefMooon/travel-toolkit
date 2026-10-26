@@ -1,8 +1,8 @@
 /// <reference types="vitest" />
 /// <reference types="@testing-library/jest-dom" />
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, within } from '@testing-library/react';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { render, screen, fireEvent, within, act } from '@testing-library/react';
 import ForecastTool from '@/features/forecast/ForecastTool';
 import type { ClimateSummary, GeoLocation } from '@/features/forecast/forecastTypes';
 
@@ -27,10 +27,12 @@ const mockLocation: GeoLocation = {
   displayName: 'Barcelona, Catalonia, Spain',
 };
 
+const testToday = new Date();
+const dateString = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 const mockClimateSummary: ClimateSummary = {
   location: mockLocation,
-  dateFrom: '2026-03-23',
-  dateTo: '2026-03-30',
+  dateFrom: dateString(testToday),
+  dateTo: dateString(new Date(testToday.getFullYear(), testToday.getMonth(), testToday.getDate() + 7)),
   avgHighC: 18.5,
   avgLowC: 10.2,
   avgMeanC: 14.3,
@@ -44,9 +46,9 @@ const mockClimateSummary: ClimateSummary = {
   days: [],
 };
 
-const emptyGeoQuery = { data: [], isPending: false, isError: false };
-const errorGeoQuery = { data: [], isPending: false, isError: true };
-const readyGeoQuery = { data: [mockLocation], isPending: false, isError: false };
+const emptyGeoQuery = { data: [], isPending: false, isFetching: false, isSuccess: true, isError: false };
+const errorGeoQuery = { data: [], isPending: false, isFetching: false, isSuccess: false, isError: true };
+const readyGeoQuery = { data: [mockLocation], isPending: false, isFetching: false, isSuccess: true, isError: false };
 
 const pendingClimateQuery = { data: undefined, isPending: true, isError: false, refetch: vi.fn() };
 const readyClimateQuery = { data: mockClimateSummary, isPending: false, isError: false, refetch: vi.fn() };
@@ -55,6 +57,7 @@ const readyClimateQuery = { data: mockClimateSummary, isPending: false, isError:
 function selectFirstSuggestion() {
   const searchInput = screen.getByLabelText('Search destination');
   fireEvent.change(searchInput, { target: { value: 'Bar' } });
+  act(() => vi.advanceTimersByTime(500));
   fireEvent.keyDown(searchInput, { key: 'ArrowDown' });
   fireEvent.keyDown(searchInput, { key: 'Enter' });
   return searchInput;
@@ -63,11 +66,14 @@ function selectFirstSuggestion() {
 describe('ForecastTool', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
     // jsdom does not implement scrollIntoView; mock it to prevent errors
     window.HTMLElement.prototype.scrollIntoView = vi.fn();
     (useGeocode as ReturnType<typeof vi.fn>).mockReturnValue(emptyGeoQuery);
     (useClimateData as ReturnType<typeof vi.fn>).mockReturnValue(pendingClimateQuery);
   });
+
+  afterEach(() => vi.useRealTimers());
 
   it('FE-FOR-001 renders location search input and date range inputs with defaults', () => {
     render(<ForecastTool />);
@@ -75,6 +81,7 @@ describe('ForecastTool', () => {
     expect(screen.getByLabelText('Search destination')).toBeInTheDocument();
     expect(screen.getByLabelText('From')).toBeInTheDocument();
     expect(screen.getByLabelText('To')).toBeInTheDocument();
+    expect(screen.queryByText('No matching destinations found.')).not.toBeInTheDocument();
   });
 
   it('FE-FOR-002 typing in search shows suggestion list from geocode results', () => {
@@ -83,6 +90,7 @@ describe('ForecastTool', () => {
 
     const searchInput = screen.getByLabelText('Search destination');
     fireEvent.change(searchInput, { target: { value: 'Bar' } });
+    act(() => vi.advanceTimersByTime(500));
 
     expect(screen.getByRole('listbox')).toBeInTheDocument();
     expect(screen.getByText('Barcelona, Catalonia, Spain')).toBeInTheDocument();
@@ -111,6 +119,8 @@ describe('ForecastTool', () => {
   it('FE-FOR-005 shows error state when geocoding fails', () => {
     (useGeocode as ReturnType<typeof vi.fn>).mockReturnValue(errorGeoQuery);
     render(<ForecastTool />);
+    fireEvent.change(screen.getByLabelText('Search destination'), { target: { value: 'Bar' } });
+    act(() => vi.advanceTimersByTime(500));
 
     expect(screen.getByText(/Unable to resolve destination/i)).toBeInTheDocument();
   });
@@ -145,5 +155,37 @@ describe('ForecastTool', () => {
 
     expect(screen.getByText('Events During Your Dates')).toBeInTheDocument();
     expect(screen.getByText('Mobile World Congress')).toBeInTheDocument();
+  });
+
+  it('clears a selected destination as soon as the destination text is edited', () => {
+    (useGeocode as ReturnType<typeof vi.fn>).mockReturnValue(readyGeoQuery);
+    (useClimateData as ReturnType<typeof vi.fn>).mockReturnValue(readyClimateQuery);
+    render(<ForecastTool />);
+    const input = selectFirstSuggestion();
+    expect(screen.getByText('Destination Summary')).toBeInTheDocument();
+
+    fireEvent.change(input, { target: { value: 'Barcelon' } });
+
+    expect(screen.queryByText('Destination Summary')).not.toBeInTheDocument();
+    expect(screen.queryByText('Climate Summary')).not.toBeInTheDocument();
+  });
+
+  it('shows searching feedback instead of stale suggestions while the query is catching up', () => {
+    (useGeocode as ReturnType<typeof vi.fn>).mockReturnValue(readyGeoQuery);
+    render(<ForecastTool />);
+    fireEvent.change(screen.getByLabelText('Search destination'), { target: { value: 'Bar' } });
+
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(screen.getByText('Searching destinations...')).toBeInTheDocument();
+    expect(screen.queryByText('No matching destinations found.')).not.toBeInTheDocument();
+  });
+
+  it('shows searching feedback when a previous query errored and the new query is still debouncing', () => {
+    (useGeocode as ReturnType<typeof vi.fn>).mockReturnValue(errorGeoQuery);
+    render(<ForecastTool />);
+    fireEvent.change(screen.getByLabelText('Search destination'), { target: { value: 'Bar' } });
+
+    expect(screen.getByText('Searching destinations...')).toBeInTheDocument();
+    expect(screen.queryByText(/Unable to resolve destination/i)).not.toBeInTheDocument();
   });
 });

@@ -4,10 +4,12 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Clock3,
   CloudRain,
   CloudSun,
   Droplets,
   Info,
+  MapPin,
   PanelTop,
   Snowflake,
   Sunrise,
@@ -15,6 +17,7 @@ import {
   Table2,
   Thermometer,
   Wind,
+  UsersRound,
 } from 'lucide-react';
 import { getLocalTimeAtDestination } from './forecastData';
 import { getEventsForRange } from './forecastEvents';
@@ -301,7 +304,10 @@ function DailySingleDayView({ days }: { days: DailyClimate[] }) {
   useEffect(() => {
     if (!stripRef.current) return;
     const chip = stripRef.current.children[selectedIndex] as HTMLElement | undefined;
-    chip?.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+    if (chip) {
+      const reducedMotion = globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+      chip.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: reducedMotion ? 'auto' : 'smooth' });
+    }
   }, [selectedIndex]);
 
   if (!selectedDay) return null;
@@ -455,7 +461,19 @@ export default function ForecastTool() {
 
   const geocodeQuery = useGeocode(debouncedSearch);
   const climateQuery = useClimateData(selectedLocation, dateFrom, dateTo);
-  const geocodeSuggestions = geocodeQuery.data ?? [];
+  const currentGeocodeQuery = searchInput.trim() === debouncedSearch.trim();
+  const geocodeReady = currentGeocodeQuery
+    && geocodeQuery.isSuccess
+    && !geocodeQuery.isPlaceholderData
+    && !geocodeQuery.isFetching
+    && !geocodeQuery.isError;
+  const geocodeSuggestions = geocodeReady ? geocodeQuery.data ?? [] : [];
+  const currentClimateData = selectedLocation
+    && climateQuery.data?.location.id === selectedLocation.id
+    && climateQuery.data.dateFrom === dateFrom
+    && climateQuery.data.dateTo === dateTo
+    ? climateQuery.data
+    : undefined;
 
   useEffect(() => {
     setActiveIndex(-1);
@@ -472,8 +490,14 @@ export default function ForecastTool() {
       return;
     }
 
-    const activeOption = suggestionListRef.current?.querySelector<HTMLElement>(`#forecast-option-${activeIndex}`);
-    activeOption?.scrollIntoView({ block: 'nearest' });
+    const list = suggestionListRef.current;
+    const activeOption = list?.querySelector<HTMLElement>(`#forecast-option-${activeIndex}`);
+    if (list && activeOption) {
+      const optionTop = activeOption.offsetTop;
+      const optionBottom = optionTop + activeOption.offsetHeight;
+      if (optionTop < list.scrollTop) list.scrollTop = optionTop;
+      else if (optionBottom > list.scrollTop + list.clientHeight) list.scrollTop = optionBottom - list.clientHeight;
+    }
   }, [activeIndex]);
 
   const matchedEvents = useMemo(
@@ -482,28 +506,25 @@ export default function ForecastTool() {
   );
 
   const supportMetrics = useMemo<SummaryMetric[]>(() => {
-    if (!climateQuery.data) {
+    if (!currentClimateData) {
       return [];
     }
 
     return [
-      { label: 'Precipitation', value: climateQuery.data.avgPrecipitationMm, unit: 'mm/day', Icon: CloudRain },
-      { label: 'Sunshine', value: climateQuery.data.avgSunshineDurationHrs, unit: 'hrs/day', Icon: Sun },
-      { label: 'Daylight', value: climateQuery.data.avgDaylightDurationHrs, unit: 'hrs/day', Icon: Sunrise },
-      { label: 'Rainfall', value: climateQuery.data.avgRainMm, unit: 'mm/day', Icon: Droplets },
-      { label: 'Snowfall', value: climateQuery.data.avgSnowfallCm, unit: 'cm/day', Icon: Snowflake },
-      { label: 'Max Wind', value: climateQuery.data.avgWindspeedMaxKmh, unit: 'km/h', Icon: Wind },
+      { label: 'Precipitation', value: currentClimateData.avgPrecipitationMm, unit: 'mm/day', Icon: CloudRain },
+      { label: 'Sunshine', value: currentClimateData.avgSunshineDurationHrs, unit: 'hrs/day', Icon: Sun },
+      { label: 'Daylight', value: currentClimateData.avgDaylightDurationHrs, unit: 'hrs/day', Icon: Sunrise },
+      { label: 'Rainfall', value: currentClimateData.avgRainMm, unit: 'mm/day', Icon: Droplets },
+      { label: 'Snowfall', value: currentClimateData.avgSnowfallCm, unit: 'cm/day', Icon: Snowflake },
+      { label: 'Max Wind', value: currentClimateData.avgWindspeedMaxKmh, unit: 'km/h', Icon: Wind },
     ];
-  }, [climateQuery.data]);
+  }, [currentClimateData]);
 
   const handleSearchChange = (value: string) => {
     setSearchInput(value);
+    setSelectedLocation(null);
     setShowSuggestions(true);
     setActiveIndex(-1);
-
-    if (!value.trim()) {
-      setSelectedLocation(null);
-    }
   };
 
   const handleClearSearch = () => {
@@ -670,10 +691,13 @@ export default function ForecastTool() {
               />
             </label>
           </div>
-          {debouncedSearch.trim().length >= FORECAST_GEOCODE_MIN_QUERY_LENGTH && geocodeSuggestions.length === 0 && !geocodeQuery.isPending ? (
+          {!selectedLocation && searchInput.trim().length >= FORECAST_GEOCODE_MIN_QUERY_LENGTH && (!currentGeocodeQuery || (!geocodeQuery.isError && (geocodeQuery.isFetching || geocodeQuery.isPending || geocodeQuery.isPlaceholderData))) ? (
+            <p className="tool-status">Searching destinations...</p>
+          ) : null}
+          {!selectedLocation && searchInput.trim().length >= FORECAST_GEOCODE_MIN_QUERY_LENGTH && geocodeReady && geocodeSuggestions.length === 0 ? (
             <p className="tool-status">No matching destinations found.</p>
           ) : null}
-          {geocodeQuery.isError ? (
+          {!selectedLocation && searchInput.trim().length >= FORECAST_GEOCODE_MIN_QUERY_LENGTH && currentGeocodeQuery && geocodeQuery.isError ? (
             <p className="tool-status tool-status-error">Unable to resolve destination right now.</p>
           ) : null}
         </div>
@@ -688,18 +712,18 @@ export default function ForecastTool() {
             <div className="forecast-destination-summary" aria-label="Destination summary details">
               <div className="forecast-destination-summary-item">
                 <span className="forecast-destination-summary-label">Local time</span>
-                <span className="forecast-destination-summary-value">🕐 {localTime}</span>
+                <span className="forecast-destination-summary-value"><Clock3 size={16} aria-hidden="true" /> {localTime}</span>
               </div>
               <div className="forecast-destination-summary-item">
                 <span className="forecast-destination-summary-label">Time zone</span>
                 <span className="forecast-destination-summary-value">
-                  🌍 {selectedLocation.timezone} ({selectedLocation.countryCode})
+                  <MapPin size={16} aria-hidden="true" /> {selectedLocation.timezone} ({selectedLocation.countryCode})
                 </span>
               </div>
               <div className="forecast-destination-summary-item">
                 <span className="forecast-destination-summary-label">Population</span>
                 <span className="forecast-destination-summary-value">
-                  👥 {selectedLocation.population.toLocaleString('en-US')}
+                  <UsersRound size={16} aria-hidden="true" /> {selectedLocation.population.toLocaleString('en-US')}
                 </span>
               </div>
             </div>
@@ -708,7 +732,7 @@ export default function ForecastTool() {
       ) : null}
 
       {!selectedLocation ? <p className="tool-status">Select a destination to load climate data.</p> : null}
-      {selectedLocation && climateQuery.isPending ? <p className="tool-status">Loading climate data...</p> : null}
+      {selectedLocation && (climateQuery.isPending || (climateQuery.isFetching && !currentClimateData)) ? <p className="tool-status">Loading climate data...</p> : null}
 
       {selectedLocation && climateQuery.isError ? (
         <div className="card">
@@ -721,29 +745,29 @@ export default function ForecastTool() {
         </div>
       ) : null}
 
-      {climateQuery.data ? (
-        <>
-          {matchedEvents.length > 0 ? (
-            <div className="card">
-              <div className="card-header card-header-inline-mobile">
-                <p className="card-title">Events During Your Dates</p>
-                <ForecastEventDisclaimer />
-              </div>
-              <div className="card-body tool-results">
-                {matchedEvents.map((event) => (
-                  <article key={event.id} className="forecast-event-card">
-                    <div className="forecast-event-title-row">
-                      <h2>{event.name}</h2>
-                      <span className="forecast-event-type">{event.type}</span>
-                    </div>
-                    <p className="forecast-event-dates">{renderEventDateRange(event)}</p>
-                    <p>{event.description}</p>
-                  </article>
-                ))}
-              </div>
-            </div>
-          ) : null}
+      {selectedLocation && matchedEvents.length > 0 ? (
+        <div className="card">
+          <div className="card-header card-header-inline-mobile">
+            <p className="card-title">Events During Your Dates</p>
+            <ForecastEventDisclaimer />
+          </div>
+          <div className="card-body tool-results">
+            {matchedEvents.map((event) => (
+              <article key={event.id} className="forecast-event-card">
+                <div className="forecast-event-title-row">
+                  <h2>{event.name}</h2>
+                  <span className="forecast-event-type">{event.type}</span>
+                </div>
+                <p className="forecast-event-dates">{renderEventDateRange(event)}</p>
+                <p>{event.description}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
+      {currentClimateData ? (
+        <>
           <div className="card">
             <div className="card-header">
               <p className="card-title">Climate Summary</p>
@@ -756,10 +780,10 @@ export default function ForecastTool() {
                   </div>
                   <p className="forecast-summary-metric-label">Avg Mean Temp</p>
                   <p className="forecast-hero-card-value">
-                    {climateQuery.data.avgMeanC}<span>°C</span>
+                    {currentClimateData.avgMeanC}<span>°C</span>
                   </p>
                   <p className="forecast-hero-card-sublabel">
-                    High {climateQuery.data.avgHighC}° · Low {climateQuery.data.avgLowC}°
+                    High {currentClimateData.avgHighC}° · Low {currentClimateData.avgLowC}°
                   </p>
                 </article>
                 <div className="forecast-support-grid" role="list" aria-label="Climate summary stats">
@@ -787,9 +811,9 @@ export default function ForecastTool() {
             </div>
             <div className="card-body tool-results">
               {dailyBreakdownView === 'table' ? (
-                <DailyTableView days={climateQuery.data.days} />
+                <DailyTableView days={currentClimateData.days} />
               ) : (
-                <DailySingleDayView days={climateQuery.data.days} />
+                <DailySingleDayView days={currentClimateData.days} />
               )}
             </div>
           </div>

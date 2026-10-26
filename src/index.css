@@ -895,6 +895,10 @@ body::before {
   gap: 14px;
 }
 
+.tool-page[aria-label="Destination forecast"] {
+  width: 100vw;
+}
+
 .tool-page h1 {
   font-size: 28px;
   line-height: 1.2;
@@ -1497,9 +1501,11 @@ body::before {
   border-radius: 50%;
 }
 
-.forecast-search-clear:hover {
-  color: var(--text);
-  background: var(--surface-3, var(--border));
+@media (hover: hover) {
+  .forecast-search-clear:hover {
+    color: var(--text);
+    background: var(--surface-3, var(--border));
+  }
 }
 
 .card.forecast-search-card,
@@ -1530,6 +1536,24 @@ body::before {
   gap: 4px;
   max-height: 280px;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-2) transparent;
+}
+
+.forecast-suggestion-list::-webkit-scrollbar {
+  width: 8px;
+}
+
+.forecast-suggestion-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.forecast-suggestion-list::-webkit-scrollbar-thumb {
+  background: var(--border-2);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
 }
 
 .forecast-suggestion-btn {
@@ -1547,12 +1571,19 @@ body::before {
   cursor: pointer;
 }
 
-.forecast-suggestion-btn:hover {
+.forecast-suggestion-btn.is-active {
   background: var(--surface-2);
 }
 
-.forecast-suggestion-btn.is-active {
-  background: var(--surface-2);
+.forecast-suggestion-btn:focus-visible {
+  outline: 2px solid var(--c3-border);
+  outline-offset: -2px;
+}
+
+@media (hover: hover) {
+  .forecast-suggestion-btn:hover {
+    background: var(--surface-2);
+  }
 }
 
 .forecast-suggestion-meta {
@@ -1734,6 +1765,14 @@ body::before {
   font-weight: 800;
   line-height: 1.25;
   overflow-wrap: anywhere;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.forecast-destination-summary-value svg {
+  flex: 0 0 auto;
+  color: var(--c3);
 }
 
 
@@ -1741,26 +1780,26 @@ body::before {
 .forecast-summary-metric {
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: var(--surface-2);
-  padding: 10px;
+  background: var(--surface);
+  padding: 9px;
   display: grid;
   gap: 8px;
-  min-height: 96px;
+  min-height: 88px;
   place-items: center;
   align-content: center;
   text-align: center;
 }
 
 .forecast-summary-metric-image {
-  width: 30px;
-  height: 30px;
+  width: 27px;
+  height: 27px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   color: var(--c3);
-  background: color-mix(in srgb, var(--c3-soft) 70%, var(--surface) 30%);
-  border: 1px solid var(--c3-border);
+  background: color-mix(in srgb, var(--c3-soft) 48%, var(--surface) 52%);
+  border: 1px solid color-mix(in srgb, var(--c3-border) 70%, transparent 30%);
 }
 
 .forecast-summary-metric-label {
@@ -1966,8 +2005,10 @@ body::before {
   line-height: 1.2;
 }
 
-.forecast-badge-btn:hover {
-  color: var(--text-2);
+@media (hover: hover) {
+  .forecast-badge-btn:hover {
+    color: var(--text-2);
+  }
 }
 
 .forecast-badge-link {
@@ -1976,8 +2017,10 @@ body::before {
   font-weight: 700;
 }
 
-.forecast-badge-link:hover {
-  text-decoration: underline;
+@media (hover: hover) {
+  .forecast-badge-link:hover {
+    text-decoration: underline;
+  }
 }
 
 .forecast-popover {
@@ -2034,8 +2077,10 @@ body::before {
   transition: background 0.15s, color 0.15s;
 }
 
-.forecast-view-toggle-btn:hover {
-  color: var(--text-2);
+@media (hover: hover) {
+  .forecast-view-toggle-btn:hover {
+    color: var(--text-2);
+  }
 }
 
 .forecast-view-toggle-btn.is-active {
@@ -2096,8 +2141,10 @@ body::before {
   transition: background 0.15s;
 }
 
-.forecast-table-row:hover {
-  background: var(--surface-2);
+@media (hover: hover) {
+  .forecast-table-row:hover {
+    background: var(--surface-2);
+  }
 }
 
 .forecast-table-row.is-expanded {
@@ -2150,6 +2197,13 @@ body::before {
 
 .forecast-table-expand.is-open .forecast-table-expand-content {
   padding: 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .forecast-table-chevron,
+  .forecast-table-expand {
+    transition: none;
+  }
 }
 
 /* Responsive table: hide columns on smaller screens */
@@ -2208,11 +2262,6 @@ body::before {
   transition: background 0.15s, color 0.15s;
 }
 
-.forecast-day-strip-arrow:hover:not(:disabled) {
-  background: var(--surface-2);
-  color: var(--text);
-}
-
 .forecast-day-strip-arrow:disabled {
   opacity: 0.35;
   cursor: not-allowed;
@@ -2227,6 +2276,7 @@ body::before {
   padding: 4px 0;
   scrollbar-width: thin;
   scrollbar-color: var(--border-2) transparent;
+  overscroll-behavior-x: contain;
 }
 
 .forecast-day-strip::-webkit-scrollbar {
@@ -2256,15 +2306,22 @@ body::before {
   white-space: nowrap;
 }
 
-.forecast-day-chip:hover {
-  border-color: var(--c3-border);
-  color: var(--text);
-}
-
 .forecast-day-chip.is-active {
   background: var(--c3-soft);
   color: var(--c3);
   border-color: var(--c3-border);
+}
+
+@media (hover: hover) {
+  .forecast-day-strip-arrow:hover:not(:disabled) {
+    background: var(--surface-2);
+    color: var(--text);
+  }
+
+  .forecast-day-chip:hover {
+    border-color: var(--c3-border);
+    color: var(--text);
+  }
 }
 
 .forecast-single-day-panel {
