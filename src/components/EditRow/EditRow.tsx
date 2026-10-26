@@ -9,6 +9,7 @@ import { useResolvedTheme } from '@/store/theme';
 import SplitAssignmentModal from '../SplitAssignmentModal';
 import Tooltip from '@/components/Tooltip';
 import { useDraftStore } from '@/store/draftStore';
+import NumericInput from '@/components/NumericInput/NumericInput';
 
 interface EditRowProps {
   initial?: {
@@ -278,12 +279,12 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
           </div>
           <div className="ef">
             <label className="ef-lbl" htmlFor={`${fieldPrefix}-amount`}>Amount</label>
-            <input
+            <NumericInput
               id={`${fieldPrefix}-amount`}
               className="ef-inp mono"
-              type="number"
               step="0.01"
               min="0"
+              aria-label="Amount"
               value={value}
               onChange={(e) => setValue(e.target.value)}
               placeholder="0.00"

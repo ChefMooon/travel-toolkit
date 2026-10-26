@@ -86,6 +86,29 @@ beforeEach(() => {
 });
 
 describe('CostRow - Who Field Clickability', () => {
+  it('keeps amount drafts alive while moving between the input and accessible step buttons', () => {
+    render(
+      <table><tbody><CostRow cost={mockCostShared} isSelected={false} onToggleSelect={vi.fn()} onEdit={vi.fn()} onDuplicate={vi.fn()} onDelete={vi.fn()} /></tbody></table>,
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Edit amount for Shared' }));
+    const input = screen.getByRole('spinbutton', { name: 'Amount for Shared' });
+    const increase = screen.getByRole('button', { name: 'Increase Amount for Shared' });
+    fireEvent.change(input, { target: { value: '203.00' } });
+    fireEvent.blur(input, { relatedTarget: increase });
+    expect(input).toBeInTheDocument();
+    expect(mockStoreState.editCost).not.toHaveBeenCalled();
+
+    increase.focus();
+    fireEvent.keyDown(increase, { key: 'Enter' });
+    fireEvent.click(increase);
+    expect(input).toHaveValue(203.01);
+    expect(mockStoreState.editCost).not.toHaveBeenCalled();
+
+    fireEvent.blur(increase, { relatedTarget: document.body });
+    expect(mockStoreState.editCost).toHaveBeenCalledWith('cost3', { value: 203.01 });
+    expect(screen.queryByRole('spinbutton', { name: 'Amount for Shared' })).not.toBeInTheDocument();
+  });
+
   it('uses a shared tooltip for the cost name without losing its accessible name', () => {
     const { container } = render(
       <table>

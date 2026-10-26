@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { RotateCcw, Undo2, Redo2 } from 'lucide-react';
+import NumericInput from '@/components/NumericInput/NumericInput';
 import { useTripStore } from '@/store/tripStore';
 import { useToastStore } from '@/store/toastStore';
 import Modal from '@/components/Modal';
@@ -232,20 +233,21 @@ export default function TripToolbar() {
 
         <div className="trip-toolbar-right">
           <div className="trip-history-controls" role="group" aria-label="Trip history">
-            <Tooltip content="Undo">
+            <Tooltip content="Undo (Ctrl+Z or Command+Z)">
               <button type="button" aria-label="Undo" disabled={!canUndo} onClick={undo}><Undo2 size={16} /></button>
             </Tooltip>
-            <Tooltip content="Redo">
+            <Tooltip content="Redo (Ctrl+Y, Ctrl+Shift+Z, or Command+Shift+Z)">
               <button type="button" aria-label="Redo" disabled={!canRedo} onClick={redo}><Redo2 size={16} /></button>
             </Tooltip>
           </div>
           {editingMarkup ? (
-            <div className="markup-pill" role="group" aria-label="Markup editor">
+            <div className="markup-pill markup-pill--editing" role="group" aria-label="Markup editor">
               <span>Markup</span>
-              <input
+              <NumericInput
                 className="markup-num"
-                type="number"
                 step="0.1"
+                shiftSteps={10}
+                acceleratedSteps={100}
                 min="0"
                 value={markupInput}
                 onChange={(e) => setMarkupInput(e.target.value)}

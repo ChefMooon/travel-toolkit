@@ -425,11 +425,41 @@ describe('CoupleCard', () => {
       await waitFor(() => expect(screen.getByLabelText('Exchange rate for EUR in US dollars')).toBeInTheDocument());
       const input = screen.getByLabelText('Exchange rate for EUR in US dollars');
       fireEvent.change(input, { target: { value: '1.25' } });
-      fireEvent.blur(input);
+      input.focus();
+      const outside = document.createElement('button');
+      document.body.append(outside);
+      outside.focus();
+      outside.remove();
       await waitFor(() => {
         const rate = useTripStore.getState().exchangeRates.find((r) => r.currency === 'EUR');
         expect(rate?.rateToUSD).toBe(1.25);
         expect(rate?.isOverridden).toBe(true);
+      });
+    });
+
+    it('keeps rate editing active while tabbing to and activating its step button', async () => {
+      useTripStore.getState().hydrateExchangeRates({ EUR: 0.91 });
+      render(<CoupleCard summary={eurSummary} />);
+      fireEvent.click(screen.getByLabelText('Edit rate for EUR'));
+      const input = await screen.findByLabelText('Exchange rate for EUR in US dollars');
+      const increase = screen.getByRole('button', { name: 'Increase Exchange rate for EUR in US dollars' });
+      const originalRate = useTripStore.getState().exchangeRates.find((rate) => rate.currency === 'EUR')?.rateToUSD;
+      fireEvent.change(input, { target: { value: '1.2500' } });
+      input.focus();
+      increase.focus();
+      expect(input).toBeInTheDocument();
+      expect(useTripStore.getState().exchangeRates.find((rate) => rate.currency === 'EUR')?.rateToUSD).toBe(originalRate);
+      increase.focus();
+      fireEvent.keyDown(increase, { key: 'ArrowUp' });
+      fireEvent.click(increase);
+      expect(input).toHaveValue(1.2501);
+      expect(useTripStore.getState().exchangeRates.find((rate) => rate.currency === 'EUR')?.rateToUSD).toBe(originalRate);
+      const outside = document.createElement('button');
+      document.body.append(outside);
+      outside.focus();
+      outside.remove();
+      await waitFor(() => {
+        expect(useTripStore.getState().exchangeRates.find((rate) => rate.currency === 'EUR')?.rateToUSD).toBe(1.2501);
       });
     });
 

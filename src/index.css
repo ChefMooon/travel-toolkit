@@ -479,6 +479,7 @@ body::before {
 
 .markup-pill {
   display: flex; align-items: center; gap: 6px;
+  box-sizing: border-box; width: 142px; flex: 0 0 142px;
   background: var(--bg-2);
   border: 1.5px solid var(--border);
   border-radius: 22px;
@@ -737,7 +738,7 @@ body::before {
   .trip-pill-clear { width: 36px; height: 36px; }
   /* font-size: 16px prevents iOS Safari from auto-zooming on input focus */
   .trip-pill-text { font-size: 16px; }
-  .markup-pill   { padding: 5px 10px; font-size: 12px; }
+  .markup-pill   { padding: 5px 10px; font-size: 12px; width: 128px; flex-basis: 128px; }
   input.markup-num { font-size: 16px; width: 62px; }
   .markup-num    { width: 44px; font-size: 12px; }
   .btn-new-trip  {
@@ -3148,14 +3149,14 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
 }
 
 @media (max-width: 479px) {
-  table.ledger tbody tr { grid-template-columns: 54px 56px minmax(61px, 1fr) auto; column-gap: 4px; }
+  table.ledger tbody tr { grid-template-columns: 54px 72px minmax(61px, 1fr) auto; column-gap: 4px; }
   table.ledger tbody td:nth-child(3) { grid-column: 1 / 3; }
   table.ledger tbody td:nth-child(11) { grid-column: 3 / 5; }
   table.ledger tbody td:nth-child(7) { grid-column: 1 / 3; }
   table.ledger tbody td:nth-child(8) { justify-content: flex-end; padding-right: 6px; }
   table.ledger .cur-select { width: 54px; min-width: 0; }
-  table.ledger .amt { width: 56px; }
-  table.ledger tbody td:nth-child(5) .inline-edit-input { width: 56px; min-width: 0; }
+  table.ledger .amt { width: 72px; }
+  table.ledger tbody td:nth-child(5) .inline-edit-input { width: 100%; min-width: 0; }
 }
 
 /* Wider cards keep details together; phone cards retain three rows. */
@@ -3234,7 +3235,8 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
 
 .cost-name { font-weight: 700; color: var(--text); }
 .ledger-inline-field { position: relative; min-width: 0; min-height: 26px; display: grid; align-items: center; }
-table.ledger td:nth-child(3) .ledger-inline-field { width: 100%; }
+table.ledger td:nth-child(3) .ledger-inline-field,
+table.ledger td:nth-child(5) .ledger-inline-field { width: 100%; }
 .ledger-inline-field > div { display: grid; align-self: stretch; }
 table.ledger .ledger-inline-field .cell-edit-trigger {
   width: 100%; min-height: 26px; border-radius: 5px;
@@ -4005,6 +4007,68 @@ tr.add-row td { padding: 0; border: none; }
   border-color: var(--focus);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--focus) 35%, transparent);
 }
+
+/* ── THEMED NUMBER STEPPERS ── */
+.numeric-input {
+  display: inline-flex;
+  align-items: stretch;
+  min-width: 0;
+  border-radius: 7px;
+  overflow: hidden;
+  vertical-align: middle;
+}
+.numeric-input:focus-within {
+  outline: 2px solid color-mix(in srgb, var(--focus) 42%, transparent);
+  outline-offset: 1px;
+}
+.numeric-input-field {
+  min-width: 0;
+  border-top-right-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+}
+.ledger-inline-field > .numeric-input { width: 100%; }
+table.ledger .ledger-inline-field > .numeric-input {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+}
+.numeric-input-field::-webkit-inner-spin-button,
+.numeric-input-field::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.numeric-input-field { appearance: textfield; }
+.numeric-input-controls {
+  display: flex;
+  flex: 0 0 20px;
+  flex-direction: column;
+  border: 1px solid var(--border-2);
+  border-left: 0;
+  background: var(--bg-2);
+}
+.numeric-input-controls button {
+  display: grid;
+  flex: 1;
+  min-height: 0;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.numeric-input-controls button + button { border-top: 1px solid var(--border); }
+.numeric-input-controls button:hover:not(:disabled) { background: var(--c3-soft); color: var(--c3); }
+.numeric-input-controls button:disabled { color: var(--text-3); cursor: default; opacity: .55; }
+.numeric-input-controls button:focus-visible { z-index: 1; outline: 2px solid var(--focus); outline-offset: -2px; }
+.numeric-input-controls svg { width: 9px; height: 6px; fill: none; stroke: currentColor; stroke-width: 1.5; }
+.numeric-input.is-disabled { opacity: .6; }
+.numeric-input:has(.numeric-input-field:read-only) .numeric-input-controls { opacity: .55; }
+.markup-pill--editing { padding: 2px 4px 2px 12px; cursor: text; }
+.markup-pill--editing:focus-within { border-color: var(--focus); box-shadow: 0 0 0 2px color-mix(in srgb, var(--focus) 25%, transparent); }
+.markup-pill--editing .numeric-input { height: 28px; flex: 1; border-radius: 14px; }
+.markup-pill--editing .numeric-input:focus-within { outline: none; }
+.markup-pill--editing .numeric-input-field { width: 0; flex: 1; padding: 0 4px; }
+.markup-pill--editing .numeric-input-controls { flex-basis: 22px; border: 0; border-left: 1px solid var(--border); background: transparent; }
+.markup-pill--editing .numeric-input-controls button + button { border-top: 1px solid var(--border); }
+.numeric-input:has(.ex-inp) .numeric-input-controls { flex-basis: 18px; }
 
 .usd-eq {
   font-size: 11px; font-family: 'JetBrains Mono', monospace; font-weight: 600;

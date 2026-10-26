@@ -8,6 +8,7 @@ import Tooltip from '@/components/Tooltip';
 import type { CoupleSummary } from '@/store/types';
 import { useResolvedTheme } from '@/store/theme';
 import { getGroupPresentation } from '@/lib/groupPresentation';
+import NumericInput from '@/components/NumericInput/NumericInput';
 
 interface CoupleCardProps {
   summary: CoupleSummary;
@@ -136,10 +137,10 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
                       <label htmlFor={rateInputId} className="sr-only">
                         Exchange rate for {curr.currency} in US dollars
                       </label>
-                      <input
+                      <NumericInput
                         id={rateInputId}
+                        aria-label={`Exchange rate for ${curr.currency} in US dollars`}
                         className="ex-inp"
-                        type="number"
                         step="0.0001"
                         min="0"
                         autoFocus
@@ -183,10 +184,10 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
                       <label htmlFor={rateInputId} className="sr-only">
                         Exchange rate for {curr.currency} in US dollars
                       </label>
-                      <input
+                      <NumericInput
                         id={rateInputId}
+                        aria-label={`Exchange rate for ${curr.currency} in US dollars`}
                         className="ex-inp"
-                        type="number"
                         step="0.0001"
                         min="0"
                         value={rate.rateToUSD}

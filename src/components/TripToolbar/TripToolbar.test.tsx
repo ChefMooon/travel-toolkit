@@ -236,6 +236,24 @@ describe('TripToolbar', () => {
     expect(mockStoreState.setGlobalMarkup).not.toHaveBeenCalled();
   });
 
+  it('keeps markup editing active while tabbing to and activating its step button', () => {
+    render(<TripToolbar />);
+    fireEvent.click(screen.getByRole('button', { name: /Markup/i }));
+    const input = screen.getByLabelText('Global markup percentage');
+    const increase = screen.getByRole('button', { name: 'Increase Global markup percentage' });
+    input.focus();
+    fireEvent.blur(input, { relatedTarget: increase });
+    expect(input).toBeInTheDocument();
+    expect(mockStoreState.setGlobalMarkup).not.toHaveBeenCalled();
+    increase.focus();
+    fireEvent.keyDown(increase, { key: 'ArrowUp' });
+    fireEvent.click(increase);
+    expect(input).toHaveValue(50.1);
+    expect(mockStoreState.setGlobalMarkup).not.toHaveBeenCalled();
+    fireEvent.blur(increase, { relatedTarget: document.body });
+    expect(mockStoreState.setGlobalMarkup).toHaveBeenCalledWith(50.1);
+  });
+
   it('shows the saved slot when the current snapshot is saved, even if the dirty flag is set', () => {
     mockSaveStoreState.slots[0] = createSlot(baseSnapshot, 0);
     mockStoreState.isDirty = true;

@@ -4,6 +4,7 @@ import { getEffectiveMarkup, getCostWithMarkup, formatCurrency, validateCost } f
 import { createPortal } from 'react-dom';
 import { Pencil, Copy, Trash2, GripVertical, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
 import type { CostEntry, SplitType } from '@/store/types';
+import NumericInput from '@/components/NumericInput/NumericInput';
 import { getAvailableCurrencies, getColorThemeValue, COST_ENTRY_TYPES } from '@/store/types';
 import { useResolvedTheme } from '@/store/theme';
 import { useSortable } from '@dnd-kit/sortable';
@@ -360,18 +361,23 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
         />
       </td>
       <td>
-        <div className="ledger-inline-field">
+        <div
+          className="ledger-inline-field"
+          onBlur={(event) => {
+            if (editingField === 'amount' && !event.currentTarget.contains(event.relatedTarget as Node | null)) {
+              handleAmountSave();
+            }
+          }}
+        >
         {editingField === 'amount' && (
-          <input
+          <NumericInput
             ref={amountInputRef}
             className="inline-edit-input mono"
-            type="number"
             step="0.01"
             min="0"
             value={editAmount}
             aria-label={`Amount for ${cost.name}`}
             onChange={(e) => setEditAmount(e.target.value)}
-            onBlur={handleAmountSave}
             onKeyDown={handleAmountKeyDown}
           />
         )}
