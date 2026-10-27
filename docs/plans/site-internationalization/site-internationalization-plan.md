@@ -1,17 +1,17 @@
 ---
 title: "Site Internationalization with i18next - Implementation Plan"
 plan_profile: FULL
-status: DRAFT
-verification_status: NOT_RUN
+status: IN_PROGRESS
+verification_status: PARTIAL
 current_phase: 1 / 4
 created: 2026-10-26
-last_updated: 2026-10-26
+last_updated: 2026-10-27
 ---
 
 # Overall Plan Completion Status
 
 - **Total Phases Completed:** 0 / 4
-- **Summary of Outcome:** Planning only. No dependencies, application code, translations, or tests have been implemented. Execute later after revalidating the shared checkout. All implementation acceptance checks remain pending.
+- **Summary of Outcome:** A scoped global-settings implementation has installed i18next/react-i18next, added an English resource catalog and initialized the shared English runtime. The product remains English-only, with no additional selectable locale. This establishes runtime groundwork but does not complete Phase 1's language selector/metadata contract or any later internationalization phase. See `docs/plans/global-settings/global-settings-plan.md` for scope and verification. Translation coverage, localized formatting, catalog parity, RTL preparation, and additional-language review remain pending.
 
 # Specification & Overview
 

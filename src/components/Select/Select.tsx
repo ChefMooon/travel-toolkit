@@ -76,7 +76,7 @@ export default function Select({ id, value, options, onChange, getOptionLabel = 
     if (disabled) return;
     const index = Math.max(0, options.indexOf(open ? active : value));
     if (event.key === 'Tab') { setOpen(false); return; }
-    if (event.key === 'Escape') { setOpen(false); return; }
+    if (event.key === 'Escape') { if (open) event.stopPropagation(); setOpen(false); return; }
     if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); if (open) commit(active); else openAt(); return; }
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Home' || event.key === 'End') {
       event.preventDefault();

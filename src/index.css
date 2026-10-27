@@ -6404,6 +6404,13 @@ table.ledger .ledger-inline-field > .numeric-input {
 }
 .shared-select.bulk-sel { min-height: 28px; padding: 4px 8px; gap: 7px; background-image: none; }
 
+.settings-menu { position: relative; }
+.global-settings-panel { position: absolute; z-index: 1200; right: 0; top: calc(100% + 8px); display: grid; gap: 12px; width: min(280px, calc(100vw - 24px)); padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); box-shadow: 0 12px 32px #0002; }
+.global-settings-panel label { display: grid; gap: 5px; color: var(--text-2); font-size: 12px; font-weight: 700; }
+.global-settings-theme { display: grid; gap: 5px; color: var(--text-2); font-size: 12px; font-weight: 700; }
+.global-settings-theme .theme-selector { width: 100%; }
+.global-settings-panel .shared-select { min-height: 36px; padding: 6px 9px; border-radius: 7px; font-size: 12px; }
+
 @media (hover: hover) and (pointer: fine) {
   .shared-select-option:hover { background: var(--surface-2); }
 }

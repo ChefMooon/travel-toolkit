@@ -241,13 +241,13 @@ export async function fetchClimateData(
   };
 }
 
-export function getLocalTimeAtDestination(timezone: string): string {
+export function getLocalTimeAtDestination(timezone: string, hour12 = true): string {
   return new Intl.DateTimeFormat('en-US', {
     timeZone: timezone,
     hour: '2-digit',
     minute: '2-digit',
     second: '2-digit',
-    hour12: true,
+    hour12,
     weekday: 'short',
   }).format(new Date());
 }

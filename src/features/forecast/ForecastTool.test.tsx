@@ -13,6 +13,7 @@ vi.mock('@/features/forecast/useForecast', () => ({
 }));
 
 import { useGeocode, useClimateData } from '@/features/forecast/useForecast';
+import { useSettingsStore } from '@/store/settingsStore';
 
 const mockLocation: GeoLocation = {
   id: 1,
@@ -65,6 +66,7 @@ function selectFirstSuggestion() {
 
 describe('ForecastTool', () => {
   beforeEach(() => {
+    useSettingsStore.setState({ measurementSystem: 'metric', clockFormat: '12h' });
     vi.clearAllMocks();
     vi.useFakeTimers();
     // jsdom does not implement scrollIntoView; mock it to prevent errors
@@ -139,6 +141,21 @@ describe('ForecastTool', () => {
     const climateStatsList = screen.getByRole('list', { name: 'Climate summary stats' });
     expect(within(climateStatsList).getByText('Precipitation')).toBeInTheDocument();
     expect(within(climateStatsList).getByText('Sunshine')).toBeInTheDocument();
+  });
+
+  it('converts forecast displays to imperial without changing fetched values', () => {
+    useSettingsStore.getState().setMeasurementSystem('imperial');
+    (useGeocode as ReturnType<typeof vi.fn>).mockReturnValue(readyGeoQuery);
+    (useClimateData as ReturnType<typeof vi.fn>).mockReturnValue(readyClimateQuery);
+    render(<ForecastTool />);
+    selectFirstSuggestion();
+
+    expect(screen.getByText('58')).toBeInTheDocument();
+    expect(screen.getByText('°F')).toBeInTheDocument();
+    const climateStatsList = screen.getByRole('list', { name: 'Climate summary stats' });
+    expect(within(climateStatsList).getAllByText('in/day').length).toBeGreaterThan(0);
+    expect(within(climateStatsList).getByText('11')).toBeInTheDocument();
+    expect(mockClimateSummary.avgMeanC).toBe(14.3);
   });
 
   it('FE-FOR-007 events section appears when events overlap the selected date range', () => {

@@ -5,17 +5,19 @@ import { getAvailableCurrencies } from '@/store/types';
 import { useTripRates } from '@/features/currency/useTripRates';
 import Select from '@/components/Select/Select';
 import CoupleCard from '../CoupleCard';
+import { useSettingsStore } from '@/store/settingsStore';
 
 function formatRateDate(dateStr: string) {
   const d = new Date(`${dateStr}T00:00:00Z`);
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 }
 
-function formatFetchTime(isoStr: string) {
-  return new Date(isoStr).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+function formatFetchTime(isoStr: string, hour12: boolean) {
+  return new Date(isoStr).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12 });
 }
 
 export default function CostSummary() {
+  const clockFormat = useSettingsStore((s) => s.clockFormat);
   const couples = useTripStore((s) => s.couples);
   const costs = useTripStore((s) => s.costs);
   const globalMarkup = useTripStore((s) => s.globalMarkup);
@@ -188,7 +190,7 @@ export default function CostSummary() {
                 update on business days — the ECB publishes reference rates around 16:00 CET.
                 Weekends and public holidays use the most recent prior business day's rates.{' '}
                 Rate date: {formatRateDate(tripRatesQuery.data.updatedAt)} · Retrieved{' '}
-                {formatFetchTime(tripRatesQuery.data.fetchedAt)}.
+                {formatFetchTime(tripRatesQuery.data.fetchedAt, clockFormat === '12h')}.
               </p>
             </div>
           </div>

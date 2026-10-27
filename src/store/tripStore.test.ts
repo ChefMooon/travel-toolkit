@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useTripStore } from './tripStore';
+import { useSettingsStore } from './settingsStore';
 import { useToastStore } from './toastStore';
 import { useSaveSlotStore } from './saveSlotStore';
-import { useSettingsStore } from './settingsStore';
 import {
   MAX_GROUPS,
   MAX_KIDS_PER_GROUP,
@@ -294,6 +294,13 @@ describe('tripStore — new actions', () => {
       useTripStore.getState().setTargetCurrency('EUR');
       useTripStore.getState().resetTrip();
       expect(useTripStore.getState().targetCurrency).toBe('USD');
+    });
+
+    it('uses the current preferred currency for a new trip and selects a supporting region', () => {
+      useSettingsStore.getState().setPreferredCurrency('JPY');
+      useTripStore.getState().resetTrip();
+      expect(useTripStore.getState()).toMatchObject({ region: 'Asia', targetCurrency: 'JPY' });
+      useSettingsStore.getState().setPreferredCurrency('USD');
     });
   });
 });

@@ -3,6 +3,7 @@ import type { TrackedZone } from '@/store/timezoneStore';
 import AnalogClock from './AnalogClock';
 import DigitalClock from './DigitalClock';
 import { getClockDisplayData } from './timezoneFormat';
+import { useSettingsStore } from '@/store/settingsStore';
 
 interface ClockCardProps {
   zone: TrackedZone;
@@ -11,6 +12,7 @@ interface ClockCardProps {
 
 export default function ClockCard({ zone, now }: ClockCardProps) {
   const data = getClockDisplayData(now, zone.tz);
+  const clockFormat = useSettingsStore((s) => s.clockFormat);
 
   return (
     <div className="card" style={{ height: '100%' }}>
@@ -44,7 +46,7 @@ export default function ClockCard({ zone, now }: ClockCardProps) {
         {zone.displayMode === 'analog' ? (
           <>
             <span className="timezone-visually-hidden">
-              {data.time12}{zone.showDate ? `, ${data.date}` : ''}
+              {clockFormat === '24h' ? data.time24 : data.time12}{zone.showDate ? `, ${data.date}` : ''}
             </span>
             <AnalogClock hourDeg={data.hourDeg} minuteDeg={data.minuteDeg} secondDeg={data.secondDeg} />
             {zone.showDate && (

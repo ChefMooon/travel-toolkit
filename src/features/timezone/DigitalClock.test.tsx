@@ -1,11 +1,12 @@
 /// <reference types="vitest" />
 /// <reference types="@testing-library/jest-dom" />
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import DigitalClock from '@/features/timezone/DigitalClock';
 import type { ClockDisplayData } from '@/features/timezone/timezoneFormat';
 import type { TrackedZone } from '@/store/timezoneStore';
+import { useSettingsStore } from '@/store/settingsStore';
 
 const mockDisplayData: ClockDisplayData = {
   time24: '14:30:45',
@@ -35,11 +36,11 @@ function makeZone(overrides: Partial<TrackedZone> = {}): TrackedZone {
 }
 
 describe('DigitalClock', () => {
-  it('FE-TZ-003 compact detailLevel shows HH:mm only', () => {
+  beforeEach(() => useSettingsStore.setState({ clockFormat: '12h' }));
+  it('FE-TZ-003 compact detailLevel shows compact time in the selected clock format', () => {
     render(<DigitalClock displayData={mockDisplayData} zone={makeZone({ detailLevel: 'compact' })} />);
 
-    expect(screen.getByText('14:30')).toBeInTheDocument();
-    expect(screen.queryByText(/PM/)).not.toBeInTheDocument();
+    expect(screen.getByText('02:30 PM')).toBeInTheDocument();
   });
 
   it('FE-TZ-004 detailed detailLevel with showSeconds shows full time12 including AM/PM', () => {
@@ -51,5 +52,12 @@ describe('DigitalClock', () => {
     );
 
     expect(screen.getByText('02:30:45 PM')).toBeInTheDocument();
+  });
+
+  it('uses the global 24-hour setting while preserving compact and seconds preferences', () => {
+    useSettingsStore.getState().setClockFormat('24h');
+    render(<DigitalClock displayData={mockDisplayData} zone={makeZone({ detailLevel: 'detailed', showSeconds: true })} />);
+    expect(screen.getByText('14:30:45')).toBeInTheDocument();
+    expect(screen.queryByText(/AM|PM/)).not.toBeInTheDocument();
   });
 });

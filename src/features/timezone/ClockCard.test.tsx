@@ -32,8 +32,8 @@ describe('ClockCard', () => {
     render(<ClockCard zone={makeZone({ displayMode: 'digital' })} now={mockNow} />);
 
     expect(screen.getByText('UTC Time')).toBeInTheDocument();
-    // UTC at 12:00 → compact time = '12:00'
-    expect(screen.getByText('12:00')).toBeInTheDocument();
+    // UTC at noon uses the global default 12-hour format.
+    expect(screen.getByText('12:00 PM')).toBeInTheDocument();
   });
 
   it('FE-TZ-008b displayMode=analog renders an SVG clock face', () => {

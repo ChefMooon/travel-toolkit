@@ -1,5 +1,6 @@
 import type { TrackedZone } from '@/store/timezoneStore';
 import type { ClockDisplayData } from './timezoneFormat';
+import { useSettingsStore } from '@/store/settingsStore';
 
 interface DigitalClockProps {
   displayData: ClockDisplayData;
@@ -11,12 +12,13 @@ function removeSeconds(time: string): string {
 }
 
 export default function DigitalClock({ displayData, zone }: DigitalClockProps) {
+  const clockFormat = useSettingsStore((s) => s.clockFormat);
   const clockText =
     zone.detailLevel === 'compact'
-      ? displayData.timeCompact
+      ? (clockFormat === '24h' ? displayData.timeCompact : removeSeconds(displayData.time12))
       : zone.showSeconds
-        ? displayData.time12
-        : removeSeconds(displayData.time12);
+        ? (clockFormat === '24h' ? displayData.time24 : displayData.time12)
+        : removeSeconds(clockFormat === '24h' ? displayData.time24 : displayData.time12);
 
   return (
     <div

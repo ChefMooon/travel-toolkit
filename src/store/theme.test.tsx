@@ -103,6 +103,10 @@ describe('theme preference settings and resolution', () => {
       exportFilenamePreset: 'tripId',
       exportIncludeDate: true,
       importExchangeRateMode: 'hybrid',
+      measurementSystem: 'metric',
+      clockFormat: '12h',
+      preferredCurrency: 'USD',
+      language: 'en',
     });
     expect(persisted.state).not.toHaveProperty('resolvedTheme');
   });

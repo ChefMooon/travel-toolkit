@@ -24,6 +24,8 @@ import { getEventsForRange } from './forecastEvents';
 import type { DailyClimate, ForecastEvent, GeoLocation } from './forecastTypes';
 import { FORECAST_GEOCODE_MIN_QUERY_LENGTH, useClimateData, useGeocode } from './useForecast';
 import { useForecastStore } from '../../store/forecastStore';
+import { useSettingsStore } from '@/store/settingsStore';
+import { climateDisplay } from './climateUnits';
 
 const FORECAST_GEOCODE_DEBOUNCE_MS = 500;
 
@@ -224,6 +226,7 @@ function DailyBreakdownToggle() {
 }
 
 function DailyTableView({ days }: { days: DailyClimate[] }) {
+  const imperial = useSettingsStore((s) => s.measurementSystem === 'imperial');
   const [expandedDate, setExpandedDate] = useState<string | null>(null);
 
   const toggleRow = (date: string) => {
@@ -257,10 +260,10 @@ function DailyTableView({ days }: { days: DailyClimate[] }) {
                 {formatMonthDay(day.date)}
               </span>
               <span className="forecast-table-cell" role="cell">
-                {day.tempMaxC} / {day.tempMinC} <span className="forecast-table-unit">°C</span>
+                {climateDisplay(day.tempMaxC, '°C', imperial).value} / {climateDisplay(day.tempMinC, '°C', imperial).value} <span className="forecast-table-unit">{imperial ? '°F' : '°C'}</span>
               </span>
               <span className="forecast-table-cell forecast-table-col-hide" role="cell">
-                {precipMetric.value} <span className="forecast-table-unit">{precipMetric.unit}</span>
+                {climateDisplay(precipMetric.value, precipMetric.unit, imperial).value} <span className="forecast-table-unit">{climateDisplay(precipMetric.value, precipMetric.unit, imperial).unit}</span>
               </span>
               <span className="forecast-table-cell forecast-table-col-hide-sm" role="cell">
                 {day.sunshineDurationHrs} <span className="forecast-table-unit">hrs</span>
@@ -281,8 +284,8 @@ function DailyTableView({ days }: { days: DailyClimate[] }) {
                     </div>
                     <p className="forecast-summary-metric-label">{metric.label}</p>
                     <p className="forecast-summary-metric-value">
-                      {metric.value}
-                      <span>{metric.unit}</span>
+                      {climateDisplay(metric.value, metric.unit, imperial).value}
+                      <span>{climateDisplay(metric.value, metric.unit, imperial).unit}</span>
                     </p>
                   </article>
                 ))}
@@ -296,6 +299,7 @@ function DailyTableView({ days }: { days: DailyClimate[] }) {
 }
 
 function DailySingleDayView({ days }: { days: DailyClimate[] }) {
+  const imperial = useSettingsStore((s) => s.measurementSystem === 'imperial');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const stripRef = useRef<HTMLDivElement>(null);
 
@@ -364,7 +368,7 @@ function DailySingleDayView({ days }: { days: DailyClimate[] }) {
             </div>
             <p className="forecast-summary-metric-label">High / Low</p>
             <p className="forecast-summary-metric-value">
-              {selectedDay.tempMaxC} / {selectedDay.tempMinC}<span>°C</span>
+              {climateDisplay(selectedDay.tempMaxC, '°C', imperial).value} / {climateDisplay(selectedDay.tempMinC, '°C', imperial).value}<span>{imperial ? '°F' : '°C'}</span>
             </p>
           </article>
           <article className="forecast-summary-metric">
@@ -373,7 +377,7 @@ function DailySingleDayView({ days }: { days: DailyClimate[] }) {
             </div>
             <p className="forecast-summary-metric-label">{precipMetric.label}</p>
             <p className="forecast-summary-metric-value">
-              {precipMetric.value}<span>{precipMetric.unit}</span>
+              {climateDisplay(precipMetric.value, precipMetric.unit, imperial).value}<span>{climateDisplay(precipMetric.value, precipMetric.unit, imperial).unit}</span>
             </p>
           </article>
           <article className="forecast-summary-metric">
@@ -404,7 +408,7 @@ function DailySingleDayView({ days }: { days: DailyClimate[] }) {
               </div>
               <p className="forecast-summary-metric-label">{metric.label}</p>
               <p className="forecast-summary-metric-value">
-                {metric.value}<span>{metric.unit}</span>
+                {climateDisplay(metric.value, metric.unit, imperial).value}<span>{climateDisplay(metric.value, metric.unit, imperial).unit}</span>
               </p>
             </article>
           ))}
@@ -415,6 +419,8 @@ function DailySingleDayView({ days }: { days: DailyClimate[] }) {
 }
 
 export default function ForecastTool() {
+  const clockFormat = useSettingsStore((s) => s.clockFormat);
+  const imperial = useSettingsStore((s) => s.measurementSystem === 'imperial');
   const suggestionListId = 'forecast-suggestion-list';
   const today = useMemo(() => new Date(), []);
   const todayInput = useMemo(() => toInputDate(today), [today]);
@@ -447,15 +453,15 @@ export default function ForecastTool() {
       return;
     }
 
-    setLocalTime(getLocalTimeAtDestination(selectedLocation.timezone));
+    setLocalTime(getLocalTimeAtDestination(selectedLocation.timezone, clockFormat === '12h'));
     const intervalId = globalThis.setInterval(() => {
-      setLocalTime(getLocalTimeAtDestination(selectedLocation.timezone));
+      setLocalTime(getLocalTimeAtDestination(selectedLocation.timezone, clockFormat === '12h'));
     }, 1000);
 
     return () => {
       globalThis.clearInterval(intervalId);
     };
-  }, [selectedLocation]);
+  }, [clockFormat, selectedLocation]);
 
   const { dailyBreakdownView } = useForecastStore();
 
@@ -780,10 +786,10 @@ export default function ForecastTool() {
                   </div>
                   <p className="forecast-summary-metric-label">Avg Mean Temp</p>
                   <p className="forecast-hero-card-value">
-                    {currentClimateData.avgMeanC}<span>°C</span>
+                    {climateDisplay(currentClimateData.avgMeanC, '°C', imperial).value}<span>{imperial ? '°F' : '°C'}</span>
                   </p>
                   <p className="forecast-hero-card-sublabel">
-                    High {currentClimateData.avgHighC}° · Low {currentClimateData.avgLowC}°
+                    High {climateDisplay(currentClimateData.avgHighC, '°C', imperial).value}° · Low {climateDisplay(currentClimateData.avgLowC, '°C', imperial).value}°
                   </p>
                 </article>
                 <div className="forecast-support-grid" role="list" aria-label="Climate summary stats">
@@ -794,8 +800,8 @@ export default function ForecastTool() {
                       </div>
                       <p className="forecast-summary-metric-label">{metric.label}</p>
                       <p className="forecast-summary-metric-value">
-                        {metric.value}
-                        <span>{metric.unit}</span>
+                        {climateDisplay(metric.value, metric.unit, imperial).value}
+                        <span>{climateDisplay(metric.value, metric.unit, imperial).unit}</span>
                       </p>
                     </article>
                   ))}

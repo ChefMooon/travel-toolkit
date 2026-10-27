@@ -9,6 +9,7 @@ import Tooltip from '@/components/Tooltip';
 import Select from '@/components/Select/Select';
 import NumericInput from '@/components/NumericInput/NumericInput';
 import { ArrowLeftRight, ArrowRight, ChevronDown, ChevronRight, ExternalLink } from 'lucide-react';
+import { useSettingsStore } from '@/store/settingsStore';
 
 function formatRateDate(dateStr: string) {
   // API date is YYYY-MM-DD (UTC); parse as UTC to avoid day-offset in negative-offset timezones
@@ -16,8 +17,8 @@ function formatRateDate(dateStr: string) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 }
 
-function formatFetchTime(isoStr: string) {
-  return new Date(isoStr).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+function formatFetchTime(isoStr: string, hour12: boolean) {
+  return new Date(isoStr).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12 });
 }
 
 function parseAmount(input: string) {
@@ -49,6 +50,8 @@ export default function CurrencyTool() {
   const setBaseCurrency = useCurrencyStore((s) => s.setBaseCurrency);
   const setTargetCurrency = useCurrencyStore((s) => s.setTargetCurrency);
   const availableCurrencies = useMemo(() => getAvailableCurrencies(region), [region]);
+  const preferredCurrency = useSettingsStore((s) => s.preferredCurrency);
+  const clockFormat = useSettingsStore((s) => s.clockFormat);
 
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -97,7 +100,7 @@ export default function CurrencyTool() {
   }
 
   function handleReset() {
-    const defaultBase = getDefaultCurrency(region);
+    const defaultBase = availableCurrencies.includes(preferredCurrency) ? preferredCurrency : getDefaultCurrency(region);
     const defaultTarget = availableCurrencies.includes('USD') && 'USD' !== defaultBase
       ? 'USD'
       : (availableCurrencies.find((c) => c !== defaultBase) ?? availableCurrencies[0] ?? 'USD');
@@ -198,7 +201,7 @@ export default function CurrencyTool() {
           <div className="card-header">
             <p className="card-title">Rate Snapshot</p>
             <p className="tool-meta">
-              Rates from {formatRateDate(snapshotQuery.data.updatedAt)} · Retrieved {formatFetchTime(snapshotQuery.data.fetchedAt)}
+              Rates from {formatRateDate(snapshotQuery.data.updatedAt)} · Retrieved {formatFetchTime(snapshotQuery.data.fetchedAt, clockFormat === '12h')}
             </p>
           </div>
           <div className="card-body currency-result">

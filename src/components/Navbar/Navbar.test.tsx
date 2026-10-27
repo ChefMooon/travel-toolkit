@@ -54,6 +54,7 @@ describe('Navbar', () => {
 
   it('exposes a synchronized accessible slider for all theme preferences', () => {
     render(<Navbar />);
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
 
     const selector = screen.getByRole('radiogroup', { name: 'Theme preference' });
     const systemRadio = screen.getByRole('radio', { name: 'System theme' });
@@ -83,6 +84,7 @@ describe('Navbar', () => {
 
   it('supports arrow and Home/End keyboard navigation within the theme slider', () => {
     render(<Navbar />);
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
 
     const systemRadio = screen.getByRole('radio', { name: 'System theme' });
     const lightRadio = screen.getByRole('radio', { name: 'Light theme' });
@@ -118,6 +120,7 @@ describe('Navbar', () => {
     expect(screen.getByTestId('grid-panel-state')).toHaveTextContent('open');
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
     const systemRadio = screen.getByRole('radio', { name: 'System theme' });
     fireEvent.pointerDown(systemRadio, { pointerType: 'touch' });
     expect(screen.getByRole('tooltip')).toHaveTextContent('Use system theme');

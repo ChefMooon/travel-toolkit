@@ -3,8 +3,8 @@ import { Grid2X2 } from 'lucide-react';
 import Logo from '@/components/Logo';
 import GridPanel from '@/components/GridPanel';
 import Tooltip from '@/components/Tooltip';
-import ThemeSelector from '@/components/ThemeSelector/ThemeSelector';
 import { Link } from '@tanstack/react-router';
+import SettingsMenu from '@/components/SettingsMenu/SettingsMenu';
 
 export default function Navbar() {
   const [gridOpen, setGridOpen] = useState(false);
@@ -35,7 +35,7 @@ export default function Navbar() {
           </button>
         </Tooltip>
 
-        <ThemeSelector />
+        <SettingsMenu />
       </div>
 
       <GridPanel open={gridOpen} onClose={closeGrid} triggerRef={triggerRef} />

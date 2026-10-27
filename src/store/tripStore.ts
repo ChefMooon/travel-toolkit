@@ -11,7 +11,8 @@ import {
 } from './types';
 import { useToastStore } from './toastStore';
 import { useSaveSlotStore } from './saveSlotStore';
-import { migrateLegacyThemePreferenceBeforeTripCleanup } from './settingsStore';
+import { migrateLegacyThemePreferenceBeforeTripCleanup, useSettingsStore } from './settingsStore';
+import { getAvailableCurrencies, REGION_LIST } from './types';
 
 function generateId(): string {
   return crypto.randomUUID();
@@ -94,6 +95,12 @@ const nextColorIndex = (couples: Couple[]): number => {
   return ((couples.length) % 5) + 1;
 };
 
+function getNewTripDefaults() {
+  const targetCurrency = useSettingsStore.getState().preferredCurrency;
+  const region = REGION_LIST.find((candidate) => getAvailableCurrencies(candidate).includes(targetCurrency)) ?? 'Europe';
+  return { region, targetCurrency };
+}
+
 const initialState = {
   tripId: generateTripId(),
   tripName: 'My Trip',
@@ -102,8 +109,7 @@ const initialState = {
   nonPayingTravellers: [] as NonPayingTraveller[],
   costs: [] as CostEntry[],
   exchangeRates: [] as ExchangeRate[],
-  region: 'Europe' as const,
-  targetCurrency: 'USD',
+  ...getNewTripDefaults(),
   isDirty: false,
   canUndo: false,
   canRedo: false,
@@ -486,6 +492,7 @@ export const useTripStore = create<TripStore>()(
         past = []; future = []; baseline = null; historyReady = true; suppressHistory = true;
         set({
           ...initialState,
+          ...getNewTripDefaults(),
           tripId: generateTripId(),
           isDirty: false,
           canUndo: false, canRedo: false,
