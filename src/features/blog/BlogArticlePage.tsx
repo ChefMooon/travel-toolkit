@@ -1,4 +1,5 @@
 import { Link, useLoaderData } from '@tanstack/react-router';
+import { ArrowLeft } from 'lucide-react';
 import { BlogTagLinks } from '@/components/BlogTagLinks';
 import { BlogMarkdown } from '@/components/BlogMarkdown';
 import { getBlogPostDisplayDate } from '@/lib/blogPosts';
@@ -15,6 +16,7 @@ export default function BlogArticlePage() {
             search={{ tag: undefined }}
             className="blog-back-link"
           >
+            <ArrowLeft aria-hidden="true" size={16} />
             Back to Blog
           </Link>
           <h1 id="blog-article-title">{post.title}</h1>

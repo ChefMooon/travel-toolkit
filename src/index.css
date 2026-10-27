@@ -1030,13 +1030,7 @@ body::before {
   transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-.blog-tag-link:hover {
-  border-color: var(--c3);
-  color: var(--c3);
-}
-
 .blog-tag-link:focus-visible,
-.blog-post-title-link:focus-visible,
 .blog-clear-filter-link:focus-visible,
 .blog-markdown a:focus-visible {
   outline: 2px solid var(--focus);
@@ -1074,12 +1068,7 @@ body::before {
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
 
-.blog-post-card:hover {
-  border-color: var(--c3);
-  box-shadow: var(--shadow);
-}
-
-.blog-post-card:focus-within {
+.blog-post-card:has(.blog-post-title-link:focus-visible) {
   outline: 2px solid var(--focus);
   outline-offset: 3px;
 }
@@ -1114,9 +1103,24 @@ body::before {
   border-radius: inherit;
 }
 
-.blog-post-card:hover .blog-post-title-link,
 .blog-post-title-link:focus-visible {
   color: var(--c3);
+}
+
+@media (hover: hover) {
+  .blog-tag-link:hover {
+    border-color: var(--c3);
+    color: var(--c3);
+  }
+
+  .blog-post-card:hover {
+    border-color: var(--c3);
+    box-shadow: var(--shadow);
+  }
+
+  .blog-post-card:hover .blog-post-title-link {
+    color: var(--c3);
+  }
 }
 
 .blog-post-date {
@@ -1158,21 +1162,15 @@ body::before {
     transform 0.15s ease;
 }
 
-.blog-back-link:hover {
-  border-color: var(--c3);
-  background: var(--c3-soft);
-}
-
-.blog-back-link:active {
-  transform: translateY(1px);
-}
-
 .blog-back-link:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
 .blog-article {
+  width: min(100%, 70ch);
+  min-width: 0;
+  margin-inline: auto;
   display: grid;
   gap: 20px;
 }
@@ -1183,6 +1181,20 @@ body::before {
   color: var(--text);
   line-height: 1.7;
   overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+@media (hover: hover) {
+  .blog-back-link:hover {
+    border-color: var(--c3);
+    background: var(--c3-soft);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .blog-back-link:active {
+    transform: translateY(1px);
+  }
 }
 
 .blog-markdown h2,
