@@ -106,6 +106,7 @@ describe('theme preference settings and resolution', () => {
       measurementSystem: 'metric',
       clockFormat: '12h',
       preferredCurrency: 'USD',
+      preferredRegion: null,
       language: 'en',
     });
     expect(persisted.state).not.toHaveProperty('resolvedTheme');

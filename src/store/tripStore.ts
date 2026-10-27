@@ -12,7 +12,7 @@ import {
 import { useToastStore } from './toastStore';
 import { useSaveSlotStore } from './saveSlotStore';
 import { migrateLegacyThemePreferenceBeforeTripCleanup, useSettingsStore } from './settingsStore';
-import { getAvailableCurrencies, REGION_LIST } from './types';
+import { getAvailableCurrencies, getDefaultCurrency, REGION_LIST } from './types';
 
 function generateId(): string {
   return crypto.randomUUID();
@@ -39,6 +39,7 @@ interface TripStore {
   exchangeRates: ExchangeRate[];
   region: Region;
   targetCurrency: string;
+  tripIdentityRevision: number;
   isDirty: boolean;
   canUndo: boolean;
   canRedo: boolean;
@@ -96,8 +97,11 @@ const nextColorIndex = (couples: Couple[]): number => {
 };
 
 function getNewTripDefaults() {
-  const targetCurrency = useSettingsStore.getState().preferredCurrency;
-  const region = REGION_LIST.find((candidate) => getAvailableCurrencies(candidate).includes(targetCurrency)) ?? 'Europe';
+  const { preferredCurrency, preferredRegion } = useSettingsStore.getState();
+  const region = preferredRegion ?? REGION_LIST.find((candidate) => getAvailableCurrencies(candidate).includes(preferredCurrency)) ?? 'Europe';
+  const targetCurrency = getAvailableCurrencies(region).includes(preferredCurrency)
+    ? preferredCurrency
+    : getDefaultCurrency(region);
   return { region, targetCurrency };
 }
 
@@ -109,6 +113,7 @@ const initialState = {
   nonPayingTravellers: [] as NonPayingTraveller[],
   costs: [] as CostEntry[],
   exchangeRates: [] as ExchangeRate[],
+  tripIdentityRevision: 0,
   ...getNewTripDefaults(),
   isDirty: false,
   canUndo: false,
@@ -200,7 +205,7 @@ export const useTripStore = create<TripStore>()(
           return;
         }
 
-        set({ tripId: normalized, isDirty: true });
+        set({ tripId: normalized, tripIdentityRevision: get().tripIdentityRevision + 1, isDirty: true });
       },
 
       setTripName: (name) => set({ tripName: name.slice(0, MAX_TRIP_NAME_LENGTH), isDirty: true }),
@@ -479,6 +484,7 @@ export const useTripStore = create<TripStore>()(
         suppressHistory = true;
         set({
           ...sanitizedSnapshot,
+          tripIdentityRevision: get().tripIdentityRevision + 1,
           isDirty: false,
         });
         suppressHistory = false;
@@ -494,6 +500,7 @@ export const useTripStore = create<TripStore>()(
           ...initialState,
           ...getNewTripDefaults(),
           tripId: generateTripId(),
+          tripIdentityRevision: get().tripIdentityRevision + 1,
           isDirty: false,
           canUndo: false, canRedo: false,
         });

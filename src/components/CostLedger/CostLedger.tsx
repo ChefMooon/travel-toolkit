@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useTripStore } from '@/store/tripStore';
 import {
   DndContext,
@@ -35,6 +35,8 @@ export default function CostLedger() {
   const reorderCosts = useTripStore((s) => s.reorderCosts);
   const bulkSetCurrency = useTripStore((s) => s.bulkSetCurrency);
   const region = useTripStore((s) => s.region);
+  const tripId = useTripStore((s) => s.tripId);
+  const tripIdentityRevision = useTripStore((s) => s.tripIdentityRevision);
   const pushToast = useToastStore((s) => s.pushToast);
 
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -44,6 +46,9 @@ export default function CostLedger() {
   const [isBulkDeleteOpen, setIsBulkDeleteOpen] = useState(false);
   const [bulkCurrency, setBulkCurrency] = useState('EUR');
   const [defaultEntryCurrency, setDefaultEntryCurrency] = useState(() => getDefaultCurrency(region));
+  const identityKey = `${tripId}:${tripIdentityRevision}`;
+  const previousIdentityKey = useRef(identityKey);
+  const previousRegion = useRef(region);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -57,13 +62,18 @@ export default function CostLedger() {
     const defaultCurrency = getDefaultCurrency(region);
     if (!defaultCurrency) return;
 
+    if (previousIdentityKey.current !== identityKey || previousRegion.current !== region) {
+      previousIdentityKey.current = identityKey;
+      previousRegion.current = region;
+      setDefaultEntryCurrency(defaultCurrency);
+    } else if (!availableBulkCurrencies.includes(defaultEntryCurrency)) {
+      setDefaultEntryCurrency(defaultCurrency);
+    }
+
     if (!availableBulkCurrencies.includes(bulkCurrency)) {
       setBulkCurrency(defaultCurrency);
     }
-    if (!availableBulkCurrencies.includes(defaultEntryCurrency)) {
-      setDefaultEntryCurrency(defaultCurrency);
-    }
-  }, [availableBulkCurrencies, bulkCurrency, defaultEntryCurrency, region]);
+  }, [availableBulkCurrencies, bulkCurrency, defaultEntryCurrency, identityKey, region]);
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {

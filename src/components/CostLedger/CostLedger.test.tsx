@@ -69,6 +69,7 @@ vi.mock('@/components/EditRow', () => ({
   default: ({
     onSave,
     onCancel,
+    defaultCurrency,
   }: {
     onSave: (data: {
       name: string;
@@ -79,8 +80,9 @@ vi.mock('@/components/EditRow', () => ({
       assignedCoupleIds: string[];
     }) => void;
     onCancel: () => void;
+    defaultCurrency?: string;
   }) => (
-    <tr>
+    <tr data-testid="edit-row" data-default-currency={defaultCurrency}>
       <td>
         <button
           onClick={() =>
@@ -154,6 +156,7 @@ vi.mock('@/components/BulkActionBar', () => ({
 
 import { useTripStore } from '@/store/tripStore';
 import { getSaveFailureCopy, useToastStore } from '@/store/toastStore';
+import { useSettingsStore } from '@/store/settingsStore';
 
 const mockCosts: CostEntry[] = [
   {
@@ -179,6 +182,8 @@ const mockCosts: CostEntry[] = [
 ];
 
 const mockStoreState = {
+  tripId: '123456',
+  tripIdentityRevision: 0,
   region: 'Europe' as Region,
   costs: mockCosts,
   addCost: vi.fn(),
@@ -198,6 +203,9 @@ describe('CostLedger', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockStoreState.region = 'Europe';
+    mockStoreState.tripId = '123456';
+    mockStoreState.tripIdentityRevision = 0;
+    useSettingsStore.setState({ preferredCurrency: 'USD', preferredRegion: null });
     mockStoreState.costs = [...mockCosts];
 
     (useTripStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(
@@ -331,6 +339,29 @@ describe('CostLedger', () => {
     rerender(<CostLedger />);
 
     expect(screen.getByRole('combobox', { name: 'Bulk Currency' })).toHaveValue('CAD');
+  });
+
+  it('uses the regional default, permits a local choice, and resets it for a new trip or region', () => {
+    useSettingsStore.setState({ preferredCurrency: 'GBP' });
+    const { rerender } = render(<CostLedger />);
+    fireEvent.click(screen.getByRole('button', { name: /Add Cost Entry/i }));
+    expect(screen.getByTestId('edit-row')).toHaveAttribute('data-default-currency', 'EUR');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel Edit Row' }));
+    fireEvent.click(screen.getByLabelText('Default currency'));
+    fireEvent.click(within(screen.getByRole('listbox')).getByRole('option', { name: 'GBP' }));
+    useSettingsStore.setState({ preferredCurrency: 'USD' });
+    rerender(<CostLedger />);
+    fireEvent.click(screen.getByRole('button', { name: /Add Cost Entry/i }));
+    expect(screen.getByTestId('edit-row')).toHaveAttribute('data-default-currency', 'GBP');
+
+    mockStoreState.tripId = '654321';
+    mockStoreState.tripIdentityRevision += 1;
+    rerender(<CostLedger />);
+    expect(screen.getByTestId('edit-row')).toHaveAttribute('data-default-currency', 'EUR');
+    mockStoreState.region = 'North America';
+    rerender(<CostLedger />);
+    expect(screen.getByTestId('edit-row')).toHaveAttribute('data-default-currency', 'CAD');
   });
 
   it('FE-LED-006 shows an error toast when adding a cost fails', () => {

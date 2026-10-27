@@ -5,22 +5,23 @@ describe('global settings', () => {
   beforeEach(() => {
     localStorage.clear();
     useSettingsStore.persist.clearStorage();
-    useSettingsStore.setState({ measurementSystem: 'metric', clockFormat: '12h', preferredCurrency: 'USD', language: 'en' });
+    useSettingsStore.setState({ measurementSystem: 'metric', clockFormat: '12h', preferredCurrency: 'USD', preferredRegion: null, language: 'en' });
   });
 
   it('provides the requested defaults', () => {
-    expect(useSettingsStore.getState()).toMatchObject({ measurementSystem: 'metric', clockFormat: '12h', preferredCurrency: 'USD', language: 'en' });
+    expect(useSettingsStore.getState()).toMatchObject({ measurementSystem: 'metric', clockFormat: '12h', preferredCurrency: 'USD', preferredRegion: null, language: 'en' });
   });
 
   it('persists valid preferences and safely falls back for missing or invalid values', async () => {
     useSettingsStore.getState().setMeasurementSystem('imperial');
     useSettingsStore.getState().setClockFormat('24h');
     useSettingsStore.getState().setPreferredCurrency('CAD');
-    expect(JSON.parse(localStorage.getItem('travel-toolkit-settings-data') ?? '{}').state).toMatchObject({ measurementSystem: 'imperial', clockFormat: '24h', preferredCurrency: 'CAD' });
+    useSettingsStore.getState().setPreferredRegion('Asia');
+    expect(JSON.parse(localStorage.getItem('travel-toolkit-settings-data') ?? '{}').state).toMatchObject({ measurementSystem: 'imperial', clockFormat: '24h', preferredCurrency: 'CAD', preferredRegion: 'Asia' });
 
-    localStorage.setItem('travel-toolkit-settings-data', JSON.stringify({ state: { measurementSystem: 'invalid', clockFormat: 12, preferredCurrency: 'not-a-code' }, version: 0 }));
-    useSettingsStore.setState({ measurementSystem: 'metric', clockFormat: '12h', preferredCurrency: 'USD', language: 'en' });
+    localStorage.setItem('travel-toolkit-settings-data', JSON.stringify({ state: { measurementSystem: 'invalid', clockFormat: 12, preferredCurrency: 'not-a-code', preferredRegion: 'Atlantis' }, version: 0 }));
+    useSettingsStore.setState({ measurementSystem: 'metric', clockFormat: '12h', preferredCurrency: 'USD', preferredRegion: null, language: 'en' });
     await useSettingsStore.persist.rehydrate();
-    expect(useSettingsStore.getState()).toMatchObject({ measurementSystem: 'metric', clockFormat: '12h', preferredCurrency: 'USD', language: 'en' });
+    expect(useSettingsStore.getState()).toMatchObject({ measurementSystem: 'metric', clockFormat: '12h', preferredCurrency: 'USD', preferredRegion: null, language: 'en' });
   });
 });

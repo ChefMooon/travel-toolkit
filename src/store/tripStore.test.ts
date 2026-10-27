@@ -297,10 +297,29 @@ describe('tripStore — new actions', () => {
     });
 
     it('uses the current preferred currency for a new trip and selects a supporting region', () => {
+      useSettingsStore.getState().setPreferredRegion(null);
       useSettingsStore.getState().setPreferredCurrency('JPY');
       useTripStore.getState().resetTrip();
       expect(useTripStore.getState()).toMatchObject({ region: 'Asia', targetCurrency: 'JPY' });
       useSettingsStore.getState().setPreferredCurrency('USD');
+    });
+
+    it('uses the selected preferred region and falls back to its default currency when needed', () => {
+      useSettingsStore.getState().setPreferredRegion('Asia');
+      useSettingsStore.getState().setPreferredCurrency('EUR');
+      useTripStore.getState().resetTrip();
+      expect(useTripStore.getState()).toMatchObject({ region: 'Asia', targetCurrency: 'HKD' });
+      useSettingsStore.getState().setPreferredCurrency('USD');
+      useSettingsStore.getState().setPreferredRegion(null);
+    });
+
+    it('refreshes the ledger identity revision on reset and snapshot load', () => {
+      const initialRevision = useTripStore.getState().tripIdentityRevision;
+      const snapshot = useTripStore.getState().getSnapshot();
+      useTripStore.getState().loadSnapshot(snapshot);
+      expect(useTripStore.getState().tripIdentityRevision).toBe(initialRevision + 1);
+      useTripStore.getState().resetTrip();
+      expect(useTripStore.getState().tripIdentityRevision).toBe(initialRevision + 2);
     });
   });
 });

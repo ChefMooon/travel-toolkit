@@ -7,7 +7,7 @@ import { useTripStore } from '@/store/tripStore';
 
 describe('SettingsMenu', () => {
   beforeEach(() => {
-    useSettingsStore.setState({ measurementSystem: 'metric', clockFormat: '12h', preferredCurrency: 'USD', language: 'en' });
+    useSettingsStore.setState({ measurementSystem: 'metric', clockFormat: '12h', preferredCurrency: 'USD', preferredRegion: null, language: 'en' });
   });
 
   it('exposes global settings and keeps the language English-only', () => {
@@ -36,6 +36,19 @@ describe('SettingsMenu', () => {
     fireEvent.keyDown(control, { key: 'Escape' });
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
     expect(control).toBeInTheDocument();
+  });
+
+  it('allows no preferred region or a specific region without changing the active trip', () => {
+    useTripStore.setState({ region: 'Europe', targetCurrency: 'EUR' });
+    render(<SettingsMenu />);
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }));
+    fireEvent.click(screen.getByLabelText('Preferred region'));
+    fireEvent.click(screen.getByRole('option', { name: 'Asia' }));
+    expect(useSettingsStore.getState().preferredRegion).toBe('Asia');
+    expect(useTripStore.getState()).toMatchObject({ region: 'Europe', targetCurrency: 'EUR' });
+    fireEvent.click(screen.getByLabelText('Preferred region'));
+    fireEvent.click(screen.getByRole('option', { name: 'No preferred region' }));
+    expect(useSettingsStore.getState().preferredRegion).toBeNull();
   });
 
   it('closes on Escape and returns focus to the trigger', () => {

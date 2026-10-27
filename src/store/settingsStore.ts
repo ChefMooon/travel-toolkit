@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 import type { ExportSchema, FileNamePreset } from '@/lib/xlsx/types';
 import { isThemePreference, type ThemePreference } from './themePreference';
+import type { Region } from './types';
+import { REGION_LIST } from './types';
 
 export type ImportRateMode = 'hybrid' | 'keep-imported' | 'refresh-live';
 export type MeasurementSystem = 'metric' | 'imperial';
@@ -20,6 +22,7 @@ interface SettingsStore {
   measurementSystem: MeasurementSystem;
   clockFormat: ClockFormat;
   preferredCurrency: string;
+  preferredRegion: Region | null;
   language: AppLanguage;
   setThemePreference: (preference: ThemePreference) => void;
   setExportSchema: (schema: ExportSchema) => void;
@@ -29,6 +32,7 @@ interface SettingsStore {
   setMeasurementSystem: (system: MeasurementSystem) => void;
   setClockFormat: (format: ClockFormat) => void;
   setPreferredCurrency: (currency: string) => void;
+  setPreferredRegion: (region: Region | null) => void;
   setLanguage: (language: AppLanguage) => void;
 }
 
@@ -78,6 +82,7 @@ function isImportRateMode(value: unknown): value is ImportRateMode {
 function isMeasurementSystem(value: unknown): value is MeasurementSystem { return value === 'metric' || value === 'imperial'; }
 function isClockFormat(value: unknown): value is ClockFormat { return value === '12h' || value === '24h'; }
 function isPreferredCurrency(value: unknown): value is string { return typeof value === 'string' && /^[A-Z]{3}$/.test(value); }
+function isPreferredRegion(value: unknown): value is Region | null { return value === null || (typeof value === 'string' && REGION_LIST.includes(value as Region)); }
 
 const safeStorage: StateStorage = {
   getItem: (name) => {
@@ -117,6 +122,7 @@ export const useSettingsStore = create<SettingsStore>()(
       measurementSystem: 'metric',
       clockFormat: '12h',
       preferredCurrency: 'USD',
+      preferredRegion: null,
       language: 'en',
       setThemePreference: (themePreference) => set({ themePreference }),
       setExportSchema: (exportSchema) => set({ exportSchema }),
@@ -126,6 +132,7 @@ export const useSettingsStore = create<SettingsStore>()(
       setMeasurementSystem: (measurementSystem) => set({ measurementSystem }),
       setClockFormat: (clockFormat) => set({ clockFormat }),
       setPreferredCurrency: (preferredCurrency) => set({ preferredCurrency }),
+      setPreferredRegion: (preferredRegion) => set({ preferredRegion }),
       setLanguage: (language) => set({ language }),
     }),
     {
@@ -140,6 +147,7 @@ export const useSettingsStore = create<SettingsStore>()(
         measurementSystem: state.measurementSystem,
         clockFormat: state.clockFormat,
         preferredCurrency: state.preferredCurrency,
+        preferredRegion: state.preferredRegion,
         language: state.language,
       }),
       merge: (persistedState, currentState) => {
@@ -167,6 +175,7 @@ export const useSettingsStore = create<SettingsStore>()(
           measurementSystem: isMeasurementSystem(persisted.measurementSystem) ? persisted.measurementSystem : currentState.measurementSystem,
           clockFormat: isClockFormat(persisted.clockFormat) ? persisted.clockFormat : currentState.clockFormat,
           preferredCurrency: isPreferredCurrency(persisted.preferredCurrency) ? persisted.preferredCurrency : currentState.preferredCurrency,
+          preferredRegion: isPreferredRegion(persisted.preferredRegion) ? persisted.preferredRegion : currentState.preferredRegion,
           language: persisted.language === 'en' ? 'en' : currentState.language,
         };
       },
