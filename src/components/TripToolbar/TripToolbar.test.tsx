@@ -73,11 +73,13 @@ const mockStoreState = {
   globalMarkup: baseSnapshot.globalMarkup,
   setGlobalMarkup: vi.fn(),
   isDirty: false,
+  dateDraftError: '',
   resetTrip: vi.fn(),
   getSnapshot: vi.fn(() => activeSnapshot),
   loadSnapshot: vi.fn<(snapshot: TripSnapshot) => void>(),
   markClean: vi.fn(),
 };
+(useTripStore as unknown as { getState: () => typeof mockStoreState }).getState = () => mockStoreState;
 
 const mockSaveStoreState: {
   slots: Array<SaveSlot | null>;
@@ -141,6 +143,7 @@ describe('TripToolbar', () => {
     mockStoreState.tripName = baseSnapshot.tripName;
     mockStoreState.globalMarkup = baseSnapshot.globalMarkup;
     mockStoreState.isDirty = false;
+    mockStoreState.dateDraftError = '';
     mockStoreState.getSnapshot.mockImplementation(() => activeSnapshot);
     mockStoreState.loadSnapshot.mockImplementation((snapshot) => {
       activeSnapshot = snapshot;
@@ -333,6 +336,17 @@ describe('TripToolbar', () => {
 
     expect(mockStoreState.resetTrip).toHaveBeenCalledTimes(1);
     expect(mockSaveStoreState.saveToSlot).not.toHaveBeenCalled();
+  });
+
+  it('warns before discarding an invalid date draft when starting fresh', () => {
+    mockStoreState.dateDraftError = 'End date must be on or after the start date.';
+    render(<TripToolbar />);
+    fireEvent.click(screen.getByRole('button', { name: 'Start new trip' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Start Fresh Without Saving' }));
+    expect(mockToastStoreState.pushToast).toHaveBeenCalledWith(expect.objectContaining({
+      type: 'warning', title: 'Trip dates need attention',
+    }));
+    expect(mockStoreState.resetTrip).toHaveBeenCalledTimes(1);
   });
 
   it('saves an empty slot before resetting and emits one contextual success notification', () => {

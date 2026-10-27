@@ -9,6 +9,7 @@ import {
   type TripSnapshot,
 } from './types';
 import { useToastStore } from './toastStore';
+import { isValidDateOnly } from '@/components/DatePicker/dateUtils';
 
 interface SaveSlotStore {
   slots: Array<SaveSlot | null>;
@@ -49,6 +50,13 @@ function ensureLabelArrayLength(labels: string[]): string[] {
 function sanitizeSnapshot(snapshot: TripSnapshot): TripSnapshot {
   const sanitized = { ...snapshot } as TripSnapshot & { theme?: unknown };
   delete sanitized.theme;
+  const valid = (value: unknown): value is string => {
+    return typeof value === 'string' && isValidDateOnly(value);
+  };
+  const start = valid(sanitized.tripStartDate) ? sanitized.tripStartDate : '';
+  const end = valid(sanitized.tripEndDate) ? sanitized.tripEndDate : '';
+  sanitized.tripStartDate = end && (!start || end < start) ? '' : start;
+  sanitized.tripEndDate = end && (!start || end < start) ? '' : end;
   return sanitized;
 }
 

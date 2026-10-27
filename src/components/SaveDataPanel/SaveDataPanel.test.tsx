@@ -86,7 +86,7 @@ describe('SaveDataPanel', () => {
     fireEvent.click(getSlotActions(0).getByRole('button', { name: 'Save Here' }));
 
     expect(onSaveComplete).toHaveBeenCalledTimes(1);
-    expect(useSaveSlotStore.getState().slots[0]?.data).toEqual(baseSnapshot);
+    expect(useSaveSlotStore.getState().slots[0]?.data).toEqual({ ...baseSnapshot, tripStartDate: '', tripEndDate: '' });
     expect(useTripStore.getState().isDirty).toBe(false);
     expect(useToastStore.getState().toasts.map((toast) => toast.title)).toEqual([
       'Trip saved for new trip',
@@ -108,7 +108,7 @@ describe('SaveDataPanel', () => {
     fireEvent.click(within(confirmation).getByRole('button', { name: 'Confirm' }));
 
     expect(onSaveComplete).toHaveBeenCalledTimes(1);
-    expect(useSaveSlotStore.getState().slots[0]?.data).toEqual(baseSnapshot);
+    expect(useSaveSlotStore.getState().slots[0]?.data).toEqual({ ...baseSnapshot, tripStartDate: '', tripEndDate: '' });
     expect(useToastStore.getState().toasts).toHaveLength(0);
   });
 
@@ -124,7 +124,7 @@ describe('SaveDataPanel', () => {
     fireEvent.click(within(confirmation).getByRole('button', { name: 'Cancel' }));
 
     expect(onSaveComplete).not.toHaveBeenCalled();
-    expect(useSaveSlotStore.getState().slots[0]?.data).toEqual(olderSnapshot);
+    expect(useSaveSlotStore.getState().slots[0]?.data).toEqual({ ...olderSnapshot, tripStartDate: '', tripEndDate: '' });
     expect(useToastStore.getState().toasts).toHaveLength(0);
   });
 
@@ -146,7 +146,7 @@ describe('SaveDataPanel', () => {
     renderPanel();
     fireEvent.click(getSlotActions(0).getByRole('button', { name: 'Save Here' }));
 
-    expect(useSaveSlotStore.getState().slots[0]?.data).toEqual(baseSnapshot);
+    expect(useSaveSlotStore.getState().slots[0]?.data).toEqual({ ...baseSnapshot, tripStartDate: '', tripEndDate: '' });
     expect(useToastStore.getState().toasts.map((toast) => toast.title)).toEqual(['Trip saved']);
   });
 

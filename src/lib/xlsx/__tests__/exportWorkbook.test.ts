@@ -1,4 +1,6 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
+const { mockWriteFile } = vi.hoisted(() => ({ mockWriteFile: vi.fn() }));
+vi.mock('xlsx', async (importOriginal) => ({ ...(await importOriginal<typeof import('xlsx')>()), writeFile: mockWriteFile }));
 import type { TripSnapshot } from '@/store/types';
 import { buildSingleSheet } from '../singleSheetBuilder';
 import { buildThreeSheet } from '../threeSheetBuilder';
@@ -6,6 +8,7 @@ import { parseSingleSheet } from '../singleSheetParser';
 import { parseThreeSheet } from '../threeSheetParser';
 import { XLSX_SCHEMA_VERSION } from '../types';
 import * as XLSX from 'xlsx';
+import { exportWorkbook } from '../exportWorkbook';
 
 function makeSnapshot(): TripSnapshot {
   return {
@@ -14,6 +17,8 @@ function makeSnapshot(): TripSnapshot {
     globalMarkup: 50,
     region: 'Europe',
     targetCurrency: 'EUR',
+    tripStartDate: '2027-04-02',
+    tripEndDate: '2027-04-09',
     couples: [
       { id: 'c1', name: 'Alice & Bob', colorIndex: 1, iconIndex: 1, sortOrder: 0 },
       { id: 'c2', name: 'Carol & Dave', colorIndex: 2, iconIndex: 2, sortOrder: 1 },
@@ -76,6 +81,10 @@ describe('Single-sheet builder (v1)', () => {
     expect(aoa[4]?.[1]).toBe(50);             // Global Markup
     expect(aoa[5]?.[1]).toBe('Europe');       // Region
     expect(aoa[6]?.[1]).toBe('EUR');          // Target Currency
+    expect(aoa[7]?.[0]).toBe('Trip Start Date');
+    expect(aoa[7]?.[1]).toBe('2027-04-02');
+    expect(aoa[8]?.[0]).toBe('Trip End Date');
+    expect(aoa[8]?.[1]).toBe('2027-04-09');
   });
 
   it('exports cost ledger starting at column L', () => {
@@ -139,6 +148,26 @@ describe('Three-sheet builder (v2)', () => {
   });
 });
 
+describe('exportWorkbook entry point', () => {
+  it.each(['single-sheet', 'three-sheet'] as const)('includes dates in the downloaded %s workbook', async (schema) => {
+    mockWriteFile.mockReset();
+    try {
+      await exportWorkbook({ ...makeSnapshot(), tripStartDate: '2027-04-02', tripEndDate: '2027-04-09' }, {
+        schema, source: { type: 'active' }, namePreset: 'tripId', includeDate: false,
+      });
+      const workbook = mockWriteFile.mock.calls[0]?.[0];
+      expect(workbook).toBeDefined();
+      const dates = schema === 'single-sheet'
+        ? parseSingleSheet(workbook!.Sheets['Trip']!, XLSX)
+        : parseThreeSheet(workbook!, XLSX);
+      expect(dates.tripStartDate).toBe('2027-04-02');
+      expect(dates.tripEndDate).toBe('2027-04-09');
+    } finally {
+      mockWriteFile.mockReset();
+    }
+  });
+});
+
 describe('Round-trip: v1 export → import', () => {
   it('preserves trip data through export/import cycle', () => {
     const original = makeSnapshot();
@@ -154,6 +183,8 @@ describe('Round-trip: v1 export → import', () => {
     expect(parsed.globalMarkup).toBe(50);
     expect(parsed.region).toBe('Europe');
     expect(parsed.targetCurrency).toBe('EUR');
+    expect(parsed.tripStartDate).toBe('2027-04-02');
+    expect(parsed.tripEndDate).toBe('2027-04-09');
 
     // Couples
     expect(parsed.couples).toHaveLength(2);
@@ -170,6 +201,8 @@ describe('Round-trip: v1 export → import', () => {
 
     // Exchange rates
     expect(parsed.exchangeRates).toHaveLength(2);
+    expect(parsed.tripStartDate).toBe('2027-04-02');
+    expect(parsed.tripEndDate).toBe('2027-04-09');
     expect(parsed.exchangeRates![0]!.currency).toBe('EUR');
   });
 });

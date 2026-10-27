@@ -77,6 +77,8 @@ export interface TripSnapshot {
   costs: CostEntry[];
   exchangeRates: ExchangeRate[];
   region: Region;
+  tripStartDate?: string;
+  tripEndDate?: string;
   targetCurrency: string;
 }
 

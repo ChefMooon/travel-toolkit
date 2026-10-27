@@ -16,6 +16,7 @@ export default function Topbar() {
   const globalMarkup = useTripStore((s) => s.globalMarkup);
   const setGlobalMarkup = useTripStore((s) => s.setGlobalMarkup);
   const isDirty = useTripStore((s) => s.isDirty);
+  const dateDraftError = useTripStore((s) => s.dateDraftError);
   const getSnapshot = useTripStore((s) => s.getSnapshot);
   const resetTrip = useTripStore((s) => s.resetTrip);
   const slots = useSaveSlotStore((s) => s.slots);
@@ -43,6 +44,10 @@ export default function Topbar() {
   const relatedSlotIndex = findRelatedOlderSlotIndex(slots, currentSnapshot);
 
   const handleSaveThenReset = useCallback(() => {
+    if (dateDraftError) {
+      pushToast({ type: 'warning', title: 'Trip dates need attention', message: dateDraftError });
+      return;
+    }
     if (relatedSlotIndex < 0) {
       return;
     }
@@ -60,7 +65,7 @@ export default function Topbar() {
     });
     resetTrip();
     setShowReset(false);
-  }, [currentSnapshot, labels, pushToast, relatedSlotIndex, resetTrip, saveToSlot]);
+  }, [currentSnapshot, dateDraftError, labels, pushToast, relatedSlotIndex, resetTrip, saveToSlot]);
 
   return (
     <>

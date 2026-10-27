@@ -34,6 +34,8 @@ export function parseSingleSheet(
   const globalMarkup = Number(get(4, 1)) || 66;
   const region = str(5, 1);
   const targetCurrency = str(6, 1);
+  const tripStartDate = str(7, 1);
+  const tripEndDate = str(8, 1);
 
   // ── Cost ledger from L3 downward ──
   const costs: Partial<CostEntry>[] = [];
@@ -104,6 +106,8 @@ export function parseSingleSheet(
     globalMarkup,
     region: region as ExportableSnapshot['region'],
     targetCurrency,
+    tripStartDate,
+    tripEndDate,
     couples: couples as Couple[],
     nonPayingTravellers: nonPayingTravellers as NonPayingTraveller[],
     costs: costs as CostEntry[],

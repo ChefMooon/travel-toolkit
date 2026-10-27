@@ -1,3 +1,4 @@
+import { isValidDateOnly } from '@/components/DatePicker/dateUtils';
 import type {
   Couple,
   NonPayingTraveller,
@@ -31,6 +32,14 @@ export function validateImportedSnapshot(
   const globalMarkup = clampNumber(raw.globalMarkup, 0, 9999, 66);
   const region = validateRegion(raw.region);
   const targetCurrency = validateCurrency(raw.targetCurrency, 'USD');
+  let tripStartDate = validateDate(raw.tripStartDate);
+  let tripEndDate = validateDate(raw.tripEndDate);
+  if ((raw.tripStartDate && !tripStartDate) || (raw.tripEndDate && !tripEndDate)) warnings.push('Invalid trip dates were omitted.');
+  if (tripEndDate && (!tripStartDate || tripEndDate < tripStartDate)) {
+    warnings.push('Trip end date must be on or after the start date; trip dates were omitted.');
+    tripStartDate = '';
+    tripEndDate = '';
+  }
 
   // Couples — deduplicate names
   const couples = validateCouples(raw.couples ?? [], warnings);
@@ -68,7 +77,13 @@ export function validateImportedSnapshot(
     exchangeRates,
     region,
     targetCurrency,
+    tripStartDate,
+    tripEndDate,
   };
+}
+
+function validateDate(raw: unknown): string {
+  return typeof raw === 'string' && isValidDateOnly(raw) ? raw : '';
 }
 
 function validateTripId(raw: unknown): string {

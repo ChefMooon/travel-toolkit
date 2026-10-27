@@ -45,6 +45,7 @@ export default function TripToolbar() {
   const globalMarkup = useTripStore((s) => s.globalMarkup);
   const setGlobalMarkup = useTripStore((s) => s.setGlobalMarkup);
   const isDirty = useTripStore((s) => s.isDirty);
+  const dateDraftError = useTripStore((s) => s.dateDraftError);
   const canUndo = useTripStore((s) => s.canUndo);
   const canRedo = useTripStore((s) => s.canRedo);
   const undo = useTripStore((s) => s.undo);
@@ -124,6 +125,11 @@ export default function TripToolbar() {
     if (!saveContinuationArmedRef.current) {
       return;
     }
+    const dateDraftError = useTripStore.getState().dateDraftError;
+    if (dateDraftError) {
+      pushToast({ type: 'warning', title: 'Trip dates need attention', message: dateDraftError });
+      return;
+    }
 
     saveContinuationArmedRef.current = false;
     setSaveContinuationArmed(false);
@@ -157,11 +163,15 @@ export default function TripToolbar() {
   }, [clearSaveContinuation]);
 
   const handleStartFreshWithoutSaving = useCallback(() => {
+    const dateDraftError = useTripStore.getState().dateDraftError;
+    if (dateDraftError) {
+      pushToast({ type: 'warning', title: 'Trip dates need attention', message: `${dateDraftError} Starting a new trip will discard this draft.` });
+    }
     savePanelOpenedFromNewTripRef.current = false;
     clearSaveContinuation();
     resetTrip();
     setShowReset(false);
-  }, [clearSaveContinuation, resetTrip]);
+  }, [clearSaveContinuation, pushToast, resetTrip]);
 
   const handleCancelNewTripDecision = useCallback(() => {
     savePanelOpenedFromNewTripRef.current = false;
@@ -177,6 +187,9 @@ export default function TripToolbar() {
     currentTripIsSaved
       ? `${tripSaveStatusMessage} You can start a new trip without saving again.`
       : `${tripSaveStatusMessage} Save the current trip before starting a new one, or start fresh without saving. Starting fresh permanently deletes the current trip data.`;
+  const guardedNewTripDialogBody = dateDraftError
+    ? `${newTripDialogBody} The invalid date draft will be discarded if you continue.`
+    : newTripDialogBody;
 
   return (
     <>
@@ -293,7 +306,7 @@ export default function TripToolbar() {
         <Modal
           icon="🗑️"
           title="Start a new trip?"
-          body={newTripDialogBody}
+          body={guardedNewTripDialogBody}
           secondaryActionLabel={currentTripIsSaved ? undefined : 'Save & Start New Trip'}
           onSecondaryAction={currentTripIsSaved ? undefined : handleSaveAndStartNewTrip}
           confirmLabel={currentTripIsSaved ? 'Start New Trip' : 'Start Fresh Without Saving'}

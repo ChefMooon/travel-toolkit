@@ -18,6 +18,8 @@ export interface TooltipProps {
   children: React.ReactElement;
   /** Preferred position; the tooltip flips when there is not enough room. */
   placement?: TooltipPlacement;
+  /** Allow a click to keep supplemental text open until dismissed. */
+  showOnClick?: boolean;
 }
 
 type TriggerProps = React.HTMLAttributes<HTMLElement> & {
@@ -39,6 +41,7 @@ export default function Tooltip({
   content,
   children,
   placement = 'auto',
+  showOnClick = false,
 }: TooltipProps) {
   const id = useId();
   const triggerRef = useRef<HTMLElement | null>(null);
@@ -47,8 +50,9 @@ export default function Tooltip({
   const [hovered, setHovered] = useState(false);
   const [focused, setFocused] = useState(false);
   const [touchOpened, setTouchOpened] = useState(false);
+  const [clicked, setClicked] = useState(false);
   const [position, setPosition] = useState<TooltipPosition | null>(null);
-  const visible = (hovered || focused || touchOpened) && content.length > 0;
+  const visible = (hovered || focused || touchOpened || clicked) && content.length > 0;
 
   const updatePosition = useCallback(() => {
     const trigger = triggerRef.current;
@@ -115,12 +119,14 @@ export default function Tooltip({
       setHovered(false);
       setFocused(false);
       setTouchOpened(false);
+      setClicked(false);
     };
     const dismissOnOutsidePointer = (event: PointerEvent) => {
       if (triggerRef.current?.contains(event.target as Node)) return;
       setHovered(false);
       setFocused(false);
       setTouchOpened(false);
+      setClicked(false);
     };
 
     document.addEventListener('keydown', dismissOnEscape);
@@ -143,6 +149,10 @@ export default function Tooltip({
     },
     'aria-describedby': describedBy,
     title: undefined,
+    onClick: (event: React.MouseEvent<HTMLElement>) => {
+      trigger.props.onClick?.(event);
+      if (showOnClick) setClicked((current) => !current);
+    },
     onPointerEnter: (event: React.PointerEvent<HTMLElement>) => {
       trigger.props.onPointerEnter?.(event);
       if (event.pointerType !== 'touch') setHovered(true);

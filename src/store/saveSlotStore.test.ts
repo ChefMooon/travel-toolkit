@@ -40,7 +40,7 @@ describe('saveSlotStore', () => {
   it('loads a saved snapshot', () => {
     useSaveSlotStore.getState().saveToSlot(0, baseSnapshot);
     const loaded = useSaveSlotStore.getState().loadFromSlot(0);
-    expect(loaded).toEqual(baseSnapshot);
+    expect(loaded).toEqual({ ...baseSnapshot, tripStartDate: '', tripEndDate: '' });
   });
 
   it('strips legacy theme from loaded and persisted save slots', () => {

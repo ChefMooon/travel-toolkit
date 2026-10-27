@@ -127,6 +127,22 @@ describe('tripStore — new actions', () => {
   });
 
   describe('undo and redo history', () => {
+    it('rejects invalid date pairs atomically', () => {
+      useTripStore.getState().setTripDates('2027-02-30', '2027-03-01');
+      expect(useTripStore.getState().tripStartDate).toBe('');
+      expect(useTripStore.getState().tripEndDate).toBe('');
+      useTripStore.getState().setTripDates('2027-03-02', '2027-03-01');
+      expect(useTripStore.getState().tripStartDate).toBe('');
+      expect(useTripStore.getState().tripEndDate).toBe('');
+    });
+    it('tracks trip dates in snapshots and undo/redo history', () => {
+      useTripStore.getState().setTripDates('2027-03-04', '2027-03-04');
+      expect(useTripStore.getState().getSnapshot()).toMatchObject({ tripStartDate: '2027-03-04', tripEndDate: '2027-03-04' });
+      useTripStore.getState().undo();
+      expect(useTripStore.getState().tripStartDate).toBe('');
+      useTripStore.getState().redo();
+      expect(useTripStore.getState().tripEndDate).toBe('2027-03-04');
+    });
     it('undoes and redoes edits, returning to the saved clean baseline', () => {
       useTripStore.getState().setTripName('First edit');
       expect(useTripStore.getState().canUndo).toBe(true);

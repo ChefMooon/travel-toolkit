@@ -13,6 +13,7 @@ import { useToastStore } from './toastStore';
 import { useSaveSlotStore } from './saveSlotStore';
 import { migrateLegacyThemePreferenceBeforeTripCleanup, useSettingsStore } from './settingsStore';
 import { getAvailableCurrencies, getDefaultCurrency, REGION_LIST } from './types';
+import { isValidDateOnly } from '@/components/DatePicker/dateUtils';
 
 function generateId(): string {
   return crypto.randomUUID();
@@ -24,6 +25,13 @@ function generateTripId(): string {
 
 function hasDuplicateSavedTripId(tripId: string): boolean {
   return useSaveSlotStore.getState().slots.some((slot) => slot?.tripId === tripId);
+}
+
+function normalizeTripDates(start: unknown, end: unknown): { tripStartDate: string; tripEndDate: string } {
+  const tripStartDate = typeof start === 'string' && isValidDateOnly(start) ? start : '';
+  const tripEndDate = typeof end === 'string' && isValidDateOnly(end) ? end : '';
+  if (tripEndDate && (!tripStartDate || tripEndDate < tripStartDate)) return { tripStartDate: '', tripEndDate: '' };
+  return { tripStartDate, tripEndDate };
 }
 
 // Capture the old trip-owned theme before persistence hydration strips it.
@@ -38,6 +46,9 @@ interface TripStore {
   costs: CostEntry[];
   exchangeRates: ExchangeRate[];
   region: Region;
+  tripStartDate: string;
+  tripEndDate: string;
+  dateDraftError: string;
   targetCurrency: string;
   tripIdentityRevision: number;
   isDirty: boolean;
@@ -51,6 +62,8 @@ interface TripStore {
   setTripName: (name: string) => void;
   setGlobalMarkup: (markup: number) => void;
   setRegion: (region: Region) => void;
+  setTripDates: (startDate: string, endDate: string) => void;
+  setDateDraftError: (message: string) => void;
   setTargetCurrency: (currency: string) => void;
 
   // Couple actions
@@ -115,12 +128,15 @@ const initialState = {
   exchangeRates: [] as ExchangeRate[],
   tripIdentityRevision: 0,
   ...getNewTripDefaults(),
+  tripStartDate: '',
+  tripEndDate: '',
+  dateDraftError: '',
   isDirty: false,
   canUndo: false,
   canRedo: false,
 };
 
-type HistorySnapshot = Pick<TripStore, 'tripId' | 'tripName' | 'globalMarkup' | 'couples' | 'nonPayingTravellers' | 'costs' | 'exchangeRates' | 'region' | 'targetCurrency'>;
+type HistorySnapshot = Pick<TripStore, 'tripId' | 'tripName' | 'globalMarkup' | 'couples' | 'nonPayingTravellers' | 'costs' | 'exchangeRates' | 'region' | 'targetCurrency' | 'tripStartDate' | 'tripEndDate'>;
 const HISTORY_LIMIT = 100;
 let past: HistorySnapshot[] = [];
 let future: HistorySnapshot[] = [];
@@ -131,7 +147,7 @@ let suppressHistory = false;
 function snapshotOf(state: HistorySnapshot): HistorySnapshot {
   // Zustand actions replace arrays/objects instead of mutating them, so retaining
   // these references gives us cheap snapshots with structural sharing.
-  return { tripId: state.tripId, tripName: state.tripName, globalMarkup: state.globalMarkup, couples: state.couples, nonPayingTravellers: state.nonPayingTravellers, costs: state.costs, exchangeRates: state.exchangeRates, region: state.region, targetCurrency: state.targetCurrency };
+  return { tripId: state.tripId, tripName: state.tripName, globalMarkup: state.globalMarkup, couples: state.couples, nonPayingTravellers: state.nonPayingTravellers, costs: state.costs, exchangeRates: state.exchangeRates, region: state.region, targetCurrency: state.targetCurrency, tripStartDate: state.tripStartDate, tripEndDate: state.tripEndDate };
 }
 function sameOverrides(a: ExchangeRate[], b: ExchangeRate[]): boolean {
   const left = a.filter((rate) => rate.isOverridden);
@@ -145,7 +161,7 @@ function same(a: HistorySnapshot, b: HistorySnapshot): boolean {
   return a.tripId === b.tripId && a.tripName === b.tripName && a.globalMarkup === b.globalMarkup &&
     sameArray(a.couples, b.couples) && sameArray(a.nonPayingTravellers, b.nonPayingTravellers) && sameArray(a.costs, b.costs) &&
     (a.exchangeRates === b.exchangeRates || sameOverrides(a.exchangeRates, b.exchangeRates)) &&
-    a.region === b.region && a.targetCurrency === b.targetCurrency;
+    a.region === b.region && a.targetCurrency === b.targetCurrency && a.tripStartDate === b.tripStartDate && a.tripEndDate === b.tripEndDate;
 }
 function sameArray<T>(a: T[], b: T[]): boolean {
   if (a === b) return true;
@@ -172,14 +188,14 @@ export const useTripStore = create<TripStore>()(
         const current = snapshotOf(get());
         const previous = past.pop()!;
         future.push(current);
-        applyingHistory = true; set({ ...previous, exchangeRates: restoreRates(get().exchangeRates, previous.exchangeRates), canUndo: past.length > 0, canRedo: true, isDirty: !baseline || !same(previous, baseline) }); applyingHistory = false;
+        applyingHistory = true; set({ ...previous, dateDraftError: '', exchangeRates: restoreRates(get().exchangeRates, previous.exchangeRates), canUndo: past.length > 0, canRedo: true, isDirty: !baseline || !same(previous, baseline) }); applyingHistory = false;
       },
       redo: () => {
         if (!future.length) return;
         const current = snapshotOf(get());
         const next = future.pop()!;
         past.push(current);
-        applyingHistory = true; set({ ...next, exchangeRates: restoreRates(get().exchangeRates, next.exchangeRates), canUndo: true, canRedo: future.length > 0, isDirty: !baseline || !same(next, baseline) }); applyingHistory = false;
+        applyingHistory = true; set({ ...next, dateDraftError: '', exchangeRates: restoreRates(get().exchangeRates, next.exchangeRates), canUndo: true, canRedo: future.length > 0, isDirty: !baseline || !same(next, baseline) }); applyingHistory = false;
       },
 
       setTripId: (tripId) => {
@@ -211,6 +227,14 @@ export const useTripStore = create<TripStore>()(
       setTripName: (name) => set({ tripName: name.slice(0, MAX_TRIP_NAME_LENGTH), isDirty: true }),
       setGlobalMarkup: (markup) => set({ globalMarkup: markup, isDirty: true }),
       setRegion: (region) => set({ region, isDirty: true }),
+      setTripDates: (tripStartDate, tripEndDate) => {
+        if ((tripStartDate && !isValidDateOnly(tripStartDate)) || (tripEndDate && !isValidDateOnly(tripEndDate)) || (tripEndDate && (!tripStartDate || tripEndDate < tripStartDate))) {
+          useToastStore.getState().pushToast({ type: 'warning', title: 'Invalid trip dates', message: 'Choose valid calendar dates and ensure the end date is on or after the start date.' });
+          return;
+        }
+        set({ tripStartDate, tripEndDate, isDirty: true });
+      },
+      setDateDraftError: (dateDraftError) => set({ dateDraftError }),
       setTargetCurrency: (currency) => set({ targetCurrency: currency, isDirty: true }),
 
       addCouple: (name) => {
@@ -474,27 +498,32 @@ export const useTripStore = create<TripStore>()(
           exchangeRates: state.exchangeRates,
           region: state.region,
           targetCurrency: state.targetCurrency,
+          tripStartDate: state.tripStartDate,
+          tripEndDate: state.tripEndDate,
         };
       },
 
       loadSnapshot: (snapshot) => {
-        const sanitizedSnapshot = { ...snapshot } as TripSnapshot & { theme?: unknown };
+        if (get().dateDraftError) useToastStore.getState().pushToast({ type: 'warning', title: 'Trip date draft discarded', message: 'Loading this trip replaced the unsaved date draft.' });
+        const sanitizedSnapshot = { ...snapshot, ...normalizeTripDates(snapshot.tripStartDate, snapshot.tripEndDate) } as TripSnapshot & { theme?: unknown };
         delete sanitizedSnapshot.theme;
         past = []; future = [];
         suppressHistory = true;
         set({
           ...sanitizedSnapshot,
+          dateDraftError: '',
           tripIdentityRevision: get().tripIdentityRevision + 1,
           isDirty: false,
         });
         suppressHistory = false;
-        past = []; future = []; baseline = snapshotOf(sanitizedSnapshot); historyReady = true;
+        past = []; future = []; baseline = snapshotOf({ ...sanitizedSnapshot, tripStartDate: sanitizedSnapshot.tripStartDate ?? '', tripEndDate: sanitizedSnapshot.tripEndDate ?? '' }); historyReady = true;
         set({ canUndo: false, canRedo: false });
       },
 
       markClean: () => { baseline = snapshotOf(get()); historyReady = true; set({ isDirty: false }); },
 
       resetTrip: () => {
+        if (get().dateDraftError) useToastStore.getState().pushToast({ type: 'warning', title: 'Trip date draft discarded', message: 'Starting a new trip cleared the unsaved date draft.' });
         past = []; future = []; baseline = null; historyReady = true; suppressHistory = true;
         set({
           ...initialState,
@@ -519,6 +548,7 @@ export const useTripStore = create<TripStore>()(
         return {
           ...currentState,
           ...persisted,
+          ...normalizeTripDates(persisted.tripStartDate, persisted.tripEndDate),
           ...(hadLegacyTheme ? { isDirty: false } : {}),
         } as TripStore;
       },
@@ -539,6 +569,8 @@ export const useTripStore = create<TripStore>()(
         exchangeRates: state.exchangeRates,
         region: state.region,
         targetCurrency: state.targetCurrency,
+        tripStartDate: state.tripStartDate,
+        tripEndDate: state.tripEndDate,
       }),
     }
   )

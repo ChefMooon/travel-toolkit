@@ -22,6 +22,8 @@ export async function exportWorkbook(
     exchangeRates: snapshot.exchangeRates,
     region: snapshot.region,
     targetCurrency: snapshot.targetCurrency,
+    tripStartDate: snapshot.tripStartDate ?? '',
+    tripEndDate: snapshot.tripEndDate ?? '',
   };
 
   let wb: import('xlsx').WorkBook;

@@ -80,6 +80,24 @@ describe('Validation', () => {
     expect(result.costs[0]!.id).not.toBe('x1');
   });
 
+  it('accepts valid date-only ranges and warns while dropping invalid ranges', () => {
+    const warnings: string[] = [];
+    const valid = validateImportedSnapshot({ ...makeExportable(), tripStartDate: '2027-02-28', tripEndDate: '2027-02-28' }, warnings);
+    expect(valid.tripStartDate).toBe('2027-02-28');
+    expect(valid.tripEndDate).toBe('2027-02-28');
+
+    const invalidWarnings: string[] = [];
+    const invalid = validateImportedSnapshot({ ...makeExportable(), tripStartDate: '2027-02-30', tripEndDate: '2027-03-01' }, invalidWarnings);
+    expect(invalid.tripStartDate).toBe('');
+    expect(invalid.tripEndDate).toBe('');
+    expect(invalidWarnings.some((warning) => warning.includes('Invalid trip dates'))).toBe(true);
+
+    const reversedWarnings: string[] = [];
+    const reversed = validateImportedSnapshot({ ...makeExportable(), tripStartDate: '2027-03-02', tripEndDate: '2027-03-01' }, reversedWarnings);
+    expect(reversed.tripStartDate).toBe('');
+    expect(reversedWarnings.some((warning) => warning.includes('on or after'))).toBe(true);
+  });
+
   it('deduplicates couple names with number suffix', () => {
     const warnings: string[] = [];
     const result = validateImportedSnapshot({

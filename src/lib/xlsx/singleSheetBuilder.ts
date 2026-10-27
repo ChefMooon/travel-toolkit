@@ -58,7 +58,8 @@ export function buildSingleSheet(
   rows[4] = ['Global Markup', snapshot.globalMarkup];
   rows[5] = ['Region', snapshot.region];
   rows[6] = ['Trip Currency', snapshot.targetCurrency];
-  rows[7] = []; // blank separator
+  rows[7] = ['Trip Start Date', snapshot.tripStartDate ?? ''];
+  rows[8] = ['Trip End Date', snapshot.tripEndDate ?? ''];
 
   // ── Travelling Party region at D1 ──
   ensureRow(rows, SS_SECTION_LABEL_ROW);

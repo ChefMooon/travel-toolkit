@@ -54,6 +54,8 @@ export function parseThreeSheet(
   const globalMarkup = Number(meta['Global Markup']) || 66;
   const region = meta['Region'] ?? 'Europe';
   const targetCurrency = meta['Trip Currency'] ?? 'USD';
+  const tripStartDate = meta['Trip Start Date'] ?? '';
+  const tripEndDate = meta['Trip End Date'] ?? '';
 
   // Exchange rates from summary sheet
   const exchangeRates: Partial<ExchangeRate>[] = [];
@@ -138,6 +140,8 @@ export function parseThreeSheet(
     globalMarkup,
     region: region as ExportableSnapshot['region'],
     targetCurrency,
+    tripStartDate,
+    tripEndDate,
     couples: couples as Couple[],
     nonPayingTravellers: nonPayingTravellers as NonPayingTraveller[],
     costs: costs as CostEntry[],

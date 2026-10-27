@@ -94,6 +94,7 @@ export default function SaveDataPanel({
   const tripName = useTripStore((s) => s.tripName);
   const tripId = useTripStore((s) => s.tripId);
   const isDirty = useTripStore((s) => s.isDirty);
+  const dateDraftError = useTripStore((s) => s.dateDraftError);
   const getSnapshot = useTripStore((s) => s.getSnapshot);
   const loadSnapshot = useTripStore((s) => s.loadSnapshot);
   const markClean = useTripStore((s) => s.markClean);
@@ -220,6 +221,10 @@ export default function SaveDataPanel({
 
   const runSave = useCallback(
     (slotIndex: number) => {
+      if (useTripStore.getState().dateDraftError) {
+        pushToast({ type: 'warning', title: 'Trip dates need attention', message: useTripStore.getState().dateDraftError });
+        return;
+      }
       const ok = saveToSlot(slotIndex, getSnapshot());
       if (!ok) {
         return;
@@ -299,13 +304,13 @@ export default function SaveDataPanel({
 
   const handleLoadClick = useCallback(
     (slotIndex: number) => {
-      if (isDirty) {
+      if (isDirty || dateDraftError) {
         setConfirmIntent({ type: 'load', slotIndex });
         return;
       }
       runLoad(slotIndex);
     },
-    [isDirty, runLoad]
+    [dateDraftError, isDirty, runLoad]
   );
 
   const handleSwapToggle = useCallback((slotIndex: number) => {
@@ -396,7 +401,7 @@ export default function SaveDataPanel({
       // Reset the input so re-selecting the same file triggers onChange
       e.target.value = '';
 
-      if (isDirty) {
+      if (isDirty || dateDraftError) {
         setPendingImportFile(file);
         setConfirmIntent({ type: 'import' });
         return;
@@ -404,7 +409,7 @@ export default function SaveDataPanel({
 
       await runImportFile(file);
     },
-    [isDirty, runImportFile],
+    [dateDraftError, isDirty, runImportFile],
   );
 
   const handleConfirmAction = useCallback(async () => {
@@ -440,6 +445,10 @@ export default function SaveDataPanel({
 
   // ── Export handler ──
   const handleExport = useCallback(async () => {
+    if (exportSource.type === 'active' && useTripStore.getState().dateDraftError) {
+      pushToast({ type: 'warning', title: 'Trip dates need attention', message: useTripStore.getState().dateDraftError });
+      return;
+    }
     setIsExporting(true);
     try {
       let snapshot: TripSnapshot;
@@ -982,13 +991,13 @@ export default function SaveDataPanel({
           }
           body={
             confirmIntent.type === 'load'
-              ? 'This will replace your current trip in the workspace. Unsaved changes will be lost.'
+              ? `This will replace your current trip in the workspace. Unsaved changes${dateDraftError ? ' and the invalid trip date draft' : ''} will be lost.`
               : confirmIntent.type === 'overwrite'
               ? 'This slot already has saved data. Overwrite it with the current trip?'
               : confirmIntent.type === 'clear'
               ? 'This removes all saved data from the selected slot.'
               : confirmIntent.type === 'import'
-              ? 'You have unsaved changes in the active trip. Importing will replace the current workspace trip data.'
+              ? `Importing will replace the current workspace trip data${dateDraftError ? ' and discard the invalid trip date draft' : ''}.`
               : 'This swaps the saved data between the two selected slots.'
           }
           confirmLabel="Confirm"

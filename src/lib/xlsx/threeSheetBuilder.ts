@@ -31,6 +31,8 @@ export function buildThreeSheet(
     ['Global Markup', snapshot.globalMarkup],
     ['Region', snapshot.region],
     ['Trip Currency', snapshot.targetCurrency],
+    ['Trip Start Date', snapshot.tripStartDate ?? ''],
+    ['Trip End Date', snapshot.tripEndDate ?? ''],
     [],
     ['Exchange Rates'],
     [...EXCHANGE_RATE_HEADERS],
