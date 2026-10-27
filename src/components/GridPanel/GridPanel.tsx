@@ -89,7 +89,7 @@ export default function GridPanel({ open, onClose, triggerRef }: GridPanelProps)
           <Link
             key={tool.route}
             to={tool.route}
-            className="grid-panel-item"
+            className={`grid-panel-item tool-card--${tool.route.slice(1)}`}
             onClick={onClose}
           >
             <span className="tool-launcher-icon" aria-hidden="true">

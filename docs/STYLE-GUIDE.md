@@ -33,8 +33,8 @@ light and dark values for `--card-edge`, `--card-start`, `--card-end`,
 rest; hover uses a stationary two-color gradient. Keep the border static; a
 subtle card lift and shadow transition may provide hover feedback when motion
 is allowed. Keep the separate focus outline and forced-colors fallback.
-The icon tile styling is scoped to home cards because the launcher icon is also
-used elsewhere.
+The navigation popover reuses these route classes and color variables for its
+compact cards and icon tiles, so the same tool keeps its color in both places.
 
 Check contrast in both themes against the actual adjacent colors: the resting
 edge and every part of the hover gradient must reach at least 3:1 against the
