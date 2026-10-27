@@ -10,6 +10,7 @@
   --c4: #C49A6A; --c4-mid: #D4B48A; --c4-soft: #F5EDE0; --c4-border: #E8D4B8;
   --c5: #9B7BB4; --c5-mid: #B59CCA; --c5-soft: #EDE8F4; --c5-border: #D4C4E4;
   --accent: #C4737A; --accent-soft: #F2E4E5;
+  --mobile-nav-active: #A14B53;
   --danger: #B85C5C; --danger-soft: #FAEBEB;
   --focus: #7B87BE;
   --bg: #FAFAF7; --bg-2: #F3F2EE; --bg-3: #EAEAE4;
@@ -42,6 +43,7 @@
 }
 
 [data-theme="dark"] {
+  --mobile-nav-active: #D8979D;
   --bg: #18171A; --bg-2: #211F24; --bg-3: #2A2830;
   --surface: #1E1C22; --surface-2: #252330;
   --border: #322F3A; --border-2: #403D4C;
@@ -4760,7 +4762,7 @@ table.ledger .ledger-inline-field > .numeric-input {
     border-radius: 8px;
   }
   .mobile-nav-tab.active {
-    color: var(--accent);
+    color: var(--mobile-nav-active);
   }
   .mobile-nav-tab:active {
     opacity: 0.7;
