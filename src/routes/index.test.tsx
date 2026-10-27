@@ -57,6 +57,6 @@ describe('landing route', () => {
         (icon) => icon.getAttribute('stroke-width') === '2',
       ),
     ).toBe(true);
-    expect(screen.getByRole('main')).toHaveAttribute('data-page-entrance');
+    expect(container.querySelector('.tool-grid')).toHaveAttribute('data-page-entrance');
   });
 });
