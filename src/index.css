@@ -11,6 +11,7 @@
   --c5: #9B7BB4; --c5-mid: #B59CCA; --c5-soft: #EDE8F4; --c5-border: #D4C4E4;
   --accent: #C4737A; --accent-soft: #F2E4E5;
   --mobile-nav-active: #A14B53;
+  --topbar-accent: #A14B53;
   --danger: #B85C5C; --danger-soft: #FAEBEB;
   --focus: #7B87BE;
   --bg: #FAFAF7; --bg-2: #F3F2EE; --bg-3: #EAEAE4;
@@ -44,6 +45,7 @@
 
 [data-theme="dark"] {
   --mobile-nav-active: #D8979D;
+  --topbar-accent: #D8979D;
   --bg: #18171A; --bg-2: #211F24; --bg-3: #2A2830;
   --surface: #1E1C22; --surface-2: #252330;
   --border: #322F3A; --border-2: #403D4C;
@@ -187,12 +189,13 @@ body::before {
 }
 
 .grid-nav-trigger {
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  border-radius: 12px;
   border: 1.5px solid var(--border-2);
-  background: color-mix(in srgb, var(--bg-2) 86%, var(--c3-soft) 14%);
-  color: var(--c3);
+  background: var(--bg-2);
+  color: var(--text-2);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -205,10 +208,16 @@ body::before {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--focus) 26%, transparent 74%);
 }
 
+.grid-nav-trigger[aria-expanded="true"] {
+  border-color: var(--topbar-accent);
+  color: var(--topbar-accent);
+}
+
 @media (hover: hover) {
   .grid-nav-trigger:hover {
-    border-color: var(--c3);
-    background: color-mix(in srgb, var(--bg-2) 72%, var(--c3-soft) 28%);
+    border-color: var(--topbar-accent);
+    background: color-mix(in srgb, var(--bg-2) 92%, var(--topbar-accent) 8%);
+    color: var(--topbar-accent);
   }
 }
 
@@ -549,11 +558,11 @@ body::before {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
-  width: 108px;
-  height: 36px;
+  width: 144px;
+  height: 44px;
   padding: 3px;
   border: 1.5px solid var(--border-2);
-  border-radius: 14px;
+  border-radius: 12px;
   background: var(--bg-2);
 }
 .theme-selector::before {
@@ -564,8 +573,9 @@ body::before {
   left: 3px;
   width: calc((100% - 6px) / 3);
   border: 1px solid var(--border);
-  border-radius: 9px;
+  border-radius: 8px;
   background: var(--surface);
+  border-color: color-mix(in srgb, var(--topbar-accent) 32%, var(--border) 68%);
   box-shadow: var(--shadow-sm);
   content: '';
   pointer-events: none;
@@ -580,15 +590,16 @@ body::before {
   justify-content: center;
   min-width: 0;
   height: 100%;
+  min-height: 44px;
   padding: 0;
   border: 0;
-  border-radius: 9px;
+  border-radius: 8px;
   background: transparent;
   color: var(--text-2);
   cursor: pointer;
 }
 .theme-selector button[aria-checked="true"] {
-  color: var(--text);
+  color: var(--topbar-accent);
 }
 .theme-selector button:focus-visible {
   outline: 2px solid var(--focus);
@@ -596,7 +607,7 @@ body::before {
 }
 
 @media (hover: hover) {
-  .theme-selector button:hover { color: var(--text); }
+  .theme-selector button:hover { color: var(--topbar-accent); }
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -633,9 +644,10 @@ body::before {
   .theme-selector button::before {
     position: absolute;
     z-index: -1;
-    inset: 0;
-    border-radius: 9px;
+    inset: 3px 0;
+    border-radius: 8px;
     background: var(--surface);
+    border: 1px solid color-mix(in srgb, var(--topbar-accent) 32%, var(--border) 68%);
     box-shadow: var(--shadow-sm);
     content: '';
     opacity: 0;
@@ -645,6 +657,37 @@ body::before {
   .theme-selector button[aria-checked="true"]::before { opacity: 1; }
   html.theme-switching .theme-selector button::before {
     transition: opacity 150ms ease-out !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .grid-nav-trigger,
+  .theme-selector {
+    border: 1px solid ButtonText;
+    background: Canvas;
+    color: ButtonText;
+  }
+
+  .grid-nav-trigger[aria-expanded="true"] {
+    border-color: Highlight;
+    color: Highlight;
+  }
+
+  .grid-nav-trigger:focus-visible,
+  .theme-selector button:focus-visible {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+    box-shadow: none;
+  }
+
+  .theme-selector::before,
+  .theme-selector button::before {
+    display: none;
+  }
+
+  .theme-selector button[aria-checked="true"] {
+    background: Highlight;
+    color: HighlightText;
   }
 }
 

@@ -144,9 +144,10 @@ Current behavior:
 
 ### 5.2 Theme Control UX
 
-The shared top bar includes a binary toggle:
-- Light mode: default knob position
-- Dark mode: knob translates to the right and control tint changes to group color 3
+The shared top bar includes a three-option segmented radio selector:
+- System follows the operating system color preference
+- Light and Dark set an explicit color preference
+- The selected thumb tracks the chosen option; keyboard arrows and Home/End move among all three options
 
 The toggle must always be visible in desktop and mobile top bar layouts on every route.
 
@@ -176,10 +177,13 @@ Top bar behavior:
 - 480-767px: compact single-row
 - >=768px: full single-row
 
-Top-bar grid launcher sizing:
-- Grid launcher trigger target is 48x48 to exceed the 44px minimum touch target
-- The trigger uses a dedicated four-cell Lucide grid glyph, separate from the tool icons; its stroke inherits the theme-aware `currentColor` from `--c3`
-- Tune the glyph size and stroke for the top bar so its weight aligns with the refreshed tool icons; do not treat their dimensions as a launcher requirement
+Top-bar shared controls:
+- Grid launcher trigger and theme selector use 44px minimum interactive targets, matching 12px outer corner radii, 1.5px neutral borders, and a neutral theme-aware surface
+- The grid launcher uses a dedicated four-cell Lucide grid glyph, separate from the tool icons; its stroke inherits theme-aware `currentColor`, with a restrained coral accent on hover and while open
+- The theme selector uses a segmented thumb with the same restrained coral accent for selected and hovered options; keyboard focus remains visibly outlined
+- Both controls retain clear forced-colors styling; reduced-motion mode uses a discrete selected segment instead of the sliding thumb
+- The grid trigger tooltip and focus behavior remain available, and the controls remain visible in desktop and mobile top bar layouts
+- Tune the grid glyph size and stroke so its weight aligns with the refreshed tool icons; glyph dimensions are not a launcher sizing requirement
 
 Ledger behavior:
 - >700px: table layout
@@ -222,13 +226,13 @@ Core flows:
 
 ### 8.1 Top Bar
 
-The shared top bar includes the logo, grid navigation button, and theme toggle.
+The shared top bar includes the logo, grid navigation button, and theme selector.
 
 On the Trip Cost page, the top bar also includes a page-scoped toolbar with editable trip name, editable global markup, and New Trip button.
 
 States:
-- Grid button: idle, open, and focus-visible states
-- Theme toggle: binary light/dark state
+- Grid button: idle, open, hover, and focus-visible states
+- Theme selector: system, light, and dark selected states, with hover and focus-visible states
 - Trip name field on Trip Cost: idle, focus, clear-action visible when focused and non-empty
 - Global markup on Trip Cost: display mode, inline input mode, validation fallback to prior value on invalid blur
 - New Trip on Trip Cost: opens a decision showing whether the active trip is
