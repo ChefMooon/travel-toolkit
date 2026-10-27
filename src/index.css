@@ -964,6 +964,10 @@ body::before {
   min-width: 0;
 }
 
+/* Let the card link receive clicks around the independently clickable tags. */
+.blog-post-card .blog-tag-nav { pointer-events: none; }
+.blog-post-card .blog-tag-link { pointer-events: auto; }
+
 .blog-tag-list {
   display: flex;
   flex-wrap: wrap;
@@ -1042,11 +1046,13 @@ body::before {
 }
 
 .blog-post-card-header {
+  position: static;
   display: grid;
   gap: 6px;
 }
 
 .blog-post-card h2 {
+  position: static;
   font-size: 22px;
   font-weight: 800;
   line-height: 1.3;
@@ -1069,7 +1075,7 @@ body::before {
   border-radius: inherit;
 }
 
-.blog-post-title-link:hover,
+.blog-post-card:hover .blog-post-title-link,
 .blog-post-title-link:focus-visible {
   color: var(--c3);
 }
