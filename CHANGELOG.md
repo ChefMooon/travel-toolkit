@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [1.3.3] - 2026-10-26
+
+### Added
+
+- Added undo and redo for trip edits, with keyboard shortcuts and a warning when changes are unsaved.
+- Added consistent currency and timezone controls across their respective tools.
+
+### Changed
+
+- Improved trip-cost editing and responsive layouts, making fields and cost-type controls easier to use across screen sizes.
+- Refined currency, timezone, and destination forecast tools with more accurate rates, clearer tracking controls, and improved search layouts.
+- Theme preferences now apply across the site independently of trip data, with improved contrast in trip summaries.
+- Improved homepage and blog interactions, navigation feedback, and motion across the app.
+
 ## [1.3.2] - 2026-09-30
 
 ### Changed
