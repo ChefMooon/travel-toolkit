@@ -41,6 +41,11 @@ describe('GridPanel', () => {
         '.tool-launcher-icon[aria-hidden="true"] > svg[focusable="false"]',
       ),
     ).toHaveLength(4);
+    expect(
+      Array.from(container.querySelectorAll('.tool-launcher-icon svg')).every(
+        (icon) => icon.getAttribute('stroke-width') === '2',
+      ),
+    ).toBe(true);
   });
 
   it('closes when selecting a tool link', () => {

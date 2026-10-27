@@ -17,7 +17,7 @@ export default function LandingPage() {
             className="tool-card"
           >
             <span className="tool-launcher-icon" aria-hidden="true">
-              <tool.icon focusable="false" strokeWidth={1.75} />
+              <tool.icon focusable="false" strokeWidth={2} />
             </span>
             <span className="tool-card-label">{tool.label}</span>
             <span className="tool-card-desc">{tool.description}</span>
