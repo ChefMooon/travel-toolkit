@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
+import { ArrowRight } from 'lucide-react';
 import { TOOLS } from '@/lib/tools';
 
 export default function LandingPage() {
@@ -6,7 +7,10 @@ export default function LandingPage() {
     <main className="tool-landing" aria-label="Tool launcher">
       <header className="tool-landing-header">
         <h1>Travel Toolkit</h1>
-        <p>Pick a tool to plan costs, compare time, and prep your trip details.</p>
+        <p>Calculate trip costs and find the details you need to plan with confidence.</p>
+        <Link to="/trip" className="tool-landing-cta">
+          Calculate trip cost <ArrowRight aria-hidden="true" focusable="false" size={18} strokeWidth={2.5} />
+        </Link>
       </header>
 
       <div className="tool-grid" data-page-entrance>

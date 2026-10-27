@@ -41,6 +41,8 @@ describe('landing route', () => {
   it('renders accessible tool links with decorative Lucide icons', () => {
     const { container } = render(<LandingPage />);
 
+    expect(screen.getByRole('link', { name: 'Calculate trip cost' })).toHaveAttribute('href', '/trip');
+
     for (const { label, description, route } of expectedTools) {
       const link = screen.getByRole('link', { name: new RegExp(label) });
       expect(link).toHaveAttribute('href', route);
