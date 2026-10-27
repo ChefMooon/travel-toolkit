@@ -20,6 +20,7 @@ cards, then tune it separately for each theme.
 | Currency Converter | Sage | `.tool-card--currency` |
 | Timezone Tracker | Periwinkle | `.tool-card--timezone` |
 | Destination Forecast | Tan, adjusted toward amber | `.tool-card--forecast` |
+| Unit Converter | Plum | `.tool-card--units` |
 
 The tool list is defined in [`src/lib/tools.ts`](../src/lib/tools.ts), and
 [`src/routes/index.tsx`](../src/routes/index.tsx) derives each card class from

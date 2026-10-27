@@ -3,10 +3,11 @@ import {
   Calculator,
   CloudSun,
   Clock,
+  Ruler,
   type LucideIcon,
 } from 'lucide-react';
 
-export type ToolRoute = '/trip' | '/currency' | '/timezone' | '/forecast';
+export type ToolRoute = '/trip' | '/currency' | '/timezone' | '/forecast' | '/units';
 
 export type Tool = {
   route: ToolRoute;
@@ -33,6 +34,12 @@ export const TOOLS: Tool[] = [
     label: 'Timezone Tracker',
     description: 'Save and track timezones for different locations.',
     icon: Clock,
+  },
+  {
+    route: '/units',
+    label: 'Unit Converter',
+    description: 'Convert travel measurements in a few clicks.',
+    icon: Ruler,
   },
   {
     route: '/forecast',

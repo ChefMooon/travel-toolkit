@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as UnitsRouteImport } from './routes/units'
 import { Route as TripRouteImport } from './routes/trip'
 import { Route as TimezoneRouteImport } from './routes/timezone'
 import { Route as ForecastRouteImport } from './routes/forecast'
@@ -17,6 +18,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 
+const UnitsRoute = UnitsRouteImport.update({
+  id: '/units',
+  path: '/units',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TripRoute = TripRouteImport.update({
   id: '/trip',
   path: '/trip',
@@ -59,6 +65,7 @@ export interface FileRoutesByFullPath {
   '/forecast': typeof ForecastRoute
   '/timezone': typeof TimezoneRoute
   '/trip': typeof TripRoute
+  '/units': typeof UnitsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/': typeof BlogIndexRoute
 }
@@ -68,6 +75,7 @@ export interface FileRoutesByTo {
   '/forecast': typeof ForecastRoute
   '/timezone': typeof TimezoneRoute
   '/trip': typeof TripRoute
+  '/units': typeof UnitsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog': typeof BlogIndexRoute
 }
@@ -78,6 +86,7 @@ export interface FileRoutesById {
   '/forecast': typeof ForecastRoute
   '/timezone': typeof TimezoneRoute
   '/trip': typeof TripRoute
+  '/units': typeof UnitsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/blog/': typeof BlogIndexRoute
 }
@@ -89,6 +98,7 @@ export interface FileRouteTypes {
     | '/forecast'
     | '/timezone'
     | '/trip'
+    | '/units'
     | '/blog/$slug'
     | '/blog/'
   fileRoutesByTo: FileRoutesByTo
@@ -98,6 +108,7 @@ export interface FileRouteTypes {
     | '/forecast'
     | '/timezone'
     | '/trip'
+    | '/units'
     | '/blog/$slug'
     | '/blog'
   id:
@@ -107,6 +118,7 @@ export interface FileRouteTypes {
     | '/forecast'
     | '/timezone'
     | '/trip'
+    | '/units'
     | '/blog/$slug'
     | '/blog/'
   fileRoutesById: FileRoutesById
@@ -117,12 +129,20 @@ export interface RootRouteChildren {
   ForecastRoute: typeof ForecastRoute
   TimezoneRoute: typeof TimezoneRoute
   TripRoute: typeof TripRoute
+  UnitsRoute: typeof UnitsRoute
   BlogSlugRoute: typeof BlogSlugRoute
   BlogIndexRoute: typeof BlogIndexRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/units': {
+      id: '/units'
+      path: '/units'
+      fullPath: '/units'
+      preLoaderRoute: typeof UnitsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/trip': {
       id: '/trip'
       path: '/trip'
@@ -181,6 +201,7 @@ const rootRouteChildren: RootRouteChildren = {
   ForecastRoute: ForecastRoute,
   TimezoneRoute: TimezoneRoute,
   TripRoute: TripRoute,
+  UnitsRoute: UnitsRoute,
   BlogSlugRoute: BlogSlugRoute,
   BlogIndexRoute: BlogIndexRoute,
 }

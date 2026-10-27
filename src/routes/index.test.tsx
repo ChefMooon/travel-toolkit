@@ -34,6 +34,11 @@ const expectedTools = [
     route: '/timezone',
   },
   {
+    label: 'Unit Converter',
+    description: 'Convert travel measurements in a few clicks.',
+    route: '/units',
+  },
+  {
     label: 'Destination Forecast',
     description: 'Check weather and event forecasts before travel.',
     route: '/forecast',
