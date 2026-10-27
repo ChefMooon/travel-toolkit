@@ -2,13 +2,16 @@
 /// <reference types="@testing-library/jest-dom" />
 
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import LandingPage from './index';
+import { blogPosts, getBlogPostDisplayDate } from '@/lib/blogPosts';
+
+const initialBlogPosts = [...blogPosts];
 
 vi.mock('@tanstack/react-router', () => ({
   createFileRoute: () => (routeOptions: unknown) => routeOptions,
-  Link: ({ to, children, ...props }: React.ComponentProps<'a'> & { to: string }) => (
-    <a href={to} {...props}>
+  Link: ({ to, params, search: _search, children, ...props }: React.ComponentProps<'a'> & { to: string; params?: { slug: string }; search?: { tag: undefined } }) => (
+    <a href={params ? `/blog/${params.slug}` : to} {...props}>
       {children}
     </a>
   ),
@@ -38,6 +41,10 @@ const expectedTools = [
 ];
 
 describe('landing route', () => {
+  afterEach(() => {
+    blogPosts.splice(0, blogPosts.length, ...initialBlogPosts);
+  });
+
   it('renders accessible tool links with decorative Lucide icons', () => {
     const { container } = render(<LandingPage />);
 
@@ -61,5 +68,29 @@ describe('landing route', () => {
       ),
     ).toBe(true);
     expect(container.querySelector('.tool-grid')).toHaveAttribute('data-page-entrance');
+  });
+
+  it('shows the latest published post and a link to the unfiltered archive', () => {
+    const latestPost = initialBlogPosts[0]!;
+    render(<LandingPage />);
+
+    expect(screen.getByRole('heading', { name: 'Latest from the blog' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: latestPost.title })).toHaveAttribute(
+      'href',
+      `/blog/${latestPost.slug}`,
+    );
+    expect(screen.getByText(getBlogPostDisplayDate(latestPost.publishedAt))).toHaveAttribute(
+      'datetime',
+      latestPost.publishedAt,
+    );
+    expect(screen.getByRole('link', { name: /View all posts/ })).toHaveAttribute('href', '/blog');
+  });
+
+  it('omits the latest blog section when there are no published posts', () => {
+    blogPosts.splice(0, blogPosts.length);
+    render(<LandingPage />);
+
+    expect(screen.queryByRole('heading', { name: 'Latest from the blog' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /View all posts/ })).not.toBeInTheDocument();
   });
 });

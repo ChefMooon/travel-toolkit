@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowRight } from 'lucide-react';
 import { TOOLS } from '@/lib/tools';
+import { blogPosts, getBlogPostDisplayDate } from '@/lib/blogPosts';
 
 export default function LandingPage() {
+  const latestPost = blogPosts[0];
+
   return (
     <main className="tool-landing" aria-label="Tool launcher">
       <header className="tool-landing-header">
@@ -28,6 +31,33 @@ export default function LandingPage() {
           </Link>
         ))}
       </div>
+
+      {latestPost && (
+        <section className="home-latest-post" aria-labelledby="home-latest-post-title">
+          <h2 id="home-latest-post-title">Latest from the blog</h2>
+          <div className="home-latest-post-row">
+            <div className="home-latest-post-meta">
+              <Link
+                to="/blog/$slug"
+                params={{ slug: latestPost.slug }}
+                className="home-latest-post-link"
+              >
+                {latestPost.title}
+              </Link>
+              <time className="home-latest-post-date" dateTime={latestPost.publishedAt}>
+                {getBlogPostDisplayDate(latestPost.publishedAt)}
+              </time>
+            </div>
+            <Link
+              to="/blog"
+              search={{ tag: undefined }}
+              className="home-latest-post-archive"
+            >
+              View all posts <ArrowRight aria-hidden="true" focusable="false" size={16} />
+            </Link>
+          </div>
+        </section>
+      )}
     </main>
   );
 }
