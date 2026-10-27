@@ -841,7 +841,7 @@ body::before {
 }
 
 .tool-card {
-  border: 1.5px solid var(--border);
+  border: 2px solid var(--card-edge, var(--border));
   border-radius: 16px;
   background: var(--surface);
   box-shadow: var(--shadow-sm);
@@ -856,23 +856,80 @@ body::before {
   gap: 8px;
   text-align: center;
   cursor: pointer;
+  --card-edge: #8c3543;
+  --card-start: #8c3543;
+  --card-end: #c45662;
+  --card-icon: #8c3543;
+  --card-icon-bg: #f8e8e9;
+}
+
+.tool-card--currency {
+  --card-edge: #346b4f;
+  --card-start: #346b4f;
+  --card-end: #5c9874;
+  --card-icon: #28583f;
+  --card-icon-bg: #e4efe8;
+}
+
+.tool-card--timezone {
+  --card-edge: #414c91;
+  --card-start: #414c91;
+  --card-end: #6978c0;
+  --card-icon: #414c91;
+  --card-icon-bg: #e8eaf6;
+}
+
+.tool-card--forecast {
+  --card-edge: #83520e;
+  --card-start: #83520e;
+  --card-end: #b87820;
+  --card-icon: #83520e;
+  --card-icon-bg: #f5ede0;
+}
+
+[data-theme="dark"] .tool-card {
+  --card-edge: #d88b93;
+  --card-start: #d88b93;
+  --card-end: #f0b6ad;
+  --card-icon: #f0b6ad;
+  --card-icon-bg: #3d292f;
+}
+
+[data-theme="dark"] .tool-card--currency {
+  --card-edge: #82c49a;
+  --card-start: #82c49a;
+  --card-end: #b0dfb7;
+  --card-icon: #a6d9b0;
+  --card-icon-bg: #263a30;
+}
+
+[data-theme="dark"] .tool-card--timezone {
+  --card-edge: #a4aff0;
+  --card-start: #a4aff0;
+  --card-end: #c5cafa;
+  --card-icon: #b5bef5;
+  --card-icon-bg: #2c2d43;
+}
+
+[data-theme="dark"] .tool-card--forecast {
+  --card-edge: #e4b86f;
+  --card-start: #e4b86f;
+  --card-end: #f3d18f;
+  --card-icon: #edc77f;
+  --card-icon-bg: #3e3425;
 }
 
 .tool-card:focus-visible {
-  border-color: var(--c3);
-  background: color-mix(in srgb, var(--surface) 88%, var(--c3-soft) 12%);
-  box-shadow: var(--shadow);
-  outline: 2px solid var(--focus);
-  outline-offset: 2px;
-}
-
-.tool-card:active {
-  box-shadow: var(--shadow-sm);
+  outline: 3px solid var(--card-edge);
+  outline-offset: 3px;
 }
 
 .tool-card .tool-launcher-icon {
   width: 38px;
   height: 38px;
+  border: 1px solid var(--card-edge);
+  background: var(--card-icon-bg);
+  color: var(--card-icon);
 }
 
 .grid-panel-item .tool-launcher-icon {
@@ -881,11 +938,7 @@ body::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tool-card,
   .grid-panel-item,
-  .tool-card:hover,
-  .tool-card:focus-visible,
-  .tool-card:active,
   .grid-panel-item:hover,
   .grid-panel-item:focus-visible,
   .grid-panel-item:active {
@@ -896,31 +949,41 @@ body::before {
 
 @media (hover: hover) {
   .tool-card:hover {
-    border-color: var(--c3);
-    background: color-mix(in srgb, var(--surface) 88%, var(--c3-soft) 12%);
-    box-shadow: var(--shadow);
-  }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .tool-card {
-    transition: transform 150ms ease-out, box-shadow 150ms ease-out, border-color 150ms ease-out, background-color 150ms ease-out;
-  }
-
-  .tool-card:focus-visible {
-    transform: translateY(-2px);
+    border: 2px solid transparent;
+    background:
+      linear-gradient(var(--surface), var(--surface)) padding-box,
+      linear-gradient(110deg, var(--card-start), var(--card-end)) border-box;
   }
 }
 
 @media (prefers-reduced-motion: no-preference) and (hover: hover) {
+  .tool-card {
+    transition: transform 150ms ease-out, box-shadow 150ms ease-out;
+  }
+
   .tool-card:hover {
     transform: translateY(-2px);
+    box-shadow: var(--shadow);
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .tool-card:active {
-    transform: scale(0.96);
+@media (forced-colors: active) {
+  .tool-card,
+  .tool-card:hover,
+  .tool-card:focus-visible {
+    border: 2px solid CanvasText;
+    background: Canvas;
+    color: CanvasText;
+  }
+
+  .tool-card:focus-visible {
+    outline: 2px solid Highlight;
+  }
+
+  .tool-card .tool-launcher-icon {
+    border-color: CanvasText;
+    background: Canvas;
+    color: CanvasText;
   }
 }
 

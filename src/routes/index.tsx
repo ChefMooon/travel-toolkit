@@ -14,7 +14,7 @@ export default function LandingPage() {
           <Link
             key={tool.route}
             to={tool.route}
-            className="tool-card"
+            className={`tool-card tool-card--${tool.route.slice(1)}`}
           >
             <span className="tool-launcher-icon" aria-hidden="true">
               <tool.icon focusable="false" strokeWidth={2} />

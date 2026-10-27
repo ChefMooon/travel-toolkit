@@ -4,6 +4,44 @@ Companion to [SITE-DESIGN-SPEC.md](./SITE-DESIGN-SPEC.md). This document covers 
 
 ---
 
+## Home page tool cards
+
+Each home page tool card has a distinct accent inspired by the trip-cost group
+palette. The complete named palette and its light and dark values live in
+[`COUPLE_COLORS`](../src/store/types.ts); the first five Pressed Flowers colors
+also have CSS tokens near the top of [`src/index.css`](../src/index.css). The
+home-card shades are contrast-adjusted derivatives, not exact copies of those
+values. Choose a recognizable palette hue that is distinct from the existing
+cards, then tune it separately for each theme.
+
+| Tool | Palette inspiration | Card class |
+|---|---|---|
+| Trip Cost | Rose | `.tool-card--trip` (uses the base card's rose defaults) |
+| Currency Converter | Sage | `.tool-card--currency` |
+| Timezone Tracker | Periwinkle | `.tool-card--timezone` |
+| Destination Forecast | Tan, adjusted toward amber | `.tool-card--forecast` |
+
+The tool list is defined in [`src/lib/tools.ts`](../src/lib/tools.ts), and
+[`src/routes/index.tsx`](../src/routes/index.tsx) derives each card class from
+its route. Card-specific color variables and dark-theme overrides live in the
+`.tool-card` section of `src/index.css`. Keep colors tied to the tool route,
+not its position in the grid, so reordering tools does not change their colors.
+
+When adding a tool, select an unused palette hue where practical and define
+light and dark values for `--card-edge`, `--card-start`, `--card-end`,
+`--card-icon`, and `--card-icon-bg` under its route class. The edge is solid at
+rest; hover uses a stationary two-color gradient. Keep the border static; a
+subtle card lift and shadow transition may provide hover feedback when motion
+is allowed. Keep the separate focus outline and forced-colors fallback.
+The icon tile styling is scoped to home cards because the launcher icon is also
+used elsewhere.
+
+Check contrast in both themes against the actual adjacent colors: the resting
+edge and every part of the hover gradient must reach at least 3:1 against the
+page background, and the icon must remain distinguishable from its tile. Check
+the focus outline as well. Palette colors and soft group borders are starting
+points, not a guarantee of sufficient contrast; adjust the shades as needed.
+
 ## Scrollbars
 
 All scrollable surfaces use the same visual pattern: a thin, floating thumb over a transparent track. The thumb color derives from `--border-2` (adapts to light/dark theme automatically). No custom background is ever used for the track inside modals or panels.

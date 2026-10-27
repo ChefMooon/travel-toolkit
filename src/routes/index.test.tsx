@@ -44,6 +44,7 @@ describe('landing route', () => {
     for (const { label, description, route } of expectedTools) {
       const link = screen.getByRole('link', { name: new RegExp(label) });
       expect(link).toHaveAttribute('href', route);
+      expect(link).toHaveClass(`tool-card--${route.slice(1)}`);
       expect(link).toHaveTextContent(description);
     }
 
