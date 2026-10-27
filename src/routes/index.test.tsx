@@ -52,5 +52,6 @@ describe('landing route', () => {
         '.tool-launcher-icon[aria-hidden="true"] > svg[focusable="false"]',
       ),
     ).toHaveLength(expectedTools.length);
+    expect(screen.getByRole('main')).toHaveAttribute('data-page-entrance');
   });
 });

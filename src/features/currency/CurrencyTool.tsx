@@ -107,7 +107,7 @@ export default function CurrencyTool() {
   }
 
   return (
-    <main className="tool-page" aria-label="Currency converter">
+    <main className="tool-page" data-page-entrance aria-label="Currency converter">
       <h1>Currency Converter</h1>
 
       <CurrencyRegionSelector />

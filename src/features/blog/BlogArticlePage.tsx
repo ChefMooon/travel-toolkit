@@ -7,7 +7,7 @@ export default function BlogArticlePage() {
   const { post } = useLoaderData({ from: '/blog/$slug' });
 
   return (
-    <main className="blog-article-page" aria-labelledby="blog-article-title">
+    <main key={post.slug} className="blog-article-page" data-page-entrance aria-labelledby="blog-article-title">
       <article className="blog-article">
         <header className="blog-article-header">
           <Link

@@ -4712,6 +4712,10 @@ table.ledger .ledger-inline-field > .numeric-input {
 
 /* ══════════════════════════════════════════ ANIMATIONS */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+[data-page-entrance] { animation: fadeUp .42s ease backwards; }
+@media (prefers-reduced-motion: reduce) {
+  [data-page-entrance] { animation: none; }
+}
 [data-section="party"]   { animation: fadeUp .42s ease both; }
 [data-section="costs"]   { animation: fadeUp .42s ease .07s both; }
 [data-section="summary"] { animation: fadeUp .42s ease .13s both; }

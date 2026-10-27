@@ -33,6 +33,7 @@ describe('blog article route', () => {
     renderBlogArticle(`/blog/${post.slug}`);
     await screen.findByRole('heading', { level: 1, name: post.title });
 
+    expect(screen.getByRole('main')).toHaveAttribute('data-page-entrance');
     expect(screen.getByRole('heading', { level: 1, name: post.title })).toBeInTheDocument();
     expect(screen.getByText(post.publishedAt.slice(0, 10), { selector: 'time' })).toHaveAttribute(
       'datetime',

@@ -14,6 +14,7 @@ describe('TimezonePage', () => {
 
   it('opens the existing timezone dialog from the empty state and restores focus on close', async () => {
     render(<TimezonePage />);
+    expect(screen.getByRole('main')).toHaveAttribute('data-page-entrance');
 
     const addButton = screen.getByRole('button', { name: 'Add timezone' });
     fireEvent.click(addButton);

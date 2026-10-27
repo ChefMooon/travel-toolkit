@@ -40,7 +40,7 @@ function BlogIndexPage() {
     tag === undefined ? blogPosts : blogPosts.filter((post) => post.tags.includes(tag));
 
   return (
-    <main className="blog-page" aria-labelledby="blog-title">
+    <main className="blog-page" data-page-entrance aria-labelledby="blog-title">
       <header className="blog-page-header">
         <h1 id="blog-title">Blog</h1>
         <p>Articles and changelogs from Travel Toolkit.</p>

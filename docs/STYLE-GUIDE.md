@@ -97,6 +97,24 @@ Mobile breakpoint (`max-width: 767px`) narrows the body and panel scrollbars to 
 
 Apply the same override for any new large panel that appears on mobile.
 
+## Page entrance motion
+
+Stable top-level page containers use the shared `fadeUp` entrance in
+`src/index.css`: 420 ms, an initial 14 px vertical offset, and ease timing.
+Apply `data-page-entrance` to the page's `<main>` when it enters on navigation.
+The animation uses backwards fill so the starting state applies before it runs
+without retaining a transform after completion. This avoids changing fixed
+positioning or stacking behavior once the entrance finishes.
+
+Use the entrance once per page mount. Do not add it to live result lists,
+changing cards, or filter updates, since those updates should not replay the
+page motion. If a route renders different article content for a changed slug,
+key the page container by that slug so a newly selected article gets its own
+entrance.
+
+The animation is disabled when `prefers-reduced-motion: reduce` is active.
+Keep all page entrance motion covered by that preference.
+
 ### Token reference
 
 | Token | Role |

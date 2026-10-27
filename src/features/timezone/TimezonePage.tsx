@@ -8,7 +8,7 @@ export default function TimezonePage() {
   const openConfig = useRef<(() => void) | null>(null);
 
   return (
-    <main className="tool-page" aria-label="Timezone converter">
+    <main className="tool-page" data-page-entrance aria-label="Timezone converter">
       <h1>Timezone Converter</h1>
       <TimezoneNavbar manageRef={openConfig} />
       <ClockGrid now={now} onAddTimezone={() => openConfig.current?.()} />

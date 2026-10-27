@@ -603,7 +603,7 @@ export default function ForecastTool() {
   };
 
   return (
-    <main className="tool-page" aria-label="Destination forecast">
+    <main className="tool-page" data-page-entrance aria-label="Destination forecast">
       <h1>Destination Forecast</h1>
 
       <div className="card forecast-search-card">
