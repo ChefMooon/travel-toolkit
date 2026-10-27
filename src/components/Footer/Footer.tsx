@@ -11,30 +11,18 @@ export default function Footer() {
   return (
     <footer className="site-footer" aria-label="Site footer">
       <div className="site-footer-inner">
-        <p className="site-footer-meta">
-          <span>Hosted on</span>
-          <a
-            className="site-footer-link"
-            href={CLOUDFLARE_URL}
-            target="_blank"
-            rel="noreferrer"
-          >
-          Cloudflare
-          </a>
-          <span className="site-footer-separator" aria-hidden="true">|</span>
+        <nav className="site-footer-primary" aria-label="Footer links">
+          <Link className="site-footer-link" to="/blog" search={{ tag: undefined }}>
+            Blog
+          </Link>
           <a
             className="site-footer-link"
             href={SOURCE_URL}
             target="_blank"
             rel="noreferrer"
           >
-            Source
+            Source code
           </a>
-          <span className="site-footer-separator" aria-hidden="true">|</span>
-          <Link className="site-footer-link" to="/blog" search={{ tag: undefined }}>
-            Blog
-          </Link>
-          <span className="site-footer-separator" aria-hidden="true">|</span>
           <button
             type="button"
             className="site-footer-link site-footer-button"
@@ -42,8 +30,20 @@ export default function Footer() {
           >
             Privacy Preferences
           </button>
-          <span className="site-footer-separator" aria-hidden="true">|</span>
+        </nav>
+        <p className="site-footer-meta">
           <span>&copy; {currentYear} Travel Toolkit</span>
+          <span className="site-footer-hosting">
+            Hosted on{' '}
+            <a
+              className="site-footer-link site-footer-meta-link"
+              href={CLOUDFLARE_URL}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Cloudflare
+            </a>
+          </span>
         </p>
       </div>
     </footer>

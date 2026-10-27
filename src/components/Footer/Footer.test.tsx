@@ -32,14 +32,24 @@ describe('Footer', () => {
     expect(screen.getByRole('button', { name: 'Privacy Preferences' })).toBeInTheDocument();
   });
 
-  it('shows the source repository link', async () => {
+  it('shows the source code link', async () => {
     await renderAppAtHome();
 
-    const sourceLink = screen.getByRole('link', { name: 'Source' });
+    const sourceLink = screen.getByRole('link', { name: 'Source code' });
 
     expect(sourceLink).toHaveAttribute('href', 'https://github.com/ChefMooon/travel-toolkit');
     expect(sourceLink).toHaveAttribute('target', '_blank');
     expect(sourceLink).toHaveAttribute('rel', 'noreferrer');
+  });
+
+  it('shows the Cloudflare hosting link', async () => {
+    await renderAppAtHome();
+
+    const hostingLink = screen.getByRole('link', { name: 'Cloudflare' });
+
+    expect(hostingLink).toHaveAttribute('href', 'https://www.cloudflare.com/');
+    expect(hostingLink).toHaveAttribute('target', '_blank');
+    expect(hostingLink).toHaveAttribute('rel', 'noreferrer');
   });
 
   it('shows the blog link in the shared footer', async () => {
