@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [1.4.0] - 2026-10-28
+
+### Added
+
+- Added travel dates with a shared date picker, plus a trip countdown shown in a new trip strip.
+- Added a standalone travel unit converter.
+- Added global travel preferences, including a preferred trip region, and browser-language detection on first use.
+- Added quick actions to clear a date or select today.
+- Added a French (Canada) translation review preview.
+
+### Changed
+
+- Improved unit-conversion results and added animated feedback when changing measurements.
+- Refined homepage highlights, tool cards, navigation and header controls, and mobile readability.
+- Clarified footer links and attribution.
+
 ## [1.3.3] - 2026-10-26
 
 ### Added
