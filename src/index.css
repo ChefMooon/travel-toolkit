@@ -6531,12 +6531,12 @@ table.ledger .ledger-inline-field > .numeric-input {
 .unit-controls .shared-select.tool-input, .unit-controls .numeric-input-field { box-sizing: border-box; border-radius: 9px; border-color: var(--border-2); background: var(--bg-2); }
 .unit-controls .numeric-input-field { padding: 8px 42px 8px 12px; }
 .unit-swap { align-self: end; }
-.unit-result { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; overflow-wrap: anywhere; }
+.unit-result { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: center; gap: 4px 12px; padding: 20px 24px; overflow-wrap: anywhere; text-align: center; }
 .unit-result > * { min-width: 0; }
-.unit-result span { color: var(--text-2); }
+.unit-result span { color: var(--text-2); font-size: 1rem; }
 .unit-result strong { font-size: 1.5rem; }
 @media (max-width: 600px) { .unit-measurement-options { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (max-width: 479px) { .unit-controls { grid-template-columns: minmax(0, 1fr); } .unit-measurement-option span { gap: 4px; padding-inline: 3px; font-size: 12px; } .unit-swap { justify-self: center; } }
+@media (max-width: 479px) { .unit-controls { grid-template-columns: minmax(0, 1fr); } .unit-measurement-option span { gap: 4px; padding-inline: 3px; font-size: 12px; } .unit-swap { justify-self: center; } .unit-result { flex-direction: column; align-items: center; gap: 2px; } }
 
 @media (min-width: 768px) {
   .unit-controls { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto minmax(0, 1fr); align-items: end; }
