@@ -1,14 +1,16 @@
-import { useCallback, useEffect, useId } from 'react';
+import { useCallback, useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { useSettingsStore } from '@/store/settingsStore';
 import CogIcon from './CogIcon';
+import { useTranslation } from 'react-i18next';
 
 interface ImportExportSettingsModalProps {
   onClose: () => void;
 }
 
 export default function ImportExportSettingsModal({ onClose }: ImportExportSettingsModalProps) {
+  const { t } = useTranslation();
   const exportSchema = useSettingsStore((s) => s.exportSchema);
   const exportFilenamePreset = useSettingsStore((s) => s.exportFilenamePreset);
   const exportIncludeDate = useSettingsStore((s) => s.exportIncludeDate);
@@ -19,6 +21,9 @@ export default function ImportExportSettingsModal({ onClose }: ImportExportSetti
   const setImportExchangeRateMode = useSettingsStore((s) => s.setImportExchangeRateMode);
 
   const titleId = useId();
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
 
   const handleBackdropClick = useCallback(
     (e: React.MouseEvent) => {
@@ -28,16 +33,26 @@ export default function ImportExportSettingsModal({ onClose }: ImportExportSetti
   );
 
   useEffect(() => {
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    dialogRef.current?.querySelector<HTMLElement>('button')?.focus();
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') closeRef.current();
+      if (e.key !== 'Tab' || !dialogRef.current) return;
+      const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])'));
+      if (focusable.length === 0) return;
+      const first = focusable[0]!;
+      const last = focusable[focusable.length - 1]!;
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
     };
     document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onClose]);
+    return () => { document.removeEventListener('keydown', handleKeyDown); previousFocus?.focus(); };
+  }, []);
 
   return createPortal(
     <div className="ie-settings-overlay" onClick={handleBackdropClick}>
       <div
+        ref={dialogRef}
         className="ie-settings-modal"
         role="dialog"
         aria-modal="true"
@@ -47,19 +62,19 @@ export default function ImportExportSettingsModal({ onClose }: ImportExportSetti
         <div className="ie-settings-header">
           <div className="ie-settings-title-row">
             <CogIcon />
-            <h2 id={titleId} className="ie-settings-title">Import / Export Settings</h2>
+            <h2 id={titleId} className="ie-settings-title">{t('importExportSettings')}</h2>
           </div>
-          <button type="button" className="ie-settings-close" onClick={onClose} aria-label="Close settings">
+          <button type="button" className="ie-settings-close" onClick={onClose} aria-label={t('closeSettings')}>
             <X size={16} />
           </button>
         </div>
 
         {/* ── Export Defaults ── */}
         <section className="ie-settings-section">
-          <h3 className="ie-settings-section-title">Export Defaults</h3>
+          <h3 className="ie-settings-section-title">{t('exportDefaults')}</h3>
 
           <div className="ie-settings-field">
-            <span className="ie-settings-field-label">Format</span>
+            <span className="ie-settings-field-label">{t('exportFormat')}</span>
             <div className="ie-settings-option-group">
               <button
                 type="button"
@@ -68,7 +83,7 @@ export default function ImportExportSettingsModal({ onClose }: ImportExportSetti
               >
                 <span className="save-data-io-dropdown-dot" style={{ background: '#2CBF6D' }} />
                 <span>.xlsx v1</span>
-                <span className="save-data-io-dropdown-desc">Multi-sheet</span>
+                <span className="save-data-io-dropdown-desc">{t('multiSheet')}</span>
               </button>
               <button
                 type="button"
@@ -77,20 +92,20 @@ export default function ImportExportSettingsModal({ onClose }: ImportExportSetti
               >
                 <span className="save-data-io-dropdown-dot" style={{ background: '#9CE7B5' }} />
                 <span>.xlsx v2</span>
-                <span className="save-data-io-dropdown-desc">Single sheet</span>
+                <span className="save-data-io-dropdown-desc">{t('singleSheet')}</span>
               </button>
             </div>
           </div>
 
           <div className="ie-settings-field">
-            <span className="ie-settings-field-label">Filename preset</span>
+            <span className="ie-settings-field-label">{t('filenamePreset')}</span>
             <div className="ie-settings-option-group">
               {(
                 [
-                  { value: 'tripId', label: 'Trip ID' },
-                  { value: 'tripName', label: 'Trip Name' },
-                  { value: 'slotLabel', label: 'Slot Name' },
-                  { value: 'custom', label: 'Custom' },
+                  { value: 'tripId', label: t('filenameTripId') },
+                  { value: 'tripName', label: t('filenameTripName') },
+                  { value: 'slotLabel', label: t('filenameSlotName') },
+                  { value: 'custom', label: t('customPreset') },
                 ] as const
               ).map((item) => (
                 <button
@@ -111,7 +126,7 @@ export default function ImportExportSettingsModal({ onClose }: ImportExportSetti
               checked={exportIncludeDate}
               onChange={(e) => setExportIncludeDate(e.target.checked)}
             />
-            <span>Include date in filename</span>
+            <span>{t('includeDateInFilename')}</span>
           </label>
         </section>
 
@@ -119,10 +134,10 @@ export default function ImportExportSettingsModal({ onClose }: ImportExportSetti
 
         {/* ── Import Defaults ── */}
         <section className="ie-settings-section">
-          <h3 className="ie-settings-section-title">Import Defaults</h3>
+          <h3 className="ie-settings-section-title">{t('importDefaults')}</h3>
 
           <div className="ie-settings-field">
-            <span className="ie-settings-field-label">Exchange rates</span>
+            <span className="ie-settings-field-label">{t('exchangeRates')}</span>
             <div className="ie-settings-option-group">
               <button
                 type="button"
@@ -130,8 +145,8 @@ export default function ImportExportSettingsModal({ onClose }: ImportExportSetti
                 onClick={() => setImportExchangeRateMode('hybrid')}
               >
                 <span className="save-data-io-dropdown-dot" style={{ background: '#5AA3FF' }} />
-                <span>Hybrid rates</span>
-                <span className="save-data-io-dropdown-desc">Keep overrides, refresh others</span>
+                <span>{t('hybridRates')}</span>
+                <span className="save-data-io-dropdown-desc">{t('keepOverridesRefreshOthers')}</span>
               </button>
               <button
                 type="button"
@@ -139,8 +154,8 @@ export default function ImportExportSettingsModal({ onClose }: ImportExportSetti
                 onClick={() => setImportExchangeRateMode('keep-imported')}
               >
                 <span className="save-data-io-dropdown-dot" style={{ background: '#2CBF6D' }} />
-                <span>Keep imported rates</span>
-                <span className="save-data-io-dropdown-desc">Freeze all from file</span>
+                <span>{t('keepImportedRates')}</span>
+                <span className="save-data-io-dropdown-desc">{t('freezeAllFromFile')}</span>
               </button>
               <button
                 type="button"
@@ -148,8 +163,8 @@ export default function ImportExportSettingsModal({ onClose }: ImportExportSetti
                 onClick={() => setImportExchangeRateMode('refresh-live')}
               >
                 <span className="save-data-io-dropdown-dot" style={{ background: '#F2B65A' }} />
-                <span>Refresh with live</span>
-                <span className="save-data-io-dropdown-desc">Live rates override imported</span>
+                <span>{t('refreshWithLive')}</span>
+                <span className="save-data-io-dropdown-desc">{t('liveRatesOverrideImported')}</span>
               </button>
             </div>
           </div>

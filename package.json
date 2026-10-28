@@ -13,6 +13,7 @@
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
+    "i18n:check": "node scripts/check-i18n-catalogs.mjs",
     "sync:events": "node --env-file=.env scripts/sync-forecast-events.mjs"
   },
   "dependencies": {

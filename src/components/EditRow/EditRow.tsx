@@ -10,6 +10,8 @@ import SplitAssignmentModal from '../SplitAssignmentModal';
 import Tooltip from '@/components/Tooltip';
 import { useDraftStore } from '@/store/draftStore';
 import NumericInput from '@/components/NumericInput/NumericInput';
+import { useTranslation } from 'react-i18next';
+import '@/i18n';
 
 interface EditRowProps {
   initial?: {
@@ -36,6 +38,7 @@ interface EditRowProps {
 }
 
 export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: EditRowProps) {
+  const { t } = useTranslation();
   const couples = useTripStore((s) => s.couples);
   const globalMarkup = useTripStore((s) => s.globalMarkup);
   const region = useTripStore((s) => s.region);
@@ -87,8 +90,8 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
     if (!name.trim()) {
       pushToast({
         type: 'warning',
-        title: 'Save blocked',
-        message: 'Add a name before saving this cost entry.',
+        title: t('saveBlocked'),
+        message: t('addCostNameBeforeSave'),
       });
       return;
     }
@@ -96,8 +99,8 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
     if (isNaN(parsedValue) || parsedValue < 0) {
       pushToast({
         type: 'warning',
-        title: 'Save blocked',
-        message: 'Enter a valid amount that is 0 or higher.',
+        title: t('saveBlocked'),
+        message: t('enterValidAmount'),
       });
       return;
     }
@@ -116,8 +119,8 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
     if ((splitType === 'individual' || splitType === 'subset') && finalAssigned.length === 0) {
       pushToast({
         type: 'warning',
-        title: 'Save blocked',
-        message: `${splitType === 'individual' ? 'Solo' : 'Subset'} costs must include at least one group assignment.`,
+        title: t('saveBlocked'),
+        message: t('splitNeedsGroup', { splitType: t(splitType === 'individual' ? 'solo' : 'subset') }),
       });
       return;
     }
@@ -131,7 +134,7 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
       assignedCoupleIds: finalAssigned,
       type: type || null,
     });
-  }, [name, currency, value, useGlobalMarkup, markupOverride, splitType, assignedCoupleIds, type, onSave, pushToast]);
+  }, [name, currency, value, useGlobalMarkup, markupOverride, splitType, assignedCoupleIds, type, onSave, pushToast, t]);
 
   const openSplitModalFor = (nextSplitType: SplitType) => {
     if (nextSplitType === 'shared') {
@@ -255,20 +258,20 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
       <td colSpan={11}>
         <div className="edit-grid">
           <div className="ef">
-            <label className="ef-lbl" htmlFor={`${fieldPrefix}-name`}>Name</label>
+            <label className="ef-lbl" htmlFor={`${fieldPrefix}-name`}>{t('name')}</label>
             <input
               id={`${fieldPrefix}-name`}
               className="ef-inp"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="e.g. Hotel Night 1"
+              placeholder={t('costNameExample')}
               maxLength={MAX_COST_NAME_LENGTH}
               autoFocus
             />
           </div>
           <div className="ef">
-            <label className="ef-lbl" htmlFor={`${fieldPrefix}-currency`}>Currency</label>
+            <label className="ef-lbl" htmlFor={`${fieldPrefix}-currency`}>{t('currencyLabel')}</label>
             <Select
               id={`${fieldPrefix}-currency`}
               className="ef-select"
@@ -278,20 +281,20 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
             />
           </div>
           <div className="ef">
-            <label className="ef-lbl" htmlFor={`${fieldPrefix}-amount`}>Amount</label>
+            <label className="ef-lbl" htmlFor={`${fieldPrefix}-amount`}>{t('amount')}</label>
             <NumericInput
               id={`${fieldPrefix}-amount`}
               className="ef-inp mono"
               step="0.01"
               min="0"
-              aria-label="Amount"
+              aria-label={t('amount')}
               value={value}
               onChange={(e) => setValue(e.target.value)}
               placeholder="0.00"
             />
           </div>
           <div className="ef">
-            <span className="ef-lbl" id={`${fieldPrefix}-split-label`}>Split</span>
+            <span className="ef-lbl" id={`${fieldPrefix}-split-label`}>{t('split')}</span>
             <div role="group" aria-labelledby={`${fieldPrefix}-split-label`} className="seg">
               <button
                 className={`seg-btn${splitType === 'shared' ? ' on' : ''}`}
@@ -299,7 +302,7 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
                 type="button"
                 aria-pressed={splitType === 'shared'}
               >
-                All
+                {t('allGroups')}
               </button>
               <button
                 className={`seg-btn${splitType === 'subset' ? ' on' : ''}`}
@@ -307,7 +310,7 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
                 type="button"
                 aria-pressed={splitType === 'subset'}
               >
-                Subset
+                {t('subset')}
               </button>
               <button
                 className={`seg-btn${splitType === 'individual' ? ' on' : ''}`}
@@ -315,18 +318,18 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
                 type="button"
                 aria-pressed={splitType === 'individual'}
               >
-                Solo
+                {t('solo')}
               </button>
             </div>
           </div>
           <div className="ef">
-            <label className="ef-lbl" htmlFor={`${fieldPrefix}-type`}>Type</label>
+            <label className="ef-lbl" htmlFor={`${fieldPrefix}-type`}>{t('type')}</label>
             <CostTypePicker
               id={`${fieldPrefix}-type`}
               value={type}
               onChange={setType}
               optionsId={`${fieldPrefix}-type-options`}
-              groupLabel="Cost type"
+              groupLabel={t('costType')}
               form
             />
           </div>
@@ -341,11 +344,11 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
                   checked={useGlobalMarkup}
                   onChange={(e) => setUseGlobalMarkup(e.target.checked)}
                 />
-                Use global markup ({globalMarkup}%)
+                {t('useGlobalMarkup', { value: globalMarkup })}
               </label>
               <div className={`markup-controls${useGlobalMarkup ? ' is-hidden' : ''}`} aria-hidden={useGlobalMarkup}>
                 <label htmlFor={`${fieldPrefix}-markup`} className="sr-only">
-                  Custom markup percentage
+                  {t('customMarkupPercentage')}
                 </label>
                 <input
                   id={`${fieldPrefix}-markup`}
@@ -367,7 +370,7 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
                   }}
                   disabled={useGlobalMarkup}
                 >
-                  Reset
+                  {t('reset')}
                 </button>
               </div>
             </div>
@@ -378,16 +381,16 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
                   fontSize: 10, fontWeight: 800, textTransform: 'uppercase',
                   letterSpacing: '0.07em', color: 'var(--text-3)',
                 }}>
-                  {splitType === 'individual' ? 'Assigned group:' : 'Included groups:'}
+                  {splitType === 'individual' ? t('assignedGroup') : t('includedGroups')}
                 </span>
                 <Tooltip content={assignedGroupNames
-                  ? `Currently assigned to: ${assignedGroupNames}`
-                  : 'Choose groups for this cost'}>
+                  ? t('currentlyAssignedTo', { groups: assignedGroupNames })
+                  : t('chooseGroupsForCost')}>
                   <button
                     type="button"
                     className={`split-select-inline-btn${assignedCoupleIds.length > 0 ? ' with-dots' : ''}`}
                     onClick={() => openSplitModalFor(splitType)}
-                    aria-label={splitType === 'individual' ? 'Change assigned group' : 'Change included groups'}
+                    aria-label={splitType === 'individual' ? t('changeAssignedGroup') : t('changeIncludedGroups')}
                   >
                     {assignedCoupleIds.length > 0 ? (
                       <div className="who-dots" style={{ margin: 0 }}>
@@ -402,7 +405,7 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
                           ))}
                       </div>
                     ) : (
-                      'Select groups'
+                      t('selectGroups')
                     )}
                   </button>
                 </Tooltip>
@@ -411,13 +414,13 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
           </div>
 
           <div className="edit-acts" style={{ paddingTop: 0 }}>
-            <button className="btn-save" onClick={handleSave} type="button">Save</button>
-            <Tooltip content="Discard changes and close this editor">
+            <button className="btn-save" onClick={handleSave} type="button">{t('save')}</button>
+            <Tooltip content={t('discardChangesCloseEditor')}>
               <button
                 className="btn-cancel"
                 onClick={onCancel}
                 type="button"
-                aria-label="Cancel editing cost"
+                aria-label={t('cancelEditingCost')}
               >
                 ✕
               </button>

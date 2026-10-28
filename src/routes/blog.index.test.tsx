@@ -9,7 +9,7 @@ import {
   RouterProvider,
 } from '@tanstack/react-router';
 import { routeTree } from '@/routeTree.gen';
-import { blogPosts } from '@/lib/blogPosts';
+import { blogPosts, getBlogPostDisplayDate } from '@/lib/blogPosts';
 
 const initialBlogPosts = [...blogPosts];
 
@@ -67,7 +67,7 @@ describe('blog index route', () => {
       throw new Error('Expected the first published post card.');
     }
     expect(
-      within(firstPostCard).getByText(post.publishedAt.slice(0, 10), { selector: 'time' }),
+      within(firstPostCard).getByText(getBlogPostDisplayDate(post.publishedAt), { selector: 'time' }),
     ).toHaveAttribute('datetime', post.publishedAt);
     expect(
       within(filterNavigation()).getByRole('link', { name: 'All posts' }),

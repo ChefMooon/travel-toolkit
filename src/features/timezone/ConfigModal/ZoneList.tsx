@@ -16,8 +16,10 @@ import {
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
 import { useTimezoneStore } from '@/store/timezoneStore';
 import ZoneConfigRow from './ZoneConfigRow';
+import { useTranslation } from 'react-i18next';
 
 export default function ZoneList() {
+  const { t } = useTranslation();
   const trackedZones = useTimezoneStore((state) => state.trackedZones);
   const reorderZones = useTimezoneStore((state) => state.reorderZones);
 
@@ -45,7 +47,7 @@ export default function ZoneList() {
   };
 
   if (orderedZones.length === 0) {
-    return <p className="tool-status">No zones added yet.</p>;
+    return <p className="tool-status">{t('zoneNoZonesAdded')}</p>;
   }
 
   return (

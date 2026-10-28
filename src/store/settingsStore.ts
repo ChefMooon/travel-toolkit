@@ -8,7 +8,7 @@ import { REGION_LIST } from './types';
 export type ImportRateMode = 'hybrid' | 'keep-imported' | 'refresh-live';
 export type MeasurementSystem = 'metric' | 'imperial';
 export type ClockFormat = '12h' | '24h';
-export type AppLanguage = 'en';
+export type AppLanguage = 'en' | 'fr-CA';
 
 const SETTINGS_STORAGE_KEY = 'travel-toolkit-settings-data';
 const TRIP_STORAGE_KEY = 'travel-toolkit-trip-data';
@@ -81,6 +81,7 @@ function isImportRateMode(value: unknown): value is ImportRateMode {
 }
 function isMeasurementSystem(value: unknown): value is MeasurementSystem { return value === 'metric' || value === 'imperial'; }
 function isClockFormat(value: unknown): value is ClockFormat { return value === '12h' || value === '24h'; }
+function isAppLanguage(value: unknown): value is AppLanguage { return value === 'en' || value === 'fr-CA'; }
 function isPreferredCurrency(value: unknown): value is string { return typeof value === 'string' && /^[A-Z]{3}$/.test(value); }
 function isPreferredRegion(value: unknown): value is Region | null { return value === null || (typeof value === 'string' && REGION_LIST.includes(value as Region)); }
 
@@ -176,7 +177,7 @@ export const useSettingsStore = create<SettingsStore>()(
           clockFormat: isClockFormat(persisted.clockFormat) ? persisted.clockFormat : currentState.clockFormat,
           preferredCurrency: isPreferredCurrency(persisted.preferredCurrency) ? persisted.preferredCurrency : currentState.preferredCurrency,
           preferredRegion: isPreferredRegion(persisted.preferredRegion) ? persisted.preferredRegion : currentState.preferredRegion,
-          language: persisted.language === 'en' ? 'en' : currentState.language,
+          language: isAppLanguage(persisted.language) ? persisted.language : 'en',
         };
       },
       onRehydrateStorage: () => (state, error) => {

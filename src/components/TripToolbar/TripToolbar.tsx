@@ -13,16 +13,19 @@ import {
 import SaveDataPanel from '@/components/SaveDataPanel';
 import Tooltip from '@/components/Tooltip';
 import { useDraftStore } from '@/store/draftStore';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 
 function getTripSaveStatusMessage(
   status: TripSaveStatus,
   slots: ReturnType<typeof useSaveSlotStore.getState>['slots'],
-  labels: ReturnType<typeof useSaveSlotStore.getState>['labels']
+  labels: ReturnType<typeof useSaveSlotStore.getState>['labels'],
+  t: TFunction,
 ): string {
   if (status.type === 'not-saved') {
     return status.hasUnsavedChanges
-      ? 'This trip has unsaved changes and has not been saved to a slot.'
-      : 'This trip has not been saved to a slot.';
+      ? t('unsavedTripStatus')
+      : t('notSavedTripStatus');
   }
 
   const slotLabel =
@@ -31,13 +34,14 @@ function getTripSaveStatusMessage(
     getDefaultSlotLabel(status.slotIndex);
 
   if (status.type === 'saved') {
-    return `This trip is saved in ${slotLabel}. There are no unsaved changes.`;
+    return t('savedTripStatus', { slot: slotLabel });
   }
 
-  return `This trip has unsaved changes. The last saved version is in ${slotLabel}.`;
+  return t('changedSavedTripStatus', { slot: slotLabel });
 }
 
 export default function TripToolbar() {
+  const { t } = useTranslation();
   const tripId = useTripStore((s) => s.tripId);
   const setTripId = useTripStore((s) => s.setTripId);
   const tripName = useTripStore((s) => s.tripName);
@@ -127,7 +131,7 @@ export default function TripToolbar() {
     }
     const dateDraftError = useTripStore.getState().dateDraftError;
     if (dateDraftError) {
-      pushToast({ type: 'warning', title: 'Trip dates need attention', message: dateDraftError });
+      pushToast({ type: 'warning', title: t('tripDatesNeedAttention'), message: t('invalidTripDateDraft') });
       return;
     }
 
@@ -139,10 +143,10 @@ export default function TripToolbar() {
     resetTrip();
     pushToast({
       type: 'success',
-      title: 'Saved and started new trip',
-      message: 'Your current trip was saved before starting a new one.',
+      title: t('savedAndStartedNewTrip'),
+      message: t('savedBeforeNewTrip'),
     });
-  }, [pushToast, resetTrip]);
+  }, [pushToast, resetTrip, t]);
 
   const handleCancelSaveContinuation = useCallback(() => {
     clearSaveContinuation();
@@ -165,13 +169,13 @@ export default function TripToolbar() {
   const handleStartFreshWithoutSaving = useCallback(() => {
     const dateDraftError = useTripStore.getState().dateDraftError;
     if (dateDraftError) {
-      pushToast({ type: 'warning', title: 'Trip dates need attention', message: `${dateDraftError} Starting a new trip will discard this draft.` });
+      pushToast({ type: 'warning', title: t('tripDatesNeedAttention'), message: t('discardDateDraftWarning') });
     }
     savePanelOpenedFromNewTripRef.current = false;
     clearSaveContinuation();
     resetTrip();
     setShowReset(false);
-  }, [clearSaveContinuation, pushToast, resetTrip]);
+  }, [clearSaveContinuation, pushToast, resetTrip, t]);
 
   const handleCancelNewTripDecision = useCallback(() => {
     savePanelOpenedFromNewTripRef.current = false;
@@ -180,15 +184,15 @@ export default function TripToolbar() {
   }, [clearSaveContinuation]);
 
   const tripSaveStatusMessage = tripSaveStatus
-    ? getTripSaveStatusMessage(tripSaveStatus, slots, labels)
+    ? getTripSaveStatusMessage(tripSaveStatus, slots, labels, t)
     : '';
   const currentTripIsSaved = tripSaveStatus?.type === 'saved';
   const newTripDialogBody =
     currentTripIsSaved
-      ? `${tripSaveStatusMessage} You can start a new trip without saving again.`
-      : `${tripSaveStatusMessage} Save the current trip before starting a new one, or start fresh without saving. Starting fresh permanently deletes the current trip data.`;
+      ? `${tripSaveStatusMessage} ${t('newTripSavedPrompt')}`
+      : `${tripSaveStatusMessage} ${t('newTripUnsavedPrompt')}`;
   const guardedNewTripDialogBody = dateDraftError
-    ? `${newTripDialogBody} The invalid date draft will be discarded if you continue.`
+    ? `${newTripDialogBody} ${t('invalidDateDraftPrompt')}`
     : newTripDialogBody;
 
   return (
@@ -203,7 +207,7 @@ export default function TripToolbar() {
               onFocus={() => setTripNameFocused(true)}
               onBlur={() => setTripNameFocused(false)}
               maxLength={MAX_TRIP_NAME_LENGTH}
-              aria-label="Trip name"
+              aria-label={t('tripName')}
             />
             {tripNameFocused && tripName ? (
               <button
@@ -213,7 +217,7 @@ export default function TripToolbar() {
                 onClick={() => {
                   setTripName('');
                 }}
-                aria-label="Clear trip name"
+                aria-label={t('clearTripName')}
               >
                 ×
               </button>
@@ -225,7 +229,7 @@ export default function TripToolbar() {
 
         <div className="trip-toolbar-id-row">
           <div className="trip-id-pill">
-            <span className="trip-id-pill-label">Trip ID</span>
+            <span className="trip-id-pill-label">{t('tripId')}</span>
             <input
               className="trip-id-pill-input"
               value={tripIdInput}
@@ -239,23 +243,23 @@ export default function TripToolbar() {
               maxLength={6}
               inputMode="numeric"
               pattern="[0-9]{6}"
-              aria-label="Trip ID"
+              aria-label={t('tripId')}
             />
           </div>
         </div>
 
         <div className="trip-toolbar-right">
-          <div className="trip-history-controls" role="group" aria-label="Trip history">
-            <Tooltip content="Undo (Ctrl+Z or Command+Z)">
-              <button type="button" aria-label="Undo" disabled={!canUndo} onClick={undo}><Undo2 size={16} /></button>
+          <div className="trip-history-controls" role="group" aria-label={t('tripHistory')}>
+            <Tooltip content={t('undoTip')}>
+              <button type="button" aria-label={t('undo')} disabled={!canUndo} onClick={undo}><Undo2 size={16} /></button>
             </Tooltip>
-            <Tooltip content="Redo (Ctrl+Y, Ctrl+Shift+Z, or Command+Shift+Z)">
-              <button type="button" aria-label="Redo" disabled={!canRedo} onClick={redo}><Redo2 size={16} /></button>
+            <Tooltip content={t('redoTip')}>
+              <button type="button" aria-label={t('redo')} disabled={!canRedo} onClick={redo}><Redo2 size={16} /></button>
             </Tooltip>
           </div>
           {editingMarkup ? (
-            <div className="markup-pill markup-pill--editing" role="group" aria-label="Markup editor">
-              <span>Markup</span>
+            <div className="markup-pill markup-pill--editing" role="group" aria-label={t('markupEditor')}>
+              <span>{t('markup')}</span>
               <NumericInput
                 className="markup-num"
                 step="0.1"
@@ -267,34 +271,34 @@ export default function TripToolbar() {
                 onBlur={handleMarkupBlur}
                 onKeyDown={(e) => e.key === 'Enter' && handleMarkupBlur()}
                 autoFocus
-                aria-label="Global markup percentage"
+                aria-label={t('markupPercentage')}
               />
             </div>
           ) : (
             <button type="button" className="markup-pill" onClick={() => setEditingMarkup(true)}>
-              <span>Markup</span>
+              <span>{t('markup')}</span>
               <span className="markup-num">{globalMarkup}%</span>
             </button>
           )}
 
-          <Tooltip content="New Trip">
+          <Tooltip content={t('newTrip')}>
             <button
               type="button"
               className="btn-new-trip"
               onClick={handleOpenNewTripDecision}
-              aria-label="Start new trip"
+              aria-label={t('startNewTrip')}
             >
-              <RotateCcw size={12} /> <span>New Trip</span>
+              <RotateCcw size={12} /> <span>{t('newTrip')}</span>
             </button>
           </Tooltip>
 
-          <Tooltip content="Save slots">
+          <Tooltip content={t('saveSlots')}>
             <button
               type="button"
               className="btn-save-panel"
               data-dirty={isDirty ? 'true' : 'false'}
               onClick={handleOpenSavePanel}
-              aria-label="Open save slots"
+              aria-label={t('openSaveSlots')}
             >
               <img src="/save.svg" alt="" aria-hidden="true" />
             </button>
@@ -305,11 +309,11 @@ export default function TripToolbar() {
       {showReset ? (
         <Modal
           icon="🗑️"
-          title="Start a new trip?"
+          title={t('startNewTripTitle')}
           body={guardedNewTripDialogBody}
-          secondaryActionLabel={currentTripIsSaved ? undefined : 'Save & Start New Trip'}
+          secondaryActionLabel={currentTripIsSaved ? undefined : t('saveAndStartNewTrip')}
           onSecondaryAction={currentTripIsSaved ? undefined : handleSaveAndStartNewTrip}
-          confirmLabel={currentTripIsSaved ? 'Start New Trip' : 'Start Fresh Without Saving'}
+          confirmLabel={currentTripIsSaved ? t('startNewTripConfirm') : t('startFreshNoSave')}
           onConfirm={handleStartFreshWithoutSaving}
           onCancel={handleCancelNewTripDecision}
         />

@@ -1,12 +1,25 @@
 /// <reference types="vitest" />
 /// <reference types="@testing-library/jest-dom" />
 
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { useState } from 'react';
 import DatePicker from './DatePicker';
+import { activateLanguage } from '@/i18n';
 
 describe('DatePicker calendar accessibility and navigation', () => {
+  it('updates the date placeholder when the language changes without changing the value', async () => {
+    render(<DatePicker id="date" label="Start date" value="2027-02-28" onChange={vi.fn()} />);
+    const input = screen.getByLabelText('Start date');
+    expect(input).toHaveAttribute('placeholder', 'YYYY-MM-DD');
+    try {
+      await act(async () => { await activateLanguage('fr-CA'); });
+      expect(input).toHaveAttribute('placeholder', 'AAAA-MM-JJ');
+      expect(input).toHaveValue('2027-02-28');
+    } finally {
+      await act(async () => { await activateLanguage('en'); });
+    }
+  });
   it('clears a filled date and returns focus to its input', () => {
     function Example() {
       const [value, setValue] = useState('2026-10-15');

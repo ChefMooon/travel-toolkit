@@ -9,7 +9,7 @@ import { validateImportedSnapshot } from './validate';
  * Detection strategy:
  *  1. Check for schema version marker → known format
  *  2. Check sheet names (Summary/Costs/Party) → three-sheet
- *  3. Fallback → single-sheet parse attempt
+ *  3. Recognize the single-sheet layout before parsing it
  */
 export async function importWorkbook(file: File): Promise<ImportResult> {
   const XLSX = await import('xlsx');
@@ -31,10 +31,14 @@ export async function importWorkbook(file: File): Promise<ImportResult> {
     const { parseThreeSheet } = await import('./threeSheetParser');
     raw = parseThreeSheet(wb, XLSX);
   } else {
-    // Single-sheet or unknown — try first sheet
+    // Reject unrelated or malformed files before replacing the active trip.
     const firstSheet = wb.Sheets[wb.SheetNames[0]!];
     if (!firstSheet) {
       throw new Error('The file contains no worksheet data.');
+    }
+    const cell = (address: string) => String(firstSheet[address]?.v ?? '').trim();
+    if (cell('A1') !== 'Summary' || cell('A3') !== 'Trip ID' || cell('A4') !== 'Trip Name') {
+      throw new Error('The file is not a recognized Travel Toolkit workbook.');
     }
     const { parseSingleSheet } = await import('./singleSheetParser');
     raw = parseSingleSheet(firstSheet, XLSX);

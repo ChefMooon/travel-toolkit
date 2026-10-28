@@ -3,7 +3,7 @@ title: "Site Internationalization with i18next - Implementation Plan"
 plan_profile: FULL
 status: IN_PROGRESS
 verification_status: PARTIAL
-current_phase: 1 / 4
+current_phase: 4 / 4
 created: 2026-10-26
 last_updated: 2026-10-27
 ---
@@ -11,7 +11,7 @@ last_updated: 2026-10-27
 # Overall Plan Completion Status
 
 - **Total Phases Completed:** 0 / 4
-- **Summary of Outcome:** A scoped global-settings implementation has installed i18next/react-i18next, added an English resource catalog and initialized the shared English runtime. The product remains English-only, with no additional selectable locale. This establishes runtime groundwork but does not complete Phase 1's language selector/metadata contract or any later internationalization phase. See `docs/plans/global-settings/global-settings-plan.md` for scope and verification. Translation coverage, localized formatting, catalog parity, RTL preparation, and additional-language review remain pending.
+- **Summary of Outcome:** The application now has a persisted English/French (Canada) language preference, explicit lazy-loaded French review preview, translated interface catalogs, locale-aware formatting, translated geocoding labels, a catalog parity check, and documented RTL boundaries. French is not advertised as a supported language: owner translation review and full browser-matrix evidence remain pending. Automated tests, typecheck, production build, catalog self-test, and diff checks are recorded in the implementation update below. Phase completion remains 0/4 until each phase's mandatory evidence is closed.
 
 # Specification & Overview
 
@@ -108,7 +108,7 @@ No implementation agents are assigned or launched by this plan. Phases are seque
 
 ## Phase 1: Language foundation and shared shell
 
-- **Status:** NOT_STARTED
+- **Status:** IN_PROGRESS
 - **Objective:** Establish a safe, typed translation runtime and a working language preference through the shared UI.
 - **Dependencies:** Implementation must be explicitly started later and concurrent shell/settings changes reconciled first.
 - **Exit Deliverable:** Initialized runtime, English common catalog, test-only second locale, language control, and test helpers ready for tool migration.
@@ -125,9 +125,9 @@ No implementation agents are assigned or launched by this plan. Phases are seque
 
 | Outcome / acceptance criterion | Check | Verification method | Result / evidence |
 | --- | --- | --- | --- |
-| Supported explicit preference wins; browser language and English fallback resolve predictably | Mandatory | Vitest cases for valid, regional, missing, malformed, unsupported, unavailable-storage, and resource-load-failure inputs; reload/hydration assertions | PENDING |
-| Language activation and accessible shared UI stay synchronized | Mandatory | Component/integration assertions for selection, persisted preference, `html.lang`/`dir`, route-title update, keyboard access, and preserved settings | PENDING |
-| Typed keys, namespace fallback, interpolation/plurals, and deterministic test state work | Mandatory | Type checking via `npm run typecheck`; focused Vitest tests using isolated instances and consecutive languages | PENDING |
+| Supported explicit preference wins; browser language and English fallback resolve predictably | Mandatory | Vitest cases for valid, regional, missing, malformed, unsupported, unavailable-storage, and resource-load-failure inputs; reload/hydration assertions | PARTIAL — persisted locale validation and load-failure fallback tests pass; browser-language auto-detection is intentionally disabled; startup persistence/reload needs browser evidence. |
+| Language activation and accessible shared UI stay synchronized | Mandatory | Component/integration assertions for selection, persisted preference, `html.lang`/`dir`, route-title update, keyboard access, and preserved settings | PARTIAL — selector, explicit selection, persistence, document metadata, route-title code and activation race are tested; keyboard and reload browser matrix pending. |
+| Typed keys, namespace fallback, interpolation/plurals, and deterministic test state work | Mandatory | Type checking via `npm run typecheck`; focused Vitest tests using isolated instances and consecutive languages | PASS — `npm run typecheck`; `src/i18n.test.ts` covers isolated instances, interpolated plural message, fallback and last-request-wins. |
 
 ### UI Validation
 
@@ -138,13 +138,13 @@ No implementation agents are assigned or launched by this plan. Phases are seque
 
 ### Phase Record
 
-- **Artifacts created/modified:** None yet; expected runtime/resources, entry/shell/settings integration, selector, and focused tests.
-- **Decisions/deviations:** Pending implementation-time selector placement.
-- **Next-phase context:** Use the shared instance/helpers and semantic keys for tool migration; preserve all domain values.
+- **Artifacts created/modified:** Shared runtime in `src/i18n.ts`, typed catalogs, persisted settings, startup activation, selector/notice, route-title synchronization, and focused tests.
+- **Decisions/deviations:** The selector lives in the shared Settings menu. French is explicit preview only; browser language is not auto-detected. Automated activation, fallback, persistence, and metadata tests pass. Responsive browser checks remain open.
+- **Next-phase context:** Tool migrations and locale formatting are implemented; preserve all domain values and complete manual UI evidence before phase closure.
 
 ## Phase 2: Tool messages, formatting, and content boundaries
 
-- **Status:** NOT_STARTED
+- **Status:** IN_PROGRESS
 - **Objective:** Make every tool's application-owned interface language-aware without changing stored data or calculations.
 - **Dependencies:** Phase 1 runtime and test support.
 - **Exit Deliverable:** Complete English interface catalogs and locale-aware formatting across tools, with stable import/export behavior.
@@ -163,12 +163,12 @@ No implementation agents are assigned or launched by this plan. Phases are seque
 
 | Outcome / acceptance criterion | Check | Verification method | Result / evidence |
 | --- | --- | --- | --- |
-| Tools use complete messages, plural rules and localized accessible names | Mandatory | Focused component tests for each tool in English and a second fixture; catalog parity/interpolation checks; documented remaining-string audit | PENDING |
-| Display formats follow locale without changing math, date meaning, or input values | Mandatory | Formatter tests covering decimal/group separators, currencies, percentages, date-only boundaries, relative times, explicit timezone and 12/24-hour modes; calculation regression suite | PENDING |
-| Language switch preserves unsaved edits and persisted domain data | Mandatory | Integration test changes language with an edited trip, active currency/forecast/timezone settings and saved slots; compare domain snapshots before/after | PENDING |
-| Spreadsheets remain round-trip compatible across languages | Mandatory | Existing `src/lib/xlsx/__tests__` import/export tests plus round-trip test under a non-English locale with unchanged sheet names/metadata | PENDING |
-| Localized data requests/cache results cannot leak across locales | Mandatory | Geocoding request/query tests for effective-language keys, supported fallback, switch during request and stable selected location | PENDING |
-| Untranslated articles and external content are represented honestly | Mandatory | Blog tests assert source `lang`, localized chrome/fallback notice, unchanged slugs/content; external-content audit | PENDING |
+| Tools use complete messages, plural rules and localized accessible names | Mandatory | Focused component tests for each tool in English and a second fixture; catalog parity/interpolation checks; documented remaining-string audit | PARTIAL — catalogs have 594-key parity, numeric stepper accessible names are locale-aware, and the full suite passes; complete French browser walk/remaining-string audit pending. |
+| Display formats follow locale without changing math, date meaning, or input values | Mandatory | Formatter tests covering decimal/group separators, currencies, percentages, date-only boundaries, relative times, explicit timezone and 12/24-hour modes; calculation regression suite | PASS — `src/i18n/format.test.ts` covers localized number/currency/relative/date output, UTC date-only boundaries, explicit timezone and 12/24-hour options; countdown/calculation regression tests pass. |
+| Language switch preserves unsaved edits and persisted domain data | Mandatory | Integration test changes language with an edited trip, active currency/forecast/timezone settings and saved slots; compare domain snapshots before/after | PASS — `src/i18n.test.ts` compares edited trip/date/cost snapshot, global preference values and saved slot before/after explicit French activation. |
+| Spreadsheets remain round-trip compatible across languages | Mandatory | Existing `src/lib/xlsx/__tests__` import/export tests plus round-trip test under a non-English locale with unchanged sheet names/metadata | PASS — `src/lib/xlsx/__tests__/importWorkbook.test.ts` builds and parses both schemas under French, asserting stable sheet/header names and unchanged trip/date/cost data. |
+| Localized data requests/cache results cannot leak across locales | Mandatory | Geocoding request/query tests for effective-language keys, supported fallback, switch during request and stable selected location | PASS — `src/features/forecast/useForecast.test.tsx` switches from English to French, verifies separate provider language requests and cache keys, and confirms the provider ID remains stable. |
+| Untranslated articles and external content are represented honestly | Mandatory | Blog tests assert source `lang`, localized chrome/fallback notice, unchanged slugs/content; external-content audit | PARTIAL — English content `lang`, localized date/chrome/source notice are implemented; French browser verification pending. |
 
 ### Scope & Diff Guardrails
 
@@ -183,13 +183,13 @@ No implementation agents are assigned or launched by this plan. Phases are seque
 
 ### Phase Record
 
-- **Artifacts created/modified:** None yet; expected feature catalogs, tool/components, formatting utilities, localized query integration, and regression tests.
-- **Decisions/deviations:** Record retained English external/source content explicitly.
-- **Next-phase context:** Catalog coverage establishes the affected UI surface for logical-layout and mixed-direction preparation.
+- **Artifacts created/modified:** Shared English/French review-preview catalogs, locale formatters, translated application UI, localized geocoding query identity, source-language blog notice, and focused regression tests.
+- **Decisions/deviations:** User/provider values, routes, IDs, date-only inputs, spreadsheet schemas, and English blog content remain unchanged. Automated suite passes; a dedicated full French interaction/browser matrix and cross-locale spreadsheet round trip remain open.
+- **Next-phase context:** RTL preparation is scoped to logical properties, text isolation, and a deferred audit; full RTL remains out of scope.
 
 ## Phase 3: RTL preparation and layout resilience
 
-- **Status:** NOT_STARTED
+- **Status:** IN_PROGRESS
 - **Objective:** Reduce future RTL retrofit work while keeping production support limited to validated LTR languages.
 - **Dependencies:** Phase 2 translated interfaces and formatting boundaries.
 - **Exit Deliverable:** Logical layout improvements, bidirectional content safeguards, and a concrete deferred RTL audit.
@@ -206,10 +206,10 @@ No implementation agents are assigned or launched by this plan. Phases are seque
 
 | Outcome / acceptance criterion | Check | Verification method | Result / evidence |
 | --- | --- | --- | --- |
-| Logical CSS preserves current LTR layout and leaves intentional geometry explicit | Mandatory | Diff review of changed directional rules and browser comparison across specified viewports; record retained physical positioning in the deferred audit | PENDING |
-| Mixed-script names and codes remain readable with correct accessible text | Mandatory | Component assertions for isolation markup plus browser checks using Arabic/Hebrew names alongside currency amounts and timezone IDs | PENDING |
-| Future direction integration exists without shipping RTL support | Mandatory | Locale-registry/document synchronization test using a test-only RTL fixture; production selector/resource audit excludes unsupported RTL entries | PENDING |
-| Full RTL gaps are actionable and support boundaries explicit | Mandatory | Review deferred RTL audit against actual CSS, popover, ledger, drag, icon and font code; no claim of RTL completion | PENDING |
+| Logical CSS preserves current LTR layout and leaves intentional geometry explicit | Mandatory | Diff review of changed directional rules and browser comparison across specified viewports; record retained physical positioning in the deferred audit | PARTIAL — scoped logical CSS diff reviewed and `git diff --check` passes; viewport comparison unavailable in this subagent session. |
+| Mixed-script names and codes remain readable with correct accessible text | Mandatory | Component assertions for isolation markup plus browser checks using Arabic/Hebrew names alongside currency amounts and timezone IDs | PARTIAL — `bdi` isolation is present; Arabic/Hebrew visual interaction check pending. |
+| Future direction integration exists without shipping RTL support | Mandatory | Locale-registry/document synchronization test using a test-only RTL fixture; production selector/resource audit excludes unsupported RTL entries | PASS — direction fixture test passes; supported locale registry contains English and LTR French preview only. |
+| Full RTL gaps are actionable and support boundaries explicit | Mandatory | Review deferred RTL audit against actual CSS, popover, ledger, drag, icon and font code; no claim of RTL completion | PARTIAL — deferred work is documented in `docs/internationalization.md`; browser audit remains pending. |
 
 ### UI Validation
 
@@ -220,13 +220,13 @@ No implementation agents are assigned or launched by this plan. Phases are seque
 
 ### Phase Record
 
-- **Artifacts created/modified:** None yet; expected scoped CSS/markup changes, direction tests, and RTL preparation documentation.
-- **Decisions/deviations:** Full RTL remains deferred.
+- **Artifacts created/modified:** Scoped logical CSS, mixed-direction isolation, locale direction synchronization fixture, and deferred RTL audit in `docs/internationalization.md`.
+- **Decisions/deviations:** Full RTL remains deferred. Direction fixture and catalog/production-locale checks pass; visual mixed-script/browser evidence remains pending.
 - **Next-phase context:** Use the completed coverage and layout evidence to validate the owner-selected real language.
 
 ## Phase 4: First translated language and release handoff
 
-- **Status:** NOT_STARTED
+- **Status:** IN_PROGRESS
 - **Objective:** Release a reviewed additional LTR language and establish maintainable translation checks/documentation.
 - **Dependencies:** Phases 1–3; owner choice of language/region and translation reviewer. If unresolved, this phase remains NOT_STARTED and production remains English-only.
 
@@ -242,10 +242,10 @@ No implementation agents are assigned or launched by this plan. Phases are seque
 
 | Outcome / acceptance criterion | Check | Verification method | Result / evidence |
 | --- | --- | --- | --- |
-| Advertised second language has complete, reviewed translations | Mandatory | Catalog validation command recorded during implementation; **Manual Validation:** owner/designated language reviewer attests terminology, grammar, plurals, destructive dialogs and consent messages | PENDING; reviewer not assigned |
-| App remains functional and production build excludes test locales | Mandatory | `npm run test -- --run`; `npm run typecheck`; `npm run build`; `git diff --check`; inspect Vite output and resource imports | PENDING |
-| Real-language responsive interactions and persistence work | Mandatory | Implementer browser evidence for matrix below, including reload and switching during unsaved edits; no console errors, clipped required actions, or unexpected state changes | PENDING |
-| Contributors can add/maintain translations without changing domain formats | Mandatory | Documentation review and execute documented catalog check against a deliberately missing key in an isolated test fixture, without committing the defect | PENDING |
+| Advertised second language has complete, reviewed translations | Mandatory | Catalog validation command recorded during implementation; **Manual Validation:** owner/designated language reviewer attests terminology, grammar, plurals, destructive dialogs and consent messages | PENDING — French review preview remains unapproved; user review gate is open. |
+| App remains functional and production build excludes test locales | Mandatory | `npm run test -- --run`; `npm run typecheck`; `npm run build`; `git diff --check`; inspect Vite output and resource imports | PARTIAL — constrained run passes 77 files / 695 tests, typecheck, build and diff check pass; French is lazy loaded. The unconstrained run had two intermittent failures; see implementation update. |
+| Real-language responsive interactions and persistence work | Mandatory | Implementer browser evidence for matrix below, including reload and switching during unsaved edits; no console errors, clipped required actions, or unexpected state changes | PARTIAL — local browser smoke: selected French in Settings, inspected home, trip, units and countdown, and confirmed French persisted after reload on trip. Full viewport and interaction matrix remains pending. |
+| Contributors can add/maintain translations without changing domain formats | Mandatory | Documentation review and execute documented catalog check against a deliberately missing key in an isolated test fixture, without committing the defect | PASS — `docs/internationalization.md`; `npm run i18n:check -- --self-test` detects the deliberate missing-key fixture and reports parity for 594 keys. |
 
 ### Scope & Diff Guardrails
 
@@ -260,5 +260,43 @@ No implementation agents are assigned or launched by this plan. Phases are seque
 
 ### Phase Record
 
-- **Artifacts created/modified:** None yet; expected selected-language catalogs, catalog validation, contributor/architecture documentation and phase evidence.
-- **Decisions/deviations:** Record selected locale and reviewer, any changed scope, and all remaining verification limits here and in the decision log.
+- **Artifacts created/modified:** `src/i18n/locales/fr-CA.ts`, `scripts/check-i18n-catalogs.mjs`, `docs/internationalization.md`, and the shared settings/runtime/UI/tool changes listed in the implementation update below.
+- **Decisions/deviations:** French (Canada) is an explicit review preview with an on-screen notice. Browser language is not used for auto-detection. The user is the translation reviewer; approval is pending. Phase 4 is not complete, and French must not be described as supported until the user review and remaining browser evidence are recorded.
+
+## Implementation Update — 2026-10-27
+
+- **Language behavior:** English remains the default. `fr-CA` is explicitly selectable as “Français (Canada) — aperçu”, lazy loaded, validated in settings persistence, and recoverably falls back to English. Startup awaits the saved language before rendering. Activation is last-request-wins. `html.lang`, `html.dir`, route titles, and visible labels follow the active language.
+- **Coverage:** Shared shell, settings, trip workflow/save and toast UI, currency, timezone, forecast, units, countdown, DatePicker, blog chrome, date validation messages, import/export settings, mobile trip tabs, and RegionSelector labels use the catalogs. Domain IDs, names entered by users, number/date inputs, spreadsheet schema, route paths, currency codes, and IANA IDs remain stable. Blog article body/title/summary remain English and are identified as source-language content in preview mode.
+- **RTL preparation:** Current locales remain LTR. Mixed-direction values use isolation where needed; scoped logical CSS and a test-only direction synchronization fixture are present. No RTL locale or production RTL claim was added. The browser-based mixed-script/layout inspection remains pending.
+- **Automated evidence:** `npm run test -- --run --maxWorkers=3` — PASS, 77 files / 695 tests. The unconstrained parallel run had two load-sensitive failures (empty transient route shell and the existing 5-second large-timezone-list timeout); both affected files pass alone and in the constrained full run. `npm run typecheck` — PASS. `npm run build` — PASS; Vite emitted the French catalog as a separate lazy chunk (`fr-CA-*.js`). `npm run i18n:check -- --self-test` — PASS, 594 message keys and the deliberate missing-key fixture was detected. `git diff --check` — PASS. The build retains the >500 kB main-chunk advisory.
+- **Additional accessibility coverage:** Shared `NumericInput` now translates increment/decrement button names and step-help tooltip; `src/components/NumericInput/NumericInput.test.tsx` verifies French accessible names while preserving numeric input behavior.
+- **Focused regression corrections:** Preserved original English CoupleCard tooltip/accessibility wording, target currency symbol, privacy button casing, and “Page Not Found” document title. Blog date tests now verify locale-formatted visible copy while retaining the original `datetime` value. A region-selection guard handles an absent current selection safely. An active invalid date draft re-renders in French after language selection without changing stored trip dates.
+- **Browser smoke:** In the local in-app browser, selected French in Settings, observed the preview notice and translated home/trip/units/countdown controls, confirmed a French-formatted conversion result and French persistence after a trip-page reload. A stepper accessibility-label gap found during this check was fixed and covered by a focused test. This is not the full responsive matrix.
+- **Still pending:** Owner French translation review; browser matrix at 375×812, 768×1024, and 1440×900; visual checks for switching during edits, all responsive interactions and mixed-script content. Do not close any phase or mark verification PASSED until these mandatory manual items have evidence.
+
+## Responsive Browser Follow-up — 2026-10-28
+
+- **Conditional tooltip completion:** In an isolated production-preview copy, seeded a disposable trip containing an unassigned individual cost, an unassigned subset cost, and a shared CAD cost without an exchange rate; Frankfurter responses were deterministically failed. In English and French, light and dark themes, and 375×812, 768×1024, and 1440×900 viewports, all 36 keyboard-triggered tooltip checks showed the expected localized individual/subset validation or add-rate message, fit within the viewport, and closed on Escape. The earlier conditional-tooltip gap is closed. The French language review and any other plan acceptance criteria remain separate from this browser evidence.
+
+- **Tooltip inventory pass:** In a production preview on an isolated origin, measured keyboard-triggered tooltip bounds in English and French, light and dark themes, at 375×812, 768×1024, and 1440×900. Covered shared navigation and theme controls; trip dates, group and child controls, ledger name/markup/split/type/actions and exchange-rate edit; currency reset/swap and numeric-stepper help; timezone detect/manage and tracked-zone reorder; editor numeric help, selected type, assigned groups and discard; undo/redo; and every one of the ten icon and ten color choice tooltips. Measured boxes stayed within the viewport. The current pass did not synthesize invalid stored cost assignments or a missing exchange-rate state, so their conditional tooltip variants remain unverified; it does not constitute French translation approval.
+
+- **Save and bulk follow-up:** In an isolated preview, tested save-slot overwrite, clear, swap, load-with-unsaved-changes, and import-with-unsaved-changes confirmations in English/French, light/dark, at 375×812, 768×1024, and 1440×900. Each fit the viewport, focused Cancel, closed on Escape, and restored focus to its opening action. Import used a disposable local fixture and was cancelled before parsing. A two-item bulk-delete confirmation and the keyboard-triggered cost-edit tooltip were checked in the same 12 combinations. No document-level horizontal overflow was detected in these states.
+- **Corrections from this follow-up:** Responsive ledger cards hid the selection checkbox at container widths of 1,000 px and below, making bulk operations inaccessible. The checkbox remains visible beside the cost name in the card layout. Shared confirmation dialogs now return focus to the opener on dismissal, including nested save-slot confirmations.
+
+- **Additional provider and interaction checks:** An isolated Vite preview injected deterministic HTTP 503 responses for Frankfurter, geocoding, and climate requests (with a fixed geocoding result for the climate case). Currency-rate, destination-search, and climate-error messages were rendered and measured in English and French, light and dark themes, at all three specified sizes; no document-level horizontal overflow appeared. The climate Retry action is below the initial mobile viewport, but was reachable by scrolling and re-triggered the fixture failure. Group icon/color pickers, group removal, single-cost deletion, subset assignment, timezone settings, and the start-date-format tooltip were also opened in all 12 combinations; their measured bounds stayed within the viewport, initial dialog focus was checked, and Escape dismissed them. First icon/color choice tooltips were triggered with keyboard Tab. These are browser checks in one engine, not translation approval or proof that every remaining tooltip and dialog state was exercised.
+- **Keyboard correction:** Group icon/color pickers previously left focus behind the overlay and lacked dialog semantics. They now expose named modal dialogs, move focus inside, wrap Tab navigation, and restore focus to the opener. Focused icon/color tests cover these behaviors.
+
+- **Additional isolated-preview checks:** In English and French, with light and dark themes at 375×812, 768×1024, and 1440×900, measured the global settings panel and the unsaved-trip new-trip confirmation. Both stayed within the viewport and the document had no horizontal overflow in these states. The confirmation opened with focus on its localized Cancel action in all 12 combinations. Test data and preferences were confined to a separate `127.0.0.1` preview origin. This evidence covers these two states only; the full interaction matrix and owner translation review remain open.
+
+- **Further matrix pass (2026-10-28):** At each of 375×812, 768×1024 and 1440×900, in English and French and in light and dark themes, exercised the tool-navigation grid, currency/from-unit/local-timezone dropdowns, countdown calendar, trip cost editor, save and nested import/export-settings dialogs, currency attribution disclosure, and loaded forecast table/day switches. Measured menu/dialog bounds and page widths; tested Escape on the navigation, dropdowns, calendar and nested dialog. No document-level horizontal overflow was found in those states. Forecast no-results, date-validation and malformed-import feedback were also checked in all 12 combinations; the invalid date and trip ID remained unchanged during language/error changes.
+- **Live workflow and fixes:** Exported and re-imported a test workbook, then discovered arbitrary text renamed `.xlsx` could be accepted as an empty trip. Import now requires recognizable single-sheet layout markers before parsing; valid markerless-version workbooks remain supported. Verified the error in English and French and added focused parser coverage. The nested settings dialog now receives/traps focus and restores it to the trigger; Escape closes only the nested dialog. Removed launcher title clamping after French mobile labels were visibly truncated. Browser checks and focused tests verify these corrections.
+- **Remaining verification limit:** The live browser showed normal loading, loaded and no-results forecast states and import failures; deliberately forced currency/forecast provider failures were not reproduced visually. Existing component tests simulate provider failure, but do not establish responsive browser layout of those failure states. Other less-common dialogs and tooltip variants were not exhaustively checked at every combination. Consequently, retain PARTIAL for the full browser matrix and keep the French reviewer gate open.
+- **Checks for this pass:** Full suite passed 77 files / 699 tests before the final focus-handler refinement; focused SaveDataPanel, workbook import, and GridPanel tests passed 24 tests afterward. Production build passed, catalog self-test passed with 596 keys, and the existing >500 kB build advisory remains.
+
+- Additional interaction check: the French import/export settings dialog was measured within 375×812, 768×1024, and 1440×900 viewport bounds. Escape initially closed both nested dialogs; the save panel now stays open when the nested settings dialog closes. Verified in the browser and by the focused SaveDataPanel test suite. This does not complete the broader interaction matrix.
+
+- In an isolated local preview, measured all nine routes (home, trip, currency, timezone, units, forecast, countdown, blog list, and one article) in English and French at 375×812, 768×1024, and 1440×900 after the shell rendered. None had document-level horizontal overflow. These measurements do not establish that every interaction and text element fits.
+- Verified French selection with Space/arrow/Enter and Escape focus return; inspected the mobile settings and save panels, mobile trip editor, tablet trip read/edit views, desktop populated trip summary, French date picker, and a mixed Arabic/Latin cost name. Switching to English with an unsaved cost preserved the cost. The isolated test trip was saved to a slot.
+- Checked a live Montréal forecast and timezone search/add flow in French dark mode, English-only article notice, and French persistence on reload. Browser console showed no errors in the checked trip state. Fixed untranslated forecast summary labels/per-day units and tablet forecast table heading overlap and timezone wrapping; verified the loaded forecast visually at 375, 768, and 1440 widths.
+- Validation after those fixes: `npm run test -- --run --maxWorkers=3` passed 77 files / 696 tests; `npm run typecheck`, `npm run build`, `npm run i18n:check`, and `git diff --check` passed. The build retains the existing large-chunk advisory.
+- **Still pending:** Full state-by-state matrix across both themes and languages, all tool menus/dialogs, loading and error states, import/export, and keyboard interactions at each viewport. The checks above are representative and do not close the responsive matrix. Owner review of French remains pending.

@@ -212,7 +212,7 @@ describe('loadBlogPosts', () => {
   });
 
   it('derives the display date from the UTC date portion of publishedAt', () => {
-    expect(getBlogPostDisplayDate('2026-09-29T00:30:00Z')).toBe('2026-09-29');
+    expect(getBlogPostDisplayDate('2026-09-29T00:30:00Z')).toBe('Sep 29, 2026');
   });
 
   it('limits published tag options to announcements and changelog posts', () => {

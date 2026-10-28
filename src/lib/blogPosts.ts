@@ -1,4 +1,5 @@
 import { parse as parseYaml } from 'yaml';
+import { activeLocale } from '@/i18n/format';
 
 export interface BlogPost {
   slug: string;
@@ -150,7 +151,8 @@ export function parseBlogPost(filePath: string, markdown: string): BlogPost {
 }
 
 export function getBlogPostDisplayDate(publishedAt: string): string {
-  return publishedAt.slice(0, 10);
+  const date = new Date(`${publishedAt.slice(0, 10)}T00:00:00Z`);
+  return new Intl.DateTimeFormat(activeLocale(), { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' }).format(date);
 }
 
 function comparePosts(left: BlogPost, right: BlogPost): number {

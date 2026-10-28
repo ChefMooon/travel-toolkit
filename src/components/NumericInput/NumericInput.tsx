@@ -1,5 +1,7 @@
 import { forwardRef, useRef, type ComponentPropsWithoutRef } from 'react';
 import Tooltip from '@/components/Tooltip';
+import { useTranslation } from 'react-i18next';
+import { formatNumber } from '@/i18n/format';
 
 type NumericInputProps = Omit<ComponentPropsWithoutRef<'input'>, 'type'> & {
   shiftSteps?: number;
@@ -9,6 +11,7 @@ type NumericInputProps = Omit<ComponentPropsWithoutRef<'input'>, 'type'> & {
 const NumericInput = forwardRef<HTMLInputElement, NumericInputProps>(function NumericInput(
   { className = '', readOnly, disabled, onBlur, onKeyDown, shiftSteps = 100, acceleratedSteps = 1000, ...props }, forwardedRef,
 ) {
+  const { t } = useTranslation();
   const localRef = useRef<HTMLInputElement>(null);
   const setRef = (node: HTMLInputElement | null) => {
     localRef.current = node;
@@ -43,7 +46,7 @@ const NumericInput = forwardRef<HTMLInputElement, NumericInputProps>(function Nu
         }
       }}
     >
-      <Tooltip content={`Arrow keys: 1 step. Page Up/Down: 10 steps. Shift + arrow: ${shiftSteps} steps; Ctrl (or Command) + Shift + arrow: ${acceleratedSteps.toLocaleString()} steps.`}>
+      <Tooltip content={t('numericStepperHelp', { shiftSteps: formatNumber(shiftSteps), acceleratedSteps: formatNumber(acceleratedSteps) })}>
         <input {...props} className={`${className} numeric-input-field`.trim()} ref={setRef} type="number" readOnly={readOnly} disabled={disabled} onKeyDown={(event) => {
           onKeyDown?.(event);
           if (event.defaultPrevented || disabled || readOnly || event.altKey) return;
@@ -56,10 +59,10 @@ const NumericInput = forwardRef<HTMLInputElement, NumericInputProps>(function Nu
         }} />
       </Tooltip>
       <span className="numeric-input-controls">
-        <button type="button" aria-label={`Increase ${props['aria-label'] ?? 'value'}`} disabled={disabled || readOnly} onPointerDown={(event) => event.preventDefault()} onClick={(event) => step('up', event.shiftKey ? (event.ctrlKey || event.metaKey ? acceleratedSteps : shiftSteps) : 1)}>
+        <button type="button" aria-label={t('numericIncrease', { label: props['aria-label'] ?? t('numericValue') })} disabled={disabled || readOnly} onPointerDown={(event) => event.preventDefault()} onClick={(event) => step('up', event.shiftKey ? (event.ctrlKey || event.metaKey ? acceleratedSteps : shiftSteps) : 1)}>
           <svg viewBox="0 0 12 8" focusable="false"><path d="m2 6 4-4 4 4" /></svg>
         </button>
-        <button type="button" aria-label={`Decrease ${props['aria-label'] ?? 'value'}`} disabled={disabled || readOnly} onPointerDown={(event) => event.preventDefault()} onClick={(event) => step('down', event.shiftKey ? (event.ctrlKey || event.metaKey ? acceleratedSteps : shiftSteps) : 1)}>
+        <button type="button" aria-label={t('numericDecrease', { label: props['aria-label'] ?? t('numericValue') })} disabled={disabled || readOnly} onPointerDown={(event) => event.preventDefault()} onClick={(event) => step('down', event.shiftKey ? (event.ctrlKey || event.metaKey ? acceleratedSteps : shiftSteps) : 1)}>
           <svg viewBox="0 0 12 8" focusable="false"><path d="m2 2 4 4 4-4" /></svg>
         </button>
       </span>

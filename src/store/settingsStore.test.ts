@@ -24,4 +24,13 @@ describe('global settings', () => {
     await useSettingsStore.persist.rehydrate();
     expect(useSettingsStore.getState()).toMatchObject({ measurementSystem: 'metric', clockFormat: '12h', preferredCurrency: 'USD', preferredRegion: null, language: 'en' });
   });
+
+  it('accepts only the explicitly available review preview language from persisted settings', async () => {
+    localStorage.setItem('travel-toolkit-settings-data', JSON.stringify({ state: { language: 'fr-CA' }, version: 0 }));
+    await useSettingsStore.persist.rehydrate();
+    expect(useSettingsStore.getState().language).toBe('fr-CA');
+    localStorage.setItem('travel-toolkit-settings-data', JSON.stringify({ state: { language: 'ar' }, version: 0 }));
+    await useSettingsStore.persist.rehydrate();
+    expect(useSettingsStore.getState().language).toBe('en');
+  });
 });

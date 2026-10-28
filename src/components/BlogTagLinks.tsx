@@ -1,4 +1,5 @@
 import { Link } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
 
 interface BlogTagLinksProps {
   ariaLabel: string;
@@ -13,6 +14,7 @@ export function BlogTagLinks({
   activeTag,
   showAll = false,
 }: BlogTagLinksProps) {
+  const { t } = useTranslation();
   return (
     <nav className="blog-tag-nav" aria-label={ariaLabel}>
       <ul className="blog-tag-list">
@@ -24,7 +26,7 @@ export function BlogTagLinks({
               className="blog-tag-link"
               aria-current={activeTag === undefined ? 'page' : undefined}
             >
-              All posts
+              {t('allPosts')}
             </Link>
           </li>
         ) : null}
@@ -34,7 +36,7 @@ export function BlogTagLinks({
               to="/blog"
               search={{ tag }}
               className="blog-tag-link"
-              aria-label={`Filter posts by tag ${tag}`}
+              aria-label={`${t('filterPostsByTag')} ${tag}`}
               aria-current={activeTag === tag ? 'page' : undefined}
             >
               {tag}

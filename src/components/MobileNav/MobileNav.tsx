@@ -1,5 +1,6 @@
 import { Users, Receipt, BarChart2 } from 'lucide-react';
 import { useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 
 type MobileTab = 'party' | 'costs' | 'summary';
 
@@ -21,6 +22,7 @@ interface MobileNavProps {
 }
 
 export default function MobileNav({ activeTab, onChange }: MobileNavProps) {
+  const { t } = useTranslation();
   const tabRefs = useRef<Record<MobileTab, HTMLButtonElement | null>>({
     party: null,
     costs: null,
@@ -56,8 +58,8 @@ export default function MobileNav({ activeTab, onChange }: MobileNavProps) {
   };
 
   return (
-    <nav className="mobile-nav" aria-label="Main navigation">
-      <div className="mobile-nav-tabs" role="tablist" aria-label="Trip sections" aria-orientation="horizontal">
+    <nav className="mobile-nav" aria-label={t('mainNavigation')}>
+      <div className="mobile-nav-tabs" role="tablist" aria-label={t('tripSections')} aria-orientation="horizontal">
         <button
           ref={(node) => { tabRefs.current.party = node; }}
           id={tabIds.party}
@@ -71,7 +73,7 @@ export default function MobileNav({ activeTab, onChange }: MobileNavProps) {
           tabIndex={activeTab === 'party' ? 0 : -1}
         >
           <Users size={20} aria-hidden="true" />
-          <span>Party</span>
+          <span>{t('tabParty')}</span>
         </button>
         <button
           ref={(node) => { tabRefs.current.costs = node; }}
@@ -86,7 +88,7 @@ export default function MobileNav({ activeTab, onChange }: MobileNavProps) {
           tabIndex={activeTab === 'costs' ? 0 : -1}
         >
           <Receipt size={20} aria-hidden="true" />
-          <span>Costs</span>
+          <span>{t('tabCosts')}</span>
         </button>
         <button
           ref={(node) => { tabRefs.current.summary = node; }}
@@ -101,7 +103,7 @@ export default function MobileNav({ activeTab, onChange }: MobileNavProps) {
           tabIndex={activeTab === 'summary' ? 0 : -1}
         >
           <BarChart2 size={20} aria-hidden="true" />
-          <span>Summary</span>
+          <span>{t('tabSummary')}</span>
         </button>
       </div>
     </nav>

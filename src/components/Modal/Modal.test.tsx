@@ -4,6 +4,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Modal from '@/components/Modal';
+import { activateLanguage } from '@/i18n';
 
 const baseProps = {
   icon: '⚠️',
@@ -15,6 +16,24 @@ const baseProps = {
 };
 
 describe('Modal', () => {
+  it('restores focus to its opener when dismissed', () => {
+    const trigger = document.createElement('button');
+    document.body.append(trigger);
+    trigger.focus();
+    const { unmount } = render(<Modal {...baseProps} />);
+    expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
+    unmount();
+    expect(trigger).toHaveFocus();
+    trigger.remove();
+  });
+  it('localizes the default cancel action', async () => {
+    await activateLanguage('fr-CA');
+    try {
+      const { unmount } = render(<Modal {...baseProps} />);
+      expect(screen.getByRole('button', { name: 'Annuler' })).toBeInTheDocument();
+      unmount();
+    } finally { await activateLanguage('en'); }
+  });
   it('FE-MOD-001 renders icon, title, body, and action buttons', () => {
     render(<Modal {...baseProps} />);
 

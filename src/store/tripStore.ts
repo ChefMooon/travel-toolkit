@@ -10,6 +10,7 @@ import {
   MAX_COST_NAME_LENGTH,
 } from './types';
 import { useToastStore } from './toastStore';
+import i18n from '@/i18n';
 import { useSaveSlotStore } from './saveSlotStore';
 import { migrateLegacyThemePreferenceBeforeTripCleanup, useSettingsStore } from './settingsStore';
 import { getAvailableCurrencies, getDefaultCurrency, REGION_LIST } from './types';
@@ -206,8 +207,8 @@ export const useTripStore = create<TripStore>()(
         if (!/^\d{6}$/.test(normalized)) {
           useToastStore.getState().pushToast({
             type: 'warning',
-            title: 'Trip ID must be 6 digits',
-            message: 'Enter a numeric trip ID like 123456.',
+            title: i18n.t('invalidTripIdTitle'),
+            message: i18n.t('invalidTripIdMessage'),
           });
           return;
         }
@@ -215,8 +216,8 @@ export const useTripStore = create<TripStore>()(
         if (hasDuplicateSavedTripId(normalized)) {
           useToastStore.getState().pushToast({
             type: 'warning',
-            title: 'Duplicate trip ID',
-            message: `Trip ID ${normalized} already exists in a save slot.`,
+            title: i18n.t('duplicateTripIdTitle'),
+            message: i18n.t('duplicateTripIdMessage', { id: normalized }),
           });
           return;
         }
@@ -229,7 +230,7 @@ export const useTripStore = create<TripStore>()(
       setRegion: (region) => set({ region, isDirty: true }),
       setTripDates: (tripStartDate, tripEndDate) => {
         if ((tripStartDate && !isValidDateOnly(tripStartDate)) || (tripEndDate && !isValidDateOnly(tripEndDate)) || (tripEndDate && (!tripStartDate || tripEndDate < tripStartDate))) {
-          useToastStore.getState().pushToast({ type: 'warning', title: 'Invalid trip dates', message: 'Choose valid calendar dates and ensure the end date is on or after the start date.' });
+          useToastStore.getState().pushToast({ type: 'warning', title: i18n.t('invalidTripDatesTitle'), message: i18n.t('invalidTripDatesMessage') });
           return;
         }
         set({ tripStartDate, tripEndDate, isDirty: true });
@@ -242,8 +243,8 @@ export const useTripStore = create<TripStore>()(
         if (get().couples.length >= MAX_GROUPS) {
           useToastStore.getState().pushToast({
             type: 'warning',
-            title: 'Group limit reached',
-            message: 'Trips are limited to 100 groups. Remove a group before adding another.',
+            title: i18n.t('groupLimitTitle'),
+            message: i18n.t('groupLimitMessage'),
           });
           return id;
         }
@@ -315,8 +316,8 @@ export const useTripStore = create<TripStore>()(
         if (kidsForGroup >= MAX_KIDS_PER_GROUP) {
           useToastStore.getState().pushToast({
             type: 'warning',
-            title: 'Child limit reached',
-            message: 'Each group can have up to 50 children. Remove a child before adding another.',
+            title: i18n.t('childLimitTitle'),
+            message: i18n.t('childLimitMessage'),
           });
           return;
         }
@@ -341,8 +342,8 @@ export const useTripStore = create<TripStore>()(
         if (get().costs.length >= MAX_COST_ENTRIES) {
           useToastStore.getState().pushToast({
             type: 'warning',
-            title: 'Cost entry limit reached',
-            message: 'Trips are limited to 1,000 cost entries. Remove an entry before adding another.',
+            title: i18n.t('costLimitTitle'),
+            message: i18n.t('costLimitMessage'),
           });
           return;
         }
@@ -361,8 +362,8 @@ export const useTripStore = create<TripStore>()(
         if (get().costs.length >= MAX_COST_ENTRIES) {
           useToastStore.getState().pushToast({
             type: 'warning',
-            title: 'Cost entry limit reached',
-            message: 'Trips are limited to 1,000 cost entries. Remove an entry before adding another.',
+            title: i18n.t('costLimitTitle'),
+            message: i18n.t('costLimitMessage'),
           });
           return;
         }
@@ -504,7 +505,7 @@ export const useTripStore = create<TripStore>()(
       },
 
       loadSnapshot: (snapshot) => {
-        if (get().dateDraftError) useToastStore.getState().pushToast({ type: 'warning', title: 'Trip date draft discarded', message: 'Loading this trip replaced the unsaved date draft.' });
+        if (get().dateDraftError) useToastStore.getState().pushToast({ type: 'warning', title: i18n.t('tripDateDraftDiscarded'), message: i18n.t('loadingTripReplacedDateDraft') });
         const sanitizedSnapshot = { ...snapshot, ...normalizeTripDates(snapshot.tripStartDate, snapshot.tripEndDate) } as TripSnapshot & { theme?: unknown };
         delete sanitizedSnapshot.theme;
         past = []; future = [];
@@ -523,7 +524,7 @@ export const useTripStore = create<TripStore>()(
       markClean: () => { baseline = snapshotOf(get()); historyReady = true; set({ isDirty: false }); },
 
       resetTrip: () => {
-        if (get().dateDraftError) useToastStore.getState().pushToast({ type: 'warning', title: 'Trip date draft discarded', message: 'Starting a new trip cleared the unsaved date draft.' });
+        if (get().dateDraftError) useToastStore.getState().pushToast({ type: 'warning', title: i18n.t('tripDateDraftDiscarded'), message: i18n.t('newTripClearedDateDraft') });
         past = []; future = []; baseline = null; historyReady = true; suppressHistory = true;
         set({
           ...initialState,

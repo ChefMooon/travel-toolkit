@@ -1,4 +1,5 @@
 import type { ClimateSummary, DailyClimate, GeoLocation } from './forecastTypes';
+import { activeLocale } from '@/i18n/format';
 
 type GeocodingApiResult = {
   id: number;
@@ -59,12 +60,13 @@ export async function fetchGeocodingResults(
   query: string,
   count = 5,
   signal?: AbortSignal,
+  language = 'en',
 ): Promise<GeoLocation[]> {
   if (!query.trim()) {
     return [];
   }
 
-  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=${count}&language=en&format=json`;
+  const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query)}&count=${count}&language=${encodeURIComponent(language)}&format=json`;
   const res = await fetch(url, { signal });
 
   if (!res.ok) {
@@ -242,7 +244,7 @@ export async function fetchClimateData(
 }
 
 export function getLocalTimeAtDestination(timezone: string, hour12 = true): string {
-  return new Intl.DateTimeFormat('en-US', {
+  return new Intl.DateTimeFormat(activeLocale(), {
     timeZone: timezone,
     hour: '2-digit',
     minute: '2-digit',

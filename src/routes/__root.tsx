@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Outlet, createRootRoute, useLocation, useBlocker } from '@tanstack/react-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
@@ -16,15 +17,18 @@ import ConsentBanner from '@/components/ConsentBanner';
 import Modal from '@/components/Modal';
 import { useTripStore } from '@/store/tripStore';
 import { useDraftStore } from '@/store/draftStore';
+import { useSettingsStore } from '@/store/settingsStore';
+import { activateLanguage } from '@/i18n';
 
 function UnsavedChangesGuard() {
+  const { t } = useTranslation();
   const { pathname } = useLocation();
   const isDirty = useTripStore((s) => s.isDirty);
   const dirtyDrafts = useDraftStore((s) => s.dirtyDrafts);
   const shouldWarn = isDirty || dirtyDrafts > 0;
   const isTripRoute = pathname === '/trip';
   const blocker = useBlocker({ shouldBlockFn: ({ current, next }) => current.pathname === '/trip' && next.pathname !== '/trip' && shouldWarn, enableBeforeUnload: () => isTripRoute && shouldWarn, withResolver: true });
-  return blocker.status === 'blocked' ? <Modal icon="⚠️" title="Leave with unsaved changes?" body="Your trip has unsaved changes. Leave this page and discard them?" cancelLabel="Stay" confirmLabel="Leave" onConfirm={blocker.proceed} onCancel={blocker.reset} /> : null;
+  return blocker.status === 'blocked' ? <Modal icon="⚠️" title={t('leaveUnsavedTitle')} body={t('leaveUnsavedBody')} cancelLabel={t('stay')} confirmLabel={t('leave')} onConfirm={blocker.proceed} onCancel={blocker.reset} /> : null;
 }
 
 function ThemeSync() {
@@ -94,15 +98,17 @@ function useFooterVisibility() {
 }
 
 function AnalyticsBridge() {
+  const { t } = useTranslation();
+  const language = useSettingsStore((s) => s.language);
   const { pathname, searchStr } = useLocation();
   const consentChoice = useConsentStore((s) => s.consentChoice);
   const analyticsConsent = useConsentStore((s) => s.analyticsConsent);
   const [analyticsReady, setAnalyticsReady] = useState(false);
-  const pageTitle = getRouteTitle(pathname);
+  const pageTitle = getRouteTitle(pathname, (key) => t(key));
 
   useEffect(() => {
     document.title = pageTitle;
-  }, [pageTitle]);
+  }, [pageTitle, language]);
 
   useEffect(() => {
     if (consentChoice !== 'accepted' || !analyticsConsent) {
@@ -145,6 +151,11 @@ function AnalyticsBridge() {
 export default function RootLayout() {
   const [queryClient] = useState(() => createQueryClient());
   const showFooter = useFooterVisibility();
+  const language = useSettingsStore((s) => s.language);
+
+  useEffect(() => {
+    void activateLanguage(language);
+  }, [language]);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -167,27 +178,29 @@ export default function RootLayout() {
 }
 
 function NotFoundRoute() {
+  const { t } = useTranslation();
   useEffect(() => {
-    document.title = getRouteTitle('/__not-found');
-  }, []);
+    document.title = getRouteTitle('/__not-found', (key) => t(key));
+  }, [t]);
 
   return (
-    <main className="tool-page" aria-label="Page not found">
-      <h1>Page not found</h1>
-      <p>The page you requested does not exist. Use the grid menu to jump to a tool.</p>
+    <main className="tool-page" aria-label={t('pageNotFound')}>
+      <h1>{t('pageNotFound')}</h1>
+      <p>{t('pageNotFoundHelp')}</p>
     </main>
   );
 }
 
 function RouteError() {
+  const { t } = useTranslation();
   useEffect(() => {
-    document.title = getRouteTitle('/__route-error');
-  }, []);
+    document.title = getRouteTitle('/__route-error', (key) => t(key));
+  }, [t]);
 
   return (
-    <main className="tool-page" aria-label="Route error">
-      <h1>Something went wrong</h1>
-      <p>We could not load this route. Try again or switch to another tool.</p>
+    <main className="tool-page" aria-label={t('routeError')}>
+      <h1>{t('routeError')}</h1>
+      <p>{t('routeErrorHelp')}</p>
     </main>
   );
 }

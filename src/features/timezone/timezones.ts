@@ -3,6 +3,7 @@ import type { TrackedZone } from '@/store/timezoneStore';
 export interface TimezoneOption {
   tz: string;
   label: string;
+  localizedLabel: string;
   offset: string;
   offsetMinutes: number;
 }
@@ -31,7 +32,7 @@ function buildOffsetInfo(tz: string, instant: Date): { offset: string; offsetMin
   };
 }
 
-export function buildTimezoneOptions(instant: Date = new Date()): TimezoneOption[] {
+export function buildTimezoneOptions(instant: Date = new Date(), locale = 'en-US'): TimezoneOption[] {
   const intlWithSupported = Intl as typeof Intl & {
     supportedValuesOf?: (key: 'timeZone') => string[];
   };
@@ -42,10 +43,19 @@ export function buildTimezoneOptions(instant: Date = new Date()): TimezoneOption
   return zones
     .map((tz) => {
       const { offset, offsetMinutes } = buildOffsetInfo(tz, instant);
+      let localizedName = tz.replace(/_/g, ' ');
+      try {
+        localizedName = new Intl.DateTimeFormat(locale, { timeZone: tz, timeZoneName: 'long' })
+          .formatToParts(instant)
+          .find((part) => part.type === 'timeZoneName')?.value ?? localizedName;
+      } catch {
+        // Keep the stable IANA identifier as a readable fallback.
+      }
 
       return {
         tz,
         label: tz.replace(/_/g, ' '),
+        localizedLabel: localizedName,
         offset,
         offsetMinutes,
       };

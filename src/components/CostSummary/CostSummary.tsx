@@ -1,22 +1,26 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTripStore } from '@/store/tripStore';
-import { buildSummary, formatCurrency } from '@/lib/calculations';
+import { buildSummary } from '@/lib/calculations';
 import { getAvailableCurrencies } from '@/store/types';
 import { useTripRates } from '@/features/currency/useTripRates';
 import Select from '@/components/Select/Select';
 import CoupleCard from '../CoupleCard';
 import { useSettingsStore } from '@/store/settingsStore';
+import { activeLocale } from '@/i18n/format';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency } from '@/i18n/format';
 
 function formatRateDate(dateStr: string) {
   const d = new Date(`${dateStr}T00:00:00Z`);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  return d.toLocaleDateString(activeLocale(), { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 }
 
 function formatFetchTime(isoStr: string, hour12: boolean) {
-  return new Date(isoStr).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12 });
+  return new Date(isoStr).toLocaleTimeString(activeLocale(), { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12 });
 }
 
 export default function CostSummary() {
+  const { t } = useTranslation();
   const clockFormat = useSettingsStore((s) => s.clockFormat);
   const couples = useTripStore((s) => s.couples);
   const costs = useTripStore((s) => s.costs);
@@ -57,13 +61,13 @@ export default function CostSummary() {
     <div className="card">
       <div className="card-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <h2 id="cost-summary-heading" className="card-title">Cost Summary</h2>
+          <h2 id="cost-summary-heading" className="card-title">{t('costSummary')}</h2>
           <span aria-hidden="true" style={{ color: 'var(--text-3)', fontWeight: 700 }}>
             ·
           </span>
           <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 700 }}>
-            {couples.length} {couples.length === 1 ? 'group' : 'groups'}
-            {currenciesUsed > 0 && ` · ${currenciesUsed} ${currenciesUsed === 1 ? 'currency' : 'currencies'}`}
+            {t('groupCount', { count: couples.length })}
+            {currenciesUsed > 0 && ` · ${t('currencyCount', { count: currenciesUsed })}`}
           </span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -71,7 +75,7 @@ export default function CostSummary() {
             htmlFor="target-currency-select"
             style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 600 }}
           >
-            Convert to
+            {t('convertTo')}
           </label>
           <Select
             id="target-currency-select"
@@ -81,7 +85,7 @@ export default function CostSummary() {
             value={targetCurrency}
             options={availableCurrencies}
             onChange={setTargetCurrency}
-            aria-label="Convert to"
+            aria-label={t('convertTo')}
           />
         </div>
       </div>
@@ -89,8 +93,8 @@ export default function CostSummary() {
         {summaries.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">📊</div>
-            <div className="empty-state-text">No summary yet</div>
-            <div className="empty-state-sub">Add groups and costs to see the breakdown</div>
+            <div className="empty-state-text">{t('noSummary')}</div>
+            <div className="empty-state-sub">{t('summaryEmptyHelp')}</div>
           </div>
         ) : (
           <div className="s-cards">
@@ -117,7 +121,7 @@ export default function CostSummary() {
               paddingTop: 10,
             }}
           >
-            <span>Trip total</span>
+            <span>{t('tripTotal')}</span>
             <strong>{formatCurrency(tripTotal, targetCurrency)}</strong>
           </div>
         )}
@@ -127,7 +131,7 @@ export default function CostSummary() {
             data-testid="rates-loading"
             style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 8 }}
           >
-            Loading exchange rates…
+            {t('loadingExchangeRates')}
           </div>
         )}
 
@@ -136,9 +140,9 @@ export default function CostSummary() {
             data-testid="rates-error"
             style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 8, display: 'flex', alignItems: 'center', gap: 8 }}
           >
-            <span>Unable to load live rates.</span>
+            <span>{t('liveRatesUnavailable')}</span>
             <button type="button" style={{ fontSize: 12 }} onClick={() => tripRatesQuery.refetch()}>
-              Retry
+              {t('retry')}
             </button>
           </div>
         )}
@@ -167,7 +171,7 @@ export default function CostSummary() {
                 }}
               >
                 <span aria-hidden="true" style={{ fontSize: 10 }}>{detailsOpen ? '▾' : '▸'}</span>
-                Rates sourced from
+                {t('ratesSourcedFrom')}
               </button>
               <a
                 href="https://frankfurter.dev"
@@ -186,11 +190,7 @@ export default function CostSummary() {
             </div>
             <div id="rates-details" hidden={!detailsOpen}>
               <p style={{ color: 'var(--text-2)', fontSize: 12, margin: '6px 0 0 14px' }}>
-                Frankfurter aggregates data from central banks and official institutions. Rates
-                update on business days — the ECB publishes reference rates around 16:00 CET.
-                Weekends and public holidays use the most recent prior business day's rates.{' '}
-                Rate date: {formatRateDate(tripRatesQuery.data.updatedAt)} · Retrieved{' '}
-                {formatFetchTime(tripRatesQuery.data.fetchedAt, clockFormat === '12h')}.
+                {t('rateDetailsText', { rateDate: formatRateDate(tripRatesQuery.data.updatedAt), retrievedAt: formatFetchTime(tripRatesQuery.data.fetchedAt, clockFormat === '12h') })}
               </p>
             </div>
           </div>

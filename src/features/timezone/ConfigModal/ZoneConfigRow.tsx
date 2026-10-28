@@ -4,12 +4,14 @@ import { CSS } from '@dnd-kit/utilities';
 import { ChevronUp, GripVertical, Settings2, X } from 'lucide-react';
 import { useTimezoneStore, type DetailLevel, type DisplayMode, type TrackedZone } from '@/store/timezoneStore';
 import Tooltip from '@/components/Tooltip';
+import { useTranslation } from 'react-i18next';
 
 interface ZoneConfigRowProps {
   zone: TrackedZone;
 }
 
 export default function ZoneConfigRow({ zone }: ZoneConfigRowProps) {
+  const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const settingsId = useId();
   const updateZone = useTimezoneStore((state) => state.updateZone);
@@ -40,11 +42,11 @@ export default function ZoneConfigRow({ zone }: ZoneConfigRowProps) {
       style={style}
     >
       <div className="timezone-config-row-summary">
-        <Tooltip content={`Reorder ${zone.label}`}>
+        <Tooltip content={t('zoneReorder', { label: zone.label })}>
           <button
             type="button"
             className="ibtn timezone-row-drag"
-            aria-label={`Reorder ${zone.label}`}
+            aria-label={t('zoneReorder', { label: zone.label })}
             {...attributes}
             {...listeners}
           >
@@ -53,15 +55,15 @@ export default function ZoneConfigRow({ zone }: ZoneConfigRowProps) {
         </Tooltip>
 
         <div className="timezone-config-row-title">
-          <span className="timezone-config-row-label">{zone.label}</span>
-          <span className="timezone-config-row-id">{zone.tz}</span>
+          <span className="timezone-config-row-label"><bdi dir="auto">{zone.label}</bdi></span>
+          <span className="timezone-config-row-id"><bdi dir="ltr">{zone.tz}</bdi></span>
         </div>
 
         <div className="timezone-row-actions">
           <button
             type="button"
             className="ibtn"
-            aria-label={`${isExpanded ? 'Hide' : 'Show'} settings for ${zone.label}`}
+            aria-label={t(isExpanded ? 'zoneHideSettingsFor' : 'zoneShowSettingsFor', { label: zone.label })}
             aria-expanded={isExpanded}
             aria-controls={settingsId}
             onClick={() => setIsExpanded((expanded) => !expanded)}
@@ -72,7 +74,7 @@ export default function ZoneConfigRow({ zone }: ZoneConfigRowProps) {
             type="button"
             className="ibtn del"
             onClick={() => removeZone(zone.id)}
-            aria-label={`Remove ${zone.label}`}
+            aria-label={t('zoneRemove', { label: zone.label })}
           >
             <X size={14} />
           </button>
@@ -82,25 +84,25 @@ export default function ZoneConfigRow({ zone }: ZoneConfigRowProps) {
       {isExpanded && (
         <div id={settingsId} className="timezone-zone-settings">
           <label className="timezone-config-field">
-            <span>Display label</span>
+            <span>{t('zoneDisplayLabel')}</span>
             <input
               className="tool-input"
               value={zone.label}
               onChange={(event) => updateZone(zone.id, { label: event.target.value })}
-              aria-label={`Timezone label for ${zone.tz}`}
+              aria-label={t('zoneTimezoneLabelFor', { tz: zone.tz })}
             />
           </label>
 
           <div className="timezone-config-choice-row">
-            <span className="timezone-config-field-label">Display</span>
-            <div className="seg" role="group" aria-label={`Display mode for ${zone.tz}`}>
+            <span className="timezone-config-field-label">{t('zoneDisplayMode')}</span>
+            <div className="seg" role="group" aria-label={t('zoneDisplayModeFor', { tz: zone.tz })}>
               <button
                 type="button"
                 className={`seg-btn${zone.displayMode === 'analog' ? ' on' : ''}`}
                 aria-pressed={zone.displayMode === 'analog'}
                 onClick={() => setDisplayMode('analog')}
               >
-                Analog
+                {t('zoneAnalog')}
               </button>
               <button
                 type="button"
@@ -108,22 +110,22 @@ export default function ZoneConfigRow({ zone }: ZoneConfigRowProps) {
                 aria-pressed={zone.displayMode === 'digital'}
                 onClick={() => setDisplayMode('digital')}
               >
-                Digital
+                {t('zoneDigital')}
               </button>
             </div>
           </div>
 
           {zone.displayMode === 'digital' && (
             <div className="timezone-config-choice-row">
-              <span className="timezone-config-field-label">Detail</span>
-              <div className="seg" role="group" aria-label={`Detail level for ${zone.tz}`}>
+              <span className="timezone-config-field-label">{t('zoneDetailLevel')}</span>
+              <div className="seg" role="group" aria-label={t('zoneDetailLevelFor', { tz: zone.tz })}>
                 <button
                   type="button"
                   className={`seg-btn${zone.detailLevel === 'compact' ? ' on' : ''}`}
                   aria-pressed={zone.detailLevel === 'compact'}
                   onClick={() => setDetailLevel('compact')}
                 >
-                  Compact
+                  {t('zoneCompact')}
                 </button>
                 <button
                   type="button"
@@ -131,7 +133,7 @@ export default function ZoneConfigRow({ zone }: ZoneConfigRowProps) {
                   aria-pressed={zone.detailLevel === 'detailed'}
                   onClick={() => setDetailLevel('detailed')}
                 >
-                  Detailed
+                  {t('zoneDetailed')}
                 </button>
               </div>
             </div>
@@ -144,7 +146,7 @@ export default function ZoneConfigRow({ zone }: ZoneConfigRowProps) {
                 checked={zone.showUTC}
                 onChange={(event) => updateZone(zone.id, { showUTC: event.target.checked })}
               />
-              Show UTC
+              {t('zoneShowUTC')}
             </label>
             <label className="timezone-config-toggle">
               <input
@@ -152,7 +154,7 @@ export default function ZoneConfigRow({ zone }: ZoneConfigRowProps) {
                 checked={zone.showDate}
                 onChange={(event) => updateZone(zone.id, { showDate: event.target.checked })}
               />
-              Show Date
+              {t('zoneShowDate')}
             </label>
             <label className="timezone-config-toggle">
               <input
@@ -160,7 +162,7 @@ export default function ZoneConfigRow({ zone }: ZoneConfigRowProps) {
                 checked={zone.showSeconds}
                 onChange={(event) => updateZone(zone.id, { showSeconds: event.target.checked })}
               />
-              Show Seconds
+              {t('zoneShowSeconds')}
             </label>
           </div>
         </div>

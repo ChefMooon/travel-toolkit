@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react';
 import { useState } from 'react';
 import { describe, expect, it, vi } from 'vitest';
 import NumericInput from './NumericInput';
+import { activateLanguage } from '@/i18n';
 
 function ControlledInput(props: { onBlur?: () => void }) {
   const [value, setValue] = useState('1.00');
@@ -88,5 +89,19 @@ describe('NumericInput', () => {
     expect(input).toHaveValue(51);
     fireEvent.click(screen.getByRole('button', { name: 'Decrease Markup' }), { shiftKey: true, ctrlKey: true });
     expect(input).toHaveValue(41);
+  });
+
+  it('localizes stepper accessible names while preserving the field label and numeric behavior', async () => {
+    await act(async () => { await activateLanguage('fr-CA'); });
+    try {
+      render(<ControlledInput />);
+      expect(screen.getByRole('spinbutton', { name: 'Quantity' })).toBeInTheDocument();
+      const increase = screen.getByRole('button', { name: 'Augmenter Quantity' });
+      expect(screen.getByRole('button', { name: 'Diminuer Quantity' })).toBeInTheDocument();
+      fireEvent.click(increase);
+      expect(screen.getByRole('spinbutton', { name: 'Quantity' })).toHaveValue(1.25);
+    } finally {
+      await act(async () => { await activateLanguage('en'); });
+    }
   });
 });

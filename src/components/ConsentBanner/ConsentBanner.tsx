@@ -1,6 +1,8 @@
 import { useConsentStore } from '@/store/consentStore';
+import { useTranslation } from 'react-i18next';
 
 export default function ConsentBanner() {
+  const { t } = useTranslation();
   const consentChoice = useConsentStore((s) => s.consentChoice);
   const acceptAll = useConsentStore((s) => s.acceptAll);
   const rejectAll = useConsentStore((s) => s.rejectAll);
@@ -10,20 +12,19 @@ export default function ConsentBanner() {
   }
 
   return (
-    <aside className="consent-banner" role="region" aria-label="Cookie consent">
+    <aside className="consent-banner" role="region" aria-label={t('cookieConsent')}>
       <div className="consent-banner-copy">
-        <p className="consent-banner-title">Cookies and analytics</p>
+        <p className="consent-banner-title">{t('cookiesAnalytics')}</p>
         <p className="consent-banner-text">
-          We use analytics cookies to understand site usage. Analytics stays off until you choose
-          to accept.
+          {t('analyticsConsentCopy')}
         </p>
       </div>
       <div className="consent-banner-actions">
         <button type="button" className="consent-btn consent-btn-secondary" onClick={rejectAll}>
-          Reject
+          {t('reject')}
         </button>
         <button type="button" className="consent-btn consent-btn-primary" onClick={acceptAll}>
-          Accept
+          {t('accept')}
         </button>
       </div>
     </aside>

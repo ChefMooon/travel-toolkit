@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import { X, Plus } from 'lucide-react';
 import { MAX_GROUPS, getColorThemeValue, type Couple, type SplitType } from '@/store/types';
 import { useResolvedTheme } from '@/store/theme';
+import { useTranslation } from 'react-i18next';
+import '@/i18n';
 
 interface SplitAssignmentModalProps {
   open: boolean;
@@ -27,6 +29,7 @@ export default function SplitAssignmentModal({
   onClose,
   onCreateGroup,
 }: SplitAssignmentModalProps) {
+  const { t } = useTranslation();
   const theme = useResolvedTheme();
   const dialogRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<Element | null>(null);
@@ -109,12 +112,12 @@ export default function SplitAssignmentModal({
       >
         <div className="split-modal-header">
           <span className="split-modal-title" id={titleId}>
-            {mode === 'subset' ? 'Select Groups' : 'Select Group'}
+            {mode === 'subset' ? t('selectGroups') : t('selectGroup')}
           </span>
           <button
             className="split-modal-close"
             onClick={onClose}
-            aria-label="Close"
+            aria-label={t('close')}
           >
             <X size={16} />
           </button>
@@ -128,17 +131,17 @@ export default function SplitAssignmentModal({
             disabled={couples.length >= MAX_GROUPS}
           >
             <Plus size={14} />
-            Create Group
+            {t('createGroup')}
           </button>
         </div>
 
         <div
           className="split-modal-couples"
           role={mode === 'individual' ? 'radiogroup' : undefined}
-          aria-label={mode === 'individual' ? 'Select a group' : undefined}
+          aria-label={mode === 'individual' ? t('selectGroup') : undefined}
         >
           {couples.length === 0 && (
-            <div className="split-modal-empty">No groups yet. Create one to continue.</div>
+          <div className="split-modal-empty">{t('noGroupsCreateOne')}</div>
           )}
 
           {couples.map((couple) => {
@@ -164,7 +167,7 @@ export default function SplitAssignmentModal({
                     {isSelected ? '◉' : '◯'}
                   </span>
                   <span style={{ color: getColorThemeValue(couple.colorIndex, theme), fontWeight: 700 }}>
-                    ● {couple.name}
+                    ● <bdi dir="auto">{couple.name}</bdi>
                   </span>
                 </button>
               );
@@ -178,7 +181,7 @@ export default function SplitAssignmentModal({
                   onChange={() => onToggleCouple(couple.id)}
                 />
                 <span style={{ color: getColorThemeValue(couple.colorIndex, theme), fontWeight: 700 }}>
-                  ● {couple.name}
+                  ● <bdi dir="auto">{couple.name}</bdi>
                 </span>
               </label>
             );
@@ -191,14 +194,14 @@ export default function SplitAssignmentModal({
               className="split-modal-btn cancel"
               onClick={onClose}
             >
-              Close
+              {t('close')}
             </button>
             <button
               className="split-modal-btn confirm"
               onClick={onConfirmSubset}
               disabled={selectedCoupleIds.length === 0}
             >
-              Confirm
+              {t('confirm')}
             </button>
           </div>
         )}

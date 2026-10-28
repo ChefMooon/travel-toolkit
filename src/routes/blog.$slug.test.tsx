@@ -9,7 +9,7 @@ import {
   RouterProvider,
 } from '@tanstack/react-router';
 import { routeTree } from '@/routeTree.gen';
-import { blogPosts } from '@/lib/blogPosts';
+import { blogPosts, getBlogPostDisplayDate } from '@/lib/blogPosts';
 
 async function renderBlogArticle(initialEntry: string) {
   const router = createRouter({
@@ -35,7 +35,7 @@ describe('blog article route', () => {
 
     expect(screen.getByRole('main')).toHaveAttribute('data-page-entrance');
     expect(screen.getByRole('heading', { level: 1, name: post.title })).toBeInTheDocument();
-    expect(screen.getByText(post.publishedAt.slice(0, 10), { selector: 'time' })).toHaveAttribute(
+    expect(screen.getByText(getBlogPostDisplayDate(post.publishedAt), { selector: 'time' })).toHaveAttribute(
       'datetime',
       post.publishedAt,
     );

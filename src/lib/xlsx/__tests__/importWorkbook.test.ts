@@ -3,8 +3,11 @@ import * as XLSX from 'xlsx';
 import { buildSingleSheet } from '../singleSheetBuilder';
 import { buildThreeSheet } from '../threeSheetBuilder';
 import { parseSingleSheet } from '../singleSheetParser';
+import { parseThreeSheet } from '../threeSheetParser';
 import { validateImportedSnapshot, _resetIdCounter } from '../validate';
 import { SHEET_SUMMARY, SHEET_COSTS, SHEET_PARTY } from '../constants';
+import { activateLanguage } from '@/i18n';
+import { importWorkbook } from '../importWorkbook';
 
 beforeEach(() => {
   _resetIdCounter();
@@ -52,7 +55,45 @@ describe('Schema detection — three-sheet', () => {
   });
 });
 
+describe('locale-independent spreadsheet interchange', () => {
+  it('round-trips both schemas while French is active and keeps stable English schema labels', async () => {
+    await activateLanguage('fr-CA');
+    try {
+      const source = { ...makeExportable(), tripStartDate: '2027-02-28', tripEndDate: '2027-03-01' };
+      const singleWorkbook = buildSingleSheet(source, XLSX);
+      const singleRows = XLSX.utils.sheet_to_json<(string | number | null)[]>(singleWorkbook.Sheets['Trip']!, { header: 1, defval: null });
+      const single = parseSingleSheet(singleWorkbook.Sheets['Trip']!, XLSX);
+      expect(singleWorkbook.SheetNames).toEqual(['Trip']);
+      expect(singleRows[1]?.[0]).toBe('schema');
+      expect(singleRows[7]?.[0]).toBe('Trip Start Date');
+      expect(single).toMatchObject({ tripId: '654321', tripName: 'Import Test', region: 'Asia', targetCurrency: 'JPY', tripStartDate: '2027-02-28', tripEndDate: '2027-03-01' });
+
+      const threeWorkbook = buildThreeSheet(source, XLSX);
+      const three = parseThreeSheet(threeWorkbook, XLSX);
+      expect(threeWorkbook.SheetNames).toEqual([SHEET_SUMMARY, SHEET_COSTS, SHEET_PARTY]);
+      expect(XLSX.utils.sheet_to_json<(string | number | null)[]>(threeWorkbook.Sheets[SHEET_SUMMARY]!, { header: 1, defval: null })[1]?.[0]).toBe('Trip ID');
+      expect(three).toMatchObject({ tripId: '654321', tripName: 'Import Test', region: 'Asia', targetCurrency: 'JPY', tripStartDate: '2027-02-28', tripEndDate: '2027-03-01' });
+      expect(three.costs?.[0]).toMatchObject({ name: 'Sushi dinner', currency: 'JPY', value: 5000, type: 'food' });
+    } finally {
+      await activateLanguage('en');
+    }
+  });
+});
+
 describe('Schema detection — marker-less fallback', () => {
+  it('rejects unrecognized text rather than constructing an empty trip', async () => {
+    const bytes = new TextEncoder().encode('invalid workbook');
+    const file = { arrayBuffer: async () => bytes.buffer } as File;
+    await expect(importWorkbook(file)).rejects.toThrow('not a recognized Travel Toolkit workbook');
+  });
+
+  it('imports a recognized single-sheet workbook without its version value', async () => {
+    const wb = buildSingleSheet(makeExportable(), XLSX);
+    delete wb.Sheets['Trip']!['B2'];
+    const bytes = XLSX.write(wb, { type: 'array', bookType: 'xlsx' }) as ArrayBuffer;
+    const result = await importWorkbook({ arrayBuffer: async () => bytes } as File);
+    expect(result.snapshot.tripName).toBe('Import Test');
+  });
   it('still parses a single-sheet workbook without explicit schema marker removed', () => {
     const wb = buildSingleSheet(makeExportable(), XLSX);
     const sheet = wb.Sheets['Trip']!;

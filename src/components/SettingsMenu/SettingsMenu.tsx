@@ -6,6 +6,7 @@ import { CURRENCIES, REGION_LIST } from '@/store/types';
 import { useSettingsStore } from '@/store/settingsStore';
 import Select from '@/components/Select/Select';
 import ThemeSelector from '@/components/ThemeSelector/ThemeSelector';
+import { activateLanguage } from '@/i18n';
 
 export default function SettingsMenu() {
   const { t } = useTranslation();
@@ -40,16 +41,18 @@ export default function SettingsMenu() {
   const setCurrency = useSettingsStore((s) => s.setPreferredCurrency);
   const region = useSettingsStore((s) => s.preferredRegion);
   const setRegion = useSettingsStore((s) => s.setPreferredRegion);
+  const language = useSettingsStore((s) => s.language);
   return <div className="settings-menu" ref={containerRef}>
     <button ref={triggerRef} type="button" className="grid-nav-trigger" aria-label={t('settings')} aria-expanded={open} aria-controls="global-settings-panel" onClick={() => setOpen((value) => !value)}><Settings2 aria-hidden="true" /></button>
     {open && <section id="global-settings-panel" className="global-settings-panel" aria-label={t('settings')}>
-      <div className="global-settings-theme"><span>Theme</span><ThemeSelector /></div>
-      <label htmlFor="settings-measurement">{t('measurement')}<Select id="settings-measurement" className="shared-select-full" value={measurement} options={['metric', 'imperial']} getOptionLabel={(value) => t(value)} onChange={(value) => setMeasurement(value as 'metric' | 'imperial')} /></label>
-      <label htmlFor="settings-clock">{t('clock')}<Select id="settings-clock" className="shared-select-full" value={clock} options={['12h', '24h']} getOptionLabel={(value) => value === '12h' ? '12 hour' : '24 hour'} onChange={(value) => setClock(value as '12h' | '24h')} /></label>
+      <div className="global-settings-theme"><span>{t('theme')}</span><ThemeSelector /></div>
+      <label htmlFor="settings-measurement">{t('measurement')}<Select id="settings-measurement" className="shared-select-full" value={measurement} options={['metric', 'imperial']} getOptionLabel={(value) => value === 'imperial' ? t('imperial') : t('metric')} onChange={(value) => setMeasurement(value as 'metric' | 'imperial')} /></label>
+      <label htmlFor="settings-clock">{t('clock')}<Select id="settings-clock" className="shared-select-full" value={clock} options={['12h', '24h']} getOptionLabel={(value) => value === '12h' ? t('hour12') : t('hour24')} onChange={(value) => setClock(value as '12h' | '24h')} /></label>
       <label htmlFor="settings-currency">{t('preferredCurrency')}<Select id="settings-currency" className="shared-select-full" value={currency} options={CURRENCIES} onChange={setCurrency} /></label>
-      <label htmlFor="settings-region">Preferred region<Select id="settings-region" className="shared-select-full" value={region ?? ''} options={['', ...REGION_LIST]} getOptionLabel={(value) => value || 'No preferred region'} onChange={(value) => setRegion((value || null) as typeof region)} /></label>
-      <p className="global-settings-hint">New trips use your preferred currency when it is available in the selected region; otherwise they use that region’s default.</p>
-      <label htmlFor="settings-language">{t('language')}<Select id="settings-language" className="shared-select-full" value="en" options={['en']} getOptionLabel={() => t('english')} onChange={() => {}} disabled /></label>
+      <label htmlFor="settings-region">{t('preferredRegion')}<Select id="settings-region" className="shared-select-full" value={region ?? ''} options={['', ...REGION_LIST]} getOptionLabel={(value) => value ? t(`region${value.replace(/\s/g, '')}` as 'regionNorthAmerica') : t('noPreferredRegion')} onChange={(value) => setRegion((value || null) as typeof region)} /></label>
+      <p className="global-settings-hint">{t('newTripCurrencyHint')}</p>
+      <label htmlFor="settings-language">{t('language')}<Select id="settings-language" className="shared-select-full" value={language} options={['en', 'fr-CA']} getOptionLabel={(value) => value === 'fr-CA' ? 'Français (Canada) — aperçu' : 'English'} onChange={(value) => { void activateLanguage(value as 'en' | 'fr-CA'); }} /></label>
+      {language === 'fr-CA' ? <p className="global-settings-hint" role="status">{t('frenchPreviewNotice')}</p> : null}
     </section>}
   </div>;
 }

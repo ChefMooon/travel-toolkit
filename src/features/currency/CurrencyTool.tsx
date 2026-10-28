@@ -10,15 +10,17 @@ import Select from '@/components/Select/Select';
 import NumericInput from '@/components/NumericInput/NumericInput';
 import { ArrowLeftRight, ArrowRight, ChevronDown, ChevronRight, ExternalLink } from 'lucide-react';
 import { useSettingsStore } from '@/store/settingsStore';
+import { useTranslation } from 'react-i18next';
+import { activeLocale } from '@/i18n/format';
 
 function formatRateDate(dateStr: string) {
   // API date is YYYY-MM-DD (UTC); parse as UTC to avoid day-offset in negative-offset timezones
   const d = new Date(`${dateStr}T00:00:00Z`);
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  return d.toLocaleDateString(activeLocale(), { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 }
 
 function formatFetchTime(isoStr: string, hour12: boolean) {
-  return new Date(isoStr).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12 });
+  return new Date(isoStr).toLocaleTimeString(activeLocale(), { hour: 'numeric', minute: '2-digit', second: '2-digit', hour12 });
 }
 
 function parseAmount(input: string) {
@@ -31,7 +33,7 @@ function parseAmount(input: string) {
 
 function formatMoney(value: number, currency: string) {
   try {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat(activeLocale(), {
       style: 'currency',
       currency,
       maximumFractionDigits: 2,
@@ -42,6 +44,7 @@ function formatMoney(value: number, currency: string) {
 }
 
 export default function CurrencyTool() {
+  const { t } = useTranslation();
   const region = useCurrencyStore((s) => s.region);
   const amountInput = useCurrencyStore((s) => s.amount);
   const baseCurrency = useCurrencyStore((s) => s.baseCurrency);
@@ -91,7 +94,13 @@ export default function CurrencyTool() {
 
   function getCurrencyLabel(code: string) {
     const meta = metaQuery.data?.[code];
-    return meta ? `${code} — ${meta.name}` : code;
+    let localizedName: string | undefined;
+    try {
+      localizedName = new Intl.DisplayNames([activeLocale()], { type: 'currency' }).of(code);
+    } catch {
+      localizedName = undefined;
+    }
+    return `${code} — ${localizedName && localizedName !== code ? localizedName : meta?.name ?? code}`;
   }
 
   function handleSwapCurrencies() {
@@ -109,32 +118,32 @@ export default function CurrencyTool() {
     setTargetCurrency(defaultTarget);
   }
 
-  return (
-    <main className="tool-page" data-page-entrance aria-label="Currency converter">
-      <h1>Currency Converter</h1>
+    return (
+    <main className="tool-page" data-page-entrance aria-label={t('toolCurrency')}>
+      <h1>{t('toolCurrency')}</h1>
 
       <CurrencyRegionSelector />
 
       <div className="card">
         <div className="card-header">
-          <p className="card-title">Conversion Inputs</p>
-          <Tooltip content="Reset to defaults">
+          <p className="card-title">{t('conversionInputs')}</p>
+          <Tooltip content={t('currencyResetDefaults')}>
             <button
               type="button"
               className="currency-reset-button"
               onClick={handleReset}
-              aria-label="Reset conversion inputs"
+              aria-label={t('currencyResetInputs')}
             >
-              Reset
+              {t('reset')}
             </button>
           </Tooltip>
         </div>
         <div className="card-body currency-controls">
           <div className="tool-field">
-            <span className="tool-label">Amount</span>
+            <span className="tool-label">{t('amount')}</span>
             <NumericInput
               className="tool-input mono"
-              aria-label="Amount"
+              aria-label={t('amount')}
               min="0"
               step="0.01"
               value={amountInput}
@@ -143,10 +152,10 @@ export default function CurrencyTool() {
           </div>
 
           <div className="tool-field">
-            <span className="tool-label">From</span>
+            <span className="tool-label">{t('currencyFrom')}</span>
             <Select
               className="tool-input currency-select"
-              aria-label="From currency"
+              aria-label={t('currencyFromLabel')}
               value={baseCurrency}
               options={availableCurrencies}
               getOptionLabel={getCurrencyLabel}
@@ -159,22 +168,22 @@ export default function CurrencyTool() {
             />
           </div>
 
-          <Tooltip content="Swap currencies">
+          <Tooltip content={t('currencySwap')}>
             <button
               type="button"
               className="currency-swap-button"
               onClick={handleSwapCurrencies}
-              aria-label="Swap from and to currencies"
+              aria-label={t('currencySwapFromTo')}
             >
               <ArrowLeftRight size={18} aria-hidden="true" />
             </button>
           </Tooltip>
 
           <div className="tool-field">
-            <span className="tool-label">To</span>
+            <span className="tool-label">{t('currencyTo')}</span>
             <Select
               className="tool-input currency-select"
-              aria-label="To currency"
+              aria-label={t('currencyToLabel')}
               value={targetCurrency}
               options={availableCurrencies.filter((c) => c !== baseCurrency)}
               getOptionLabel={getCurrencyLabel}
@@ -184,13 +193,13 @@ export default function CurrencyTool() {
         </div>
       </div>
 
-      {snapshotQuery.isPending ? <p className="tool-status">Loading rates...</p> : null}
+      {snapshotQuery.isPending ? <p className="tool-status">{t('currencyLoadingRates')}</p> : null}
       {snapshotQuery.isError ? (
         <div className="card">
           <div className="card-body">
-            <p className="tool-status tool-status-error">Unable to load rates right now.</p>
+            <p className="tool-status tool-status-error">{t('currencyLoadRatesError')}</p>
             <button type="button" className="tool-button" onClick={() => snapshotQuery.refetch()}>
-              Retry
+              {t('retry')}
             </button>
           </div>
         </div>
@@ -199,25 +208,25 @@ export default function CurrencyTool() {
       {snapshotQuery.data && snapshotQuery.data.base === baseCurrency ? (
         <div className="card">
           <div className="card-header">
-            <p className="card-title">Rate Snapshot</p>
+            <p className="card-title">{t('currencyRateSnapshot')}</p>
             <p className="tool-meta">
-              Rates from {formatRateDate(snapshotQuery.data.updatedAt)} · Retrieved {formatFetchTime(snapshotQuery.data.fetchedAt, clockFormat === '12h')}
+              {t('currencyRatesRetrieved', { date: formatRateDate(snapshotQuery.data.updatedAt), time: formatFetchTime(snapshotQuery.data.fetchedAt, clockFormat === '12h') })}
             </p>
           </div>
           <div className="card-body currency-result">
             <div className="currency-rate">
-              <span>1 {baseCurrency}</span>
+              <span>1 <bdi dir="ltr">{baseCurrency}</bdi></span>
               <span>=</span>
               <span>
                 {typeof snapshotQuery.data.rates[targetCurrency] === 'number' && Number.isFinite(snapshotQuery.data.rates[targetCurrency]) && snapshotQuery.data.rates[targetCurrency] > 0
-                  ? `${snapshotQuery.data.rates[targetCurrency].toFixed(4)} ${targetCurrency}`
-                  : 'Rate unavailable'}
+                  ? <><bdi dir="ltr">{new Intl.NumberFormat(activeLocale(), { minimumFractionDigits: 4, maximumFractionDigits: 4 }).format(snapshotQuery.data.rates[targetCurrency])}</bdi> <bdi dir="ltr">{targetCurrency}</bdi></>
+                  : t('currencyRateUnavailable')}
               </span>
             </div>
             <div className="currency-total">
               <span className="currency-total-from">{formatMoney(amount, baseCurrency)}</span>
               <span className="currency-total-arrow" aria-hidden="true"><ArrowRight size={18} /></span>
-              <span className="currency-total-to">{converted === null ? 'Conversion unavailable' : formatMoney(converted, targetCurrency)}</span>
+              <span className="currency-total-to">{converted === null ? t('currencyConversionUnavailable') : formatMoney(converted, targetCurrency)}</span>
             </div>
           </div>
           <div className="currency-disclosures">
@@ -230,16 +239,13 @@ export default function CurrencyTool() {
                 aria-controls="currency-rate-details"
               >
                 {detailsOpen ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
-                <span>Rates are sourced from</span>
+                <span>{t('currencyRatesSourcedFrom')}</span>
               </button>
               <a className="currency-provider-link" href="https://frankfurter.dev" target="_blank" rel="noopener noreferrer">
                 Frankfurter <ExternalLink size={12} aria-hidden="true" />
               </a>
               <p id="currency-rate-details" className="currency-disclosure-copy" hidden={!detailsOpen}>
-                  Frankfurter aggregates data from central banks and official institutions. Rates
-                  update on business days — the ECB (European Central Bank) publishes reference 
-                  rates around 16:00 CET. Weekends and public holidays use the most recent prior
-                  business day's rates.
+                  {t('currencyProviderDescription')}
               </p>
             </section>
             {relevantProviders.length > 0 ? (
@@ -252,7 +258,7 @@ export default function CurrencyTool() {
                   aria-controls="currency-provider-list"
                 >
                   {sourcesOpen ? <ChevronDown size={14} aria-hidden="true" /> : <ChevronRight size={14} aria-hidden="true" />}
-                  Sources for {baseCurrency} <ArrowRight size={12} aria-hidden="true" /> {targetCurrency}
+                  {t('currencySourcesFor')} <bdi dir="ltr">{baseCurrency}</bdi> <ArrowRight size={12} aria-hidden="true" /> <bdi dir="ltr">{targetCurrency}</bdi>
                 </button>
                 <div id="currency-provider-list" className="currency-provider-list" hidden={!sourcesOpen}>
                     {relevantProviders.map((p) => {

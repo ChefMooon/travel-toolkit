@@ -1,8 +1,11 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { COUPLE_ICONS } from '@/store/types';
 import Tooltip from '@/components/Tooltip';
+import { useTranslation } from 'react-i18next';
+import '@/i18n';
+import { useChoiceDialogFocus } from '@/components/Modal/useChoiceDialogFocus';
 
 interface IconChoiceModalProps {
   iconIndex: number;
@@ -15,6 +18,9 @@ export default function IconChoiceModal({
   onConfirm,
   onCancel,
 }: IconChoiceModalProps) {
+  const { t } = useTranslation();
+  const dialogRef = useChoiceDialogFocus();
+  const titleId = useId();
   const handleBackdropClick = useCallback(
     (e: React.MouseEvent) => {
       if (e.target === e.currentTarget) {
@@ -48,31 +54,32 @@ export default function IconChoiceModal({
       className="icon-choice-overlay modal-overlay"
       onClick={handleBackdropClick}
     >
-      <div className="icon-choice-modal" onClick={(e) => e.stopPropagation()}>
+      <div ref={dialogRef} className="icon-choice-modal" role="dialog" aria-modal="true" aria-labelledby={titleId} onClick={(e) => e.stopPropagation()}>
         <div className="icon-modal-header">
-          <h2 className="icon-modal-title">Choose an Icon</h2>
+          <h2 id={titleId} className="icon-modal-title">{t('chooseAnIcon')}</h2>
           <button
             type="button"
             className="icon-modal-close"
             onClick={onCancel}
-            aria-label="Close"
+            aria-label={t('close')}
           >
             <X size={16} />
           </button>
         </div>
         <div className="icon-grid">
-          {COUPLE_ICONS.map(({ name, symbol }, index) => (
-            <Tooltip key={index} content={name}>
+          {COUPLE_ICONS.map(({ name, symbol }, index) => {
+            const label = t(`groupIcon_${name.toLowerCase()}`, { defaultValue: name });
+            return <Tooltip key={index} content={label}>
               <button
                 className={`icon-item ${index === iconIndex ? 'selected' : ''}`}
                 onClick={() => handleIconClick(index)}
-                aria-label={name}
+                aria-label={label}
                 type="button"
               >
                 {symbol}
               </button>
-            </Tooltip>
-          ))}
+            </Tooltip>;
+          })}
         </div>
       </div>
     </div>,

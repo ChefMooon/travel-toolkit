@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 
 interface ModalProps {
   icon: string;
@@ -18,12 +19,13 @@ export default function Modal({
   title,
   body,
   confirmLabel,
-  cancelLabel = 'Cancel',
+  cancelLabel,
   onConfirm,
   secondaryActionLabel,
   onSecondaryAction,
   onCancel,
 }: ModalProps) {
+  const { t } = useTranslation();
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const titleId = useId();
   const bodyId = useId();
@@ -31,6 +33,7 @@ export default function Modal({
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
 
     const focusable = dialog.querySelectorAll<HTMLElement>(
       'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -39,10 +42,10 @@ export default function Modal({
     const first = focusable.item(0);
     if (first) {
       first.focus();
-      return;
+    } else {
+      dialog.focus();
     }
-
-    dialog.focus();
+    return () => previousFocus?.focus();
   }, []);
 
   const handleBackdropClick = useCallback(
@@ -105,7 +108,7 @@ export default function Modal({
             <div className="modal-title" id={titleId}>{title}</div>
             <div className="modal-body" id={bodyId}>{body}</div>
             <div className="modal-acts">
-              <button className="btn-m-cancel" onClick={onCancel}>{cancelLabel}</button>
+              <button className="btn-m-cancel" onClick={onCancel}>{cancelLabel ?? t('cancel')}</button>
               {secondaryActionLabel && onSecondaryAction ? (
                 <button className="btn-m-secondary" onClick={onSecondaryAction}>{secondaryActionLabel}</button>
               ) : null}

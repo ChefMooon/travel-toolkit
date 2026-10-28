@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useTripStore } from '@/store/tripStore';
-import { formatCurrency } from '@/lib/calculations';
-import { CURRENCY_FLAGS, COUPLE_ICONS, CURRENCY_SYMBOLS } from '@/store/types';
+import { CURRENCY_FLAGS, CURRENCY_SYMBOLS, COUPLE_ICONS } from '@/store/types';
 import IconChoiceModal from '../IconChoiceModal';
 import ColorChoiceModal from '../ColorChoiceModal';
 import Tooltip from '@/components/Tooltip';
@@ -9,6 +8,9 @@ import type { CoupleSummary } from '@/store/types';
 import { useResolvedTheme } from '@/store/theme';
 import { getGroupPresentation } from '@/lib/groupPresentation';
 import NumericInput from '@/components/NumericInput/NumericInput';
+import { formatNumber } from '@/i18n/format';
+import { formatCurrency as formatLocaleCurrency } from '@/i18n/format';
+import { useTranslation } from 'react-i18next';
 
 interface CoupleCardProps {
   summary: CoupleSummary;
@@ -16,6 +18,7 @@ interface CoupleCardProps {
 }
 
 export default function CoupleCard({ summary, share }: CoupleCardProps) {
+  const { t } = useTranslation();
   const [iconModalOpen, setIconModalOpen] = useState(false);
   const [colorModalOpen, setColorModalOpen] = useState(false);
   const [editingCurrency, setEditingCurrency] = useState<string | null>(null);
@@ -43,7 +46,6 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
     setColorModalOpen(false);
   };
 
-  const targetSymbol = CURRENCY_SYMBOLS[summary.targetCurrency] ?? summary.targetCurrency;
 
   return (
     <>
@@ -53,19 +55,19 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
         style={{ borderColor }}
       >
         <div className="s-head" style={{ background: headerBackground }}>
-          <Tooltip content="Choose a different group icon">
+          <Tooltip content={t('chooseDifferentGroupIcon')}>
             <button
               type="button"
               className="icon-with-tint"
               onClick={() => setIconModalOpen(true)}
               style={{ position: 'relative', zIndex: 10, '--group-color': foreground } as React.CSSProperties}
-              aria-label={`Change icon for ${summary.coupleName}`}
+              aria-label={t('changeGroupIcon', { name: summary.coupleName })}
               data-testid="s-head-icon"
             >
               <span className="s-head-icon">{icon}</span>
             </button>
           </Tooltip>
-          <Tooltip content="Change the group's color">
+          <Tooltip content={t('changeGroupColor')}>
             <button
               type="button"
               className="color-dot-interactive"
@@ -76,13 +78,13 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
                 '--group-color': foreground,
                 color: foreground,
               } as React.CSSProperties}
-              aria-label={`Change color for ${summary.coupleName}`}
+              aria-label={t('changeGroupColorFor', { name: summary.coupleName })}
               data-testid="color-dot"
             >
               ●
             </button>
           </Tooltip>
-          <span className="s-head-name" style={{ color: headerForeground }}>{summary.coupleName}</span>
+          <span className="s-head-name" style={{ color: headerForeground }}><bdi dir="auto">{summary.coupleName}</bdi></span>
         </div>
         <div className="s-body">
           {summary.currencies.map((curr, idx) => {
@@ -101,20 +103,20 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
                     <span className="curr-code">{curr.currency}</span>
                   </div>
                   <div className={`sline${curr.shared === 0 ? ' sline-dim' : ''}`}>
-                    <span className="sline-lbl">Shared</span>
-                    <span className="sline-num">{formatCurrency(curr.shared, curr.currency)}</span>
+                    <span className="sline-lbl">{t('shared')}</span>
+                    <span className="sline-num">{formatLocaleCurrency(curr.shared, curr.currency)}</span>
                   </div>
                   <div className={`sline${curr.subset === 0 ? ' sline-dim' : ''}`}>
-                    <span className="sline-lbl">Subset</span>
-                    <span className="sline-num">{formatCurrency(curr.subset, curr.currency)}</span>
+                    <span className="sline-lbl">{t('subset')}</span>
+                    <span className="sline-num">{formatLocaleCurrency(curr.subset, curr.currency)}</span>
                   </div>
                   <div className={`sline${curr.individual === 0 ? ' sline-dim' : ''}`}>
-                    <span className="sline-lbl">Individual</span>
-                    <span className="sline-num">{formatCurrency(curr.individual, curr.currency)}</span>
+                    <span className="sline-lbl">{t('individual')}</span>
+                    <span className="sline-num">{formatLocaleCurrency(curr.individual, curr.currency)}</span>
                   </div>
                   <div className="sline stotal">
-                    <span className="sline-lbl">Subtotal</span>
-                    <span className="sline-num">{formatCurrency(curr.subtotal, curr.currency)}</span>
+                    <span className="sline-lbl">{t('subtotal')}</span>
+                    <span className="sline-num">{formatLocaleCurrency(curr.subtotal, curr.currency)}</span>
                   </div>
 
                   {/* Implied rate row: USD cost when target is non-USD */}
@@ -124,7 +126,7 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
                     return (
                       <div className="ex-row" data-testid={`implied-rate-${curr.currency}`}>
                         <span className="ex-lbl">
-                          1 USD = {(1 / targetRate.rateToUSD).toFixed(4)} {summary.targetCurrency}
+                          1 <bdi dir="ltr">USD</bdi> = {formatNumber(1 / targetRate.rateToUSD, { minimumFractionDigits: 4, maximumFractionDigits: 4 })} <bdi dir="ltr">{summary.targetCurrency}</bdi>
                         </span>
                       </div>
                     );
@@ -133,13 +135,13 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
                   {/* Inline edit mode (triggered from auto or no-rate state) */}
                   {!isUSD && isEditing && (
                     <div className="ex-row">
-                      <span className="ex-lbl">1 {curr.currency} = __ USD</span>
+                      <span className="ex-lbl">1 <bdi dir="ltr">{curr.currency}</bdi> = __ <bdi dir="ltr">USD</bdi></span>
                       <label htmlFor={rateInputId} className="sr-only">
-                        Exchange rate for {curr.currency} in US dollars
+                        {t('exchangeRateUsd', { currency: curr.currency })}
                       </label>
                       <NumericInput
                         id={rateInputId}
-                        aria-label={`Exchange rate for ${curr.currency} in US dollars`}
+                        aria-label={t('exchangeRateUsd', { currency: curr.currency })}
                         className="ex-inp"
                         step="0.0001"
                         min="0"
@@ -172,21 +174,21 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
                   {/* Override state: user-supplied rate with lock icon and reset link */}
                   {!isUSD && !isEditing && !!rate?.isOverridden && (
                     <div className="ex-row">
-                      <span className="ex-lbl">1 {curr.currency} =</span>
+                      <span className="ex-lbl">1 <bdi dir="ltr">{curr.currency}</bdi> =</span>
                       <button
                         type="button"
                         className="ex-reset-btn"
                         onClick={() => clearExchangeRateOverride(curr.currency)}
                       >
-                        Reset to live
+                        {t('resetToLive')}
                       </button>
-                      <span className="ex-lock" aria-label="rate overridden">🔒</span>
+                      <span className="ex-lock" aria-label={t('rateOverridden')}>🔒</span>
                       <label htmlFor={rateInputId} className="sr-only">
-                        Exchange rate for {curr.currency} in US dollars
+                        {t('exchangeRateUsd', { currency: curr.currency })}
                       </label>
                       <NumericInput
                         id={rateInputId}
-                        aria-label={`Exchange rate for ${curr.currency} in US dollars`}
+                        aria-label={t('exchangeRateUsd', { currency: curr.currency })}
                         className="ex-inp"
                         step="0.0001"
                         min="0"
@@ -204,12 +206,12 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
                   {/* Auto state: live rate shown as read-only text with pencil */}
                   {!isUSD && !isEditing && !rate?.isOverridden && !!rate && (
                     <div className="ex-row">
-                      <span className="ex-lbl">1 {curr.currency} = {rate.rateToUSD.toFixed(4)} USD</span>
-                      <Tooltip content="Edit the exchange rate">
+                      <span className="ex-lbl">1 <bdi dir="ltr">{curr.currency}</bdi> = {formatNumber(rate.rateToUSD, { minimumFractionDigits: 4, maximumFractionDigits: 4 })} <bdi dir="ltr">USD</bdi></span>
+                      <Tooltip content={t('editExchangeRate')}>
                         <button
                           type="button"
                           className="ex-edit-btn"
-                          aria-label={`Edit rate for ${curr.currency}`}
+                          aria-label={t('editRateFor', { currency: curr.currency })}
                           onClick={() => {
                             setEditingCurrency(curr.currency);
                             setEditValue(rate.rateToUSD.toFixed(4));
@@ -224,12 +226,12 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
                   {/* No-rate state: no rate entry yet */}
                   {!isUSD && !isEditing && !rate && (
                     <div className="ex-row">
-                      <span className="ex-lbl">1 {curr.currency} = — USD</span>
-                      <Tooltip content="Add an exchange rate">
+                      <span className="ex-lbl">1 <bdi dir="ltr">{curr.currency}</bdi> = — <bdi dir="ltr">USD</bdi></span>
+                      <Tooltip content={t('addExchangeRate')}>
                         <button
                           type="button"
                           className="ex-edit-btn"
-                          aria-label={`Add rate for ${curr.currency}`}
+                          aria-label={t('addRateFor', { currency: curr.currency })}
                           onClick={() => {
                             setEditingCurrency(curr.currency);
                             setEditValue('');
@@ -242,7 +244,7 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
                   )}
 
                   {!isUSD && curr.targetEquivalent !== null && (
-                    <div className="usd-eq">≈ {targetSymbol}{curr.targetEquivalent.toFixed(2)}</div>
+                    <div className="usd-eq">≈ {formatLocaleCurrency(curr.targetEquivalent, summary.targetCurrency)}</div>
                   )}
                 </div>
               </div>
@@ -251,18 +253,18 @@ export default function CoupleCard({ summary, share }: CoupleCardProps) {
         </div>
         <div className="s-grand" style={{ background: softBackground }}>
           <span className="s-grand-lbl">
-            Grand Total
+            {t('grandTotal')}
             {summary.targetCurrency !== 'USD' && (
-              <span className="s-grand-lbl-sub"> ({targetSymbol})</span>
+              <span className="s-grand-lbl-sub">(<bdi dir="ltr">{CURRENCY_SYMBOLS[summary.targetCurrency] ?? summary.targetCurrency}</bdi>)</span>
             )}
           </span>
           <span className="s-grand-values">
             <span className="s-grand-num" style={{ color: totalForeground }}>
-              {summary.grandTotal !== null ? `${targetSymbol}${summary.grandTotal.toFixed(2)}` : '—'}
+              {summary.grandTotal !== null ? formatLocaleCurrency(summary.grandTotal, summary.targetCurrency) : '—'}
             </span>
             {share !== undefined && summary.grandTotal !== null && (
               <span className="s-grand-share" data-testid="group-share">
-                {new Intl.NumberFormat('en-US', { style: 'percent', maximumFractionDigits: 1 }).format(share)}
+                {formatNumber(share, { style: 'percent', maximumFractionDigits: 1 })}
               </span>
             )}
           </span>

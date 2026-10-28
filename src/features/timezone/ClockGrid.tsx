@@ -3,6 +3,7 @@ import type { DateTime } from 'luxon';
 import { useTimezoneStore } from '@/store/timezoneStore';
 import ClockCard from './ClockCard';
 import { Plus } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface ClockGridProps {
   now: DateTime;
@@ -10,6 +11,7 @@ interface ClockGridProps {
 }
 
 export default function ClockGrid({ now, onAddTimezone = () => {} }: ClockGridProps) {
+  const { t } = useTranslation();
   const trackedZones = useTimezoneStore((state) => state.trackedZones);
   const orderedZones = useMemo(
     () => [...trackedZones].sort((a, b) => a.order - b.order),
@@ -19,7 +21,7 @@ export default function ClockGrid({ now, onAddTimezone = () => {} }: ClockGridPr
   if (orderedZones.length === 0) {
     return (
       <div className="tool-status timezone-empty-state">
-        <span>No timezones tracked yet.</span>
+        <span>{t('zoneNoTrackedTimezones')}</span>
         <button
           className="btn-add"
           onClick={(event) => {
@@ -27,7 +29,7 @@ export default function ClockGrid({ now, onAddTimezone = () => {} }: ClockGridPr
             onAddTimezone();
           }}
         >
-          <Plus size={14} /> Add timezone
+          <Plus size={14} /> {t('zoneAddTimezone')}
         </button>
       </div>
     );

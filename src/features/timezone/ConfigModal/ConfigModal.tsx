@@ -4,12 +4,14 @@ import { useTimezoneStore } from '@/store/timezoneStore';
 import TimezoneSelect from '../TimezoneSelect';
 import { createTrackedZone } from '../timezones';
 import ZoneList from './ZoneList';
+import { useTranslation } from 'react-i18next';
 
 interface ConfigModalProps {
   onClose: () => void;
 }
 
 export default function ConfigModal({ onClose }: ConfigModalProps) {
+  const { t } = useTranslation();
   const dialogRef = useRef<HTMLDivElement>(null);
   const titleId = useId();
   const trackedZones = useTimezoneStore((state) => state.trackedZones);
@@ -17,7 +19,7 @@ export default function ConfigModal({ onClose }: ConfigModalProps) {
 
   useEffect(() => {
     const previouslyFocused = document.activeElement as HTMLElement | null;
-    dialogRef.current?.querySelector<HTMLInputElement>('[aria-label="Search timezones"]')?.focus();
+    dialogRef.current?.querySelector<HTMLInputElement>('input[role="combobox"]')?.focus();
 
     return () => previouslyFocused?.focus();
   }, []);
@@ -82,28 +84,28 @@ export default function ConfigModal({ onClose }: ConfigModalProps) {
         onKeyDown={handleDialogKeyDown}
       >
         <div className="timezone-config-header">
-          <div className="modal-title" id={titleId}>
-            Timezone Settings
+            <div className="modal-title" id={titleId}>
+            {t('zoneSettings')}
           </div>
-          <button className="ibtn" onClick={onClose} aria-label="Close settings">
+          <button className="ibtn" onClick={onClose} aria-label={t('zoneCloseSettings')}>
             <X size={14} />
           </button>
         </div>
 
         <div className="timezone-config-modal-scroll">
           <section className="timezone-config-section" aria-labelledby={`${titleId}-add`}>
-            <h2 className="timezone-config-section-title" id={`${titleId}-add`}>Add Timezone</h2>
+            <h2 className="timezone-config-section-title" id={`${titleId}-add`}>{t('zoneAddTimezone')}</h2>
             <TimezoneSelect
               value=""
               onChange={handleAddZone}
-              placeholder="Select timezone to add"
+              placeholder={t('zoneSelectTimezoneToAdd')}
               addedTimezones={trackedZones.map((zone) => zone.tz)}
             />
           </section>
 
           <section className="timezone-config-section" aria-labelledby={`${titleId}-tracked`}>
             <div className="timezone-config-section-heading">
-              <h2 className="timezone-config-section-title" id={`${titleId}-tracked`}>Tracked Timezones</h2>
+              <h2 className="timezone-config-section-title" id={`${titleId}-tracked`}>{t('zoneTrackedTimezones')}</h2>
               <span className="timezone-config-count">{trackedZones.length}</span>
             </div>
             <ZoneList />

@@ -1,9 +1,12 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useId } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { COUPLE_COLORS, getColorThemeValue } from '@/store/types';
 import Tooltip from '@/components/Tooltip';
 import { useResolvedTheme } from '@/store/theme';
+import { useTranslation } from 'react-i18next';
+import '@/i18n';
+import { useChoiceDialogFocus } from '@/components/Modal/useChoiceDialogFocus';
 
 interface ColorChoiceModalProps {
   colorIndex: number;
@@ -16,6 +19,9 @@ export default function ColorChoiceModal({
   onConfirm,
   onCancel,
 }: ColorChoiceModalProps) {
+  const { t } = useTranslation();
+  const dialogRef = useChoiceDialogFocus();
+  const titleId = useId();
   const handleBackdropClick = useCallback(
     (e: React.MouseEvent) => {
       if (e.target === e.currentTarget) {
@@ -51,14 +57,14 @@ export default function ColorChoiceModal({
       className="color-choice-overlay modal-overlay"
       onClick={handleBackdropClick}
     >
-      <div className="color-choice-modal" onClick={(e) => e.stopPropagation()}>
+      <div ref={dialogRef} className="color-choice-modal" role="dialog" aria-modal="true" aria-labelledby={titleId} onClick={(e) => e.stopPropagation()}>
         <div className="color-modal-header">
-          <h2 className="color-modal-title">Choose a Color</h2>
+          <h2 id={titleId} className="color-modal-title">{t('chooseAColor')}</h2>
           <button
             type="button"
             className="color-modal-close"
             onClick={onCancel}
-            aria-label="Close"
+            aria-label={t('close')}
           >
             <X size={16} />
           </button>
@@ -67,7 +73,7 @@ export default function ColorChoiceModal({
           {Object.entries(COUPLE_COLORS).map(([colorKey, colorEntry]) => {
             const index = parseInt(colorKey);
             const color = getColorThemeValue(index, currentTheme);
-            const colorName = colorEntry.name;
+            const colorName = t(`groupColor_${colorEntry.name.toLowerCase()}`, { defaultValue: colorEntry.name });
 
             return (
               <Tooltip key={index} content={colorName}>

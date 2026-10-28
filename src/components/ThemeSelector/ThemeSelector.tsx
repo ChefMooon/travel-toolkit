@@ -2,14 +2,16 @@ import { type KeyboardEvent, useRef } from 'react';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import { useSettingsStore } from '@/store/settingsStore';
 import Tooltip from '@/components/Tooltip';
+import { useTranslation } from 'react-i18next';
 
 const THEME_OPTIONS = [
-  { value: 'system', label: 'System', Icon: Monitor },
-  { value: 'light', label: 'Light', Icon: Sun },
-  { value: 'dark', label: 'Dark', Icon: Moon },
+  { value: 'system', key: 'system', ariaKey: 'themeSystem', Icon: Monitor },
+  { value: 'light', key: 'light', ariaKey: 'themeLight', Icon: Sun },
+  { value: 'dark', key: 'dark', ariaKey: 'themeDark', Icon: Moon },
 ] as const;
 
 export default function ThemeSelector() {
+  const { t } = useTranslation();
   const preference = useSettingsStore((state) => state.themePreference);
   const setThemePreference = useSettingsStore((state) => state.setThemePreference);
   const buttonRefs = useRef<Array<HTMLButtonElement | null>>([]);
@@ -51,17 +53,17 @@ export default function ThemeSelector() {
       className="theme-selector"
       data-preference={preference}
       role="radiogroup"
-      aria-label="Theme preference"
+      aria-label={t('themePreference')}
     >
-      {THEME_OPTIONS.map(({ value, label, Icon }, index) => (
-        <Tooltip key={value} content={`Use ${label.toLowerCase()} theme`}>
+      {THEME_OPTIONS.map(({ value, key, ariaKey, Icon }, index) => (
+        <Tooltip key={value} content={t('useTheme', { theme: t(key).toLocaleLowerCase() })}>
           <button
             ref={(element) => {
               buttonRefs.current[index] = element;
             }}
             type="button"
             role="radio"
-            aria-label={`${label} theme`}
+            aria-label={t(ariaKey)}
             aria-checked={preference === value}
             tabIndex={preference === value ? 0 : -1}
             onClick={() => setThemePreference(value)}

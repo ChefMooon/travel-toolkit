@@ -114,9 +114,9 @@ describe('CurrencyTool', () => {
   });
 
   it('FE-CUR-004 displays rate line and formatted conversion after successful load', () => {
-    render(<CurrencyTool />);
+    const { container } = render(<CurrencyTool />);
 
-    expect(screen.getByText('1 CAD')).toBeInTheDocument();
+    expect(container.querySelector('.currency-rate > span:first-child')).toHaveTextContent('1 CAD');
     expect(screen.getByText(/0\.7400/)).toBeInTheDocument();
     expect(screen.getByText('CA$100.00')).toBeInTheDocument();
     expect(screen.getByText('$74.00')).toBeInTheDocument();

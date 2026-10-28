@@ -16,6 +16,23 @@ describe('ColorChoiceModal', () => {
     useSettingsStore.setState({ themePreference: 'light' });
   });
 
+  it('keeps keyboard focus inside the named dialog and restores its trigger', () => {
+    const trigger = document.createElement('button');
+    document.body.append(trigger);
+    trigger.focus();
+    const { unmount } = render(<ColorChoiceModal colorIndex={0} onConfirm={mockOnConfirm} onCancel={mockOnCancel} />);
+    const dialog = screen.getByRole('dialog', { name: 'Choose a Color' });
+    const buttons = dialog.querySelectorAll('button');
+    expect(buttons[0]).toHaveFocus();
+    fireEvent.keyDown(buttons[0]!, { key: 'Tab', shiftKey: true });
+    expect(buttons[buttons.length - 1]).toHaveFocus();
+    fireEvent.keyDown(buttons[buttons.length - 1]!, { key: 'Tab' });
+    expect(buttons[0]).toHaveFocus();
+    unmount();
+    expect(trigger).toHaveFocus();
+    trigger.remove();
+  });
+
   it('should render 10 color swatches in a grid', () => {
     render(
       <ColorChoiceModal

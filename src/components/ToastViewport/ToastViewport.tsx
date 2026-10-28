@@ -1,8 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { useToastStore } from '@/store/toastStore';
+import { useTranslation } from 'react-i18next';
 
 export default function ToastViewport() {
+  const { t } = useTranslation();
   const toasts = useToastStore((s) => s.toasts);
   const removeToast = useToastStore((s) => s.removeToast);
   const timersRef = useRef<Map<string, number>>(new Map());
@@ -36,7 +38,7 @@ export default function ToastViewport() {
   }, []);
 
   return (
-    <div className="toast-viewport" aria-label="Notifications" role="region">
+    <div className="toast-viewport" aria-label={t('toastNotifications')} role="region">
       {toasts.map((toast) => {
         const liveMode = toast.type === 'error' ? 'assertive' : 'polite';
 
@@ -54,7 +56,7 @@ export default function ToastViewport() {
             <button
               type="button"
               className="toast-dismiss"
-              aria-label="Dismiss notification"
+              aria-label={t('dismissNotification')}
               onClick={() => removeToast(toast.id)}
             >
               <X size={16} />

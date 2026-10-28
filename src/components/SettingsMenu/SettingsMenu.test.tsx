@@ -10,7 +10,7 @@ describe('SettingsMenu', () => {
     useSettingsStore.setState({ measurementSystem: 'metric', clockFormat: '12h', preferredCurrency: 'USD', preferredRegion: null, language: 'en' });
   });
 
-  it('exposes global settings and keeps the language English-only', () => {
+  it('exposes global settings and offers French as a review preview', () => {
     useCurrencyStore.setState({ region: 'Europe', amount: '12', baseCurrency: 'EUR', targetCurrency: 'GBP' });
     useTripStore.setState({ region: 'Europe', targetCurrency: 'EUR' });
     render(<SettingsMenu />);
@@ -24,8 +24,10 @@ describe('SettingsMenu', () => {
     expect(useSettingsStore.getState()).toMatchObject({ measurementSystem: 'imperial', clockFormat: '24h', preferredCurrency: 'CAD' });
     expect(useCurrencyStore.getState()).toMatchObject({ region: 'Europe', amount: '12', baseCurrency: 'EUR', targetCurrency: 'GBP' });
     expect(useTripStore.getState()).toMatchObject({ region: 'Europe', targetCurrency: 'EUR' });
-    expect(screen.getByLabelText('Language')).toBeDisabled();
+    expect(screen.getByLabelText('Language')).toBeEnabled();
     expect(screen.getByLabelText('Language')).toHaveTextContent('English');
+    fireEvent.click(screen.getByLabelText('Language'));
+    expect(screen.getByRole('option', { name: /Français \(Canada\)/ })).toBeInTheDocument();
   });
 
   it('dismisses the open dropdown before the settings panel on Escape', () => {

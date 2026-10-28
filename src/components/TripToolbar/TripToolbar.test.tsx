@@ -4,6 +4,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import TripToolbar from '@/components/TripToolbar';
+import { activateLanguage } from '@/i18n';
 import { importWorkbook } from '@/lib/xlsx/importWorkbook';
 import { useTripStore } from '@/store/tripStore';
 import { useSaveSlotStore } from '@/store/saveSlotStore';
@@ -190,6 +191,17 @@ describe('TripToolbar', () => {
     );
 
     vi.mocked(importWorkbook).mockResolvedValue({ snapshot: importedSnapshot, warnings: [] });
+  });
+
+  it('shows translated trip controls in the French review preview', async () => {
+    await act(async () => { await activateLanguage('fr-CA'); });
+    try {
+      render(<TripToolbar />);
+      expect(screen.getByText('Nouveau voyage')).toBeInTheDocument();
+      expect(screen.getByLabelText('ID du voyage')).toBeInTheDocument();
+    } finally {
+      await act(async () => { await activateLanguage('en'); });
+    }
   });
 
   it('FE-TBR-001 renders trip name input pre-filled with tripName', () => {

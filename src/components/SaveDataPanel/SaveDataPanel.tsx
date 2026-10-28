@@ -15,6 +15,9 @@ import type { ExportSchema, ExportSource, FileNamePreset } from '@/lib/xlsx/type
 import { useSettingsStore } from '@/store/settingsStore';
 import ImportExportSettingsModal from '@/components/ImportExportSettingsModal';
 import CogIcon from '@/components/ImportExportSettingsModal/CogIcon';
+import { useTranslation } from 'react-i18next';
+import i18n from '@/i18n';
+import { activeLocale } from '@/i18n/format';
 
 interface SaveDataPanelProps {
   open: boolean;
@@ -39,12 +42,12 @@ function snapshotsEqual(a: TripSnapshot, b: TripSnapshot): boolean {
 function formatRelativeTime(iso: string): string {
   const timestamp = Date.parse(iso);
   if (Number.isNaN(timestamp)) {
-    return 'Unknown save time';
+    return i18n.t('unknownSaveTime');
   }
 
   const seconds = Math.round((Date.now() - timestamp) / 1000);
   const absSeconds = Math.abs(seconds);
-  const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+  const rtf = new Intl.RelativeTimeFormat(activeLocale(), { numeric: 'auto' });
 
   if (absSeconds < 60) {
     return rtf.format(-seconds, 'second');
@@ -83,6 +86,7 @@ export default function SaveDataPanel({
   onSaveComplete,
   onCancelSaveContinuation,
 }: SaveDataPanelProps) {
+  const { t } = useTranslation();
   const slots = useSaveSlotStore((s) => s.slots);
   const labels = useSaveSlotStore((s) => s.labels ?? []);
   const saveToSlot = useSaveSlotStore((s) => s.saveToSlot);
@@ -139,10 +143,10 @@ export default function SaveDataPanel({
   const currentSnapshot = getSnapshot();
   const matchedSlotIndex = slots.findIndex((slot) => (slot ? snapshotsEqual(slot.data, currentSnapshot) : false));
   const statusText = matchedSlotIndex >= 0
-    ? ` - All changes saved (${displayLabels[matchedSlotIndex]})`
+    ? ` — ${t('allChangesSaved', { slot: displayLabels[matchedSlotIndex] ?? getDefaultSlotLabel(matchedSlotIndex) })}`
     : isDirty
-      ? ' - Unsaved changes'
-      : ' - Not saved to a slot';
+      ? ` — ${t('unsavedChanges')}`
+      : ` — ${t('notSavedToSlot')}`;
 
   useEffect(() => {
     if (!open) {
@@ -156,6 +160,7 @@ export default function SaveDataPanel({
       setSchemaDropdownOpen(false);
       setSourceDropdownOpen(false);
       setNamePresetDropdownOpen(false);
+      setSettingsModalOpen(false);
       return;
     }
 
@@ -183,6 +188,7 @@ export default function SaveDataPanel({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (settingsModalOpen) return;
       if (e.key === 'Escape') {
         e.preventDefault();
         onClose();
@@ -216,13 +222,13 @@ export default function SaveDataPanel({
         last.focus();
       }
     },
-    [onClose]
+    [onClose, settingsModalOpen]
   );
 
   const runSave = useCallback(
     (slotIndex: number) => {
       if (useTripStore.getState().dateDraftError) {
-        pushToast({ type: 'warning', title: 'Trip dates need attention', message: useTripStore.getState().dateDraftError });
+        pushToast({ type: 'warning', title: t('tripDatesNeedAttention'), message: t('invalidTripDateDraft') });
         return;
       }
       const ok = saveToSlot(slotIndex, getSnapshot());
@@ -238,11 +244,11 @@ export default function SaveDataPanel({
 
       pushToast({
         type: 'success',
-        title: 'Trip saved',
-        message: `Saved to ${displayLabels[slotIndex]}.`,
+        title: t('tripSavedTitle'),
+        message: t('tripSavedMessage', { slot: displayLabels[slotIndex] ?? getDefaultSlotLabel(slotIndex) }),
       });
     },
-    [displayLabels, getSnapshot, markClean, onSaveComplete, pushToast, saveToSlot]
+    [displayLabels, getSnapshot, markClean, onSaveComplete, pushToast, saveToSlot, t]
   );
 
   const cancelSaveContinuation = useCallback(() => {
@@ -258,8 +264,8 @@ export default function SaveDataPanel({
         if (!slot) {
           pushToast({
             type: 'warning',
-            title: 'Slot is empty',
-            message: `There is no save data in ${displayLabels[slotIndex]}.`,
+            title: t('slotEmptyTitle'),
+            message: t('slotEmptyMessage', { slot: displayLabels[slotIndex] ?? getDefaultSlotLabel(slotIndex) }),
           });
         }
         return;
@@ -270,11 +276,11 @@ export default function SaveDataPanel({
       markClean();
       pushToast({
         type: 'success',
-        title: 'Trip loaded',
-        message: `Loaded ${snapshot.tripName || displayLabels[slotIndex]}.`,
+        title: t('tripLoadedTitle'),
+        message: t('tripLoadedMessage', { trip: snapshot.tripName || displayLabels[slotIndex] || getDefaultSlotLabel(slotIndex) }),
       });
     },
-    [cancelSaveContinuation, displayLabels, loadFromSlot, loadSnapshot, markClean, pushToast, slots]
+    [cancelSaveContinuation, displayLabels, loadFromSlot, loadSnapshot, markClean, pushToast, slots, t]
   );
 
   const runClear = useCallback(
@@ -282,11 +288,11 @@ export default function SaveDataPanel({
       clearSlot(slotIndex);
       pushToast({
         type: 'success',
-        title: 'Slot cleared',
-        message: `${displayLabels[slotIndex]} is now empty.`,
+        title: t('slotClearedTitle'),
+        message: t('slotClearedMessage', { slot: displayLabels[slotIndex] ?? getDefaultSlotLabel(slotIndex) }),
       });
     },
-    [clearSlot, displayLabels, pushToast]
+    [clearSlot, displayLabels, pushToast, t]
   );
 
   const runSwap = useCallback(
@@ -295,11 +301,11 @@ export default function SaveDataPanel({
       setSelectedForSwap([]);
       pushToast({
         type: 'success',
-        title: 'Slots swapped',
-        message: `${displayLabels[firstSlotIndex]} and ${displayLabels[secondSlotIndex]} were swapped.`,
+        title: t('slotsSwappedTitle'),
+        message: t('slotsSwappedMessage', { first: displayLabels[firstSlotIndex] ?? getDefaultSlotLabel(firstSlotIndex), second: displayLabels[secondSlotIndex] ?? getDefaultSlotLabel(secondSlotIndex) }),
       });
     },
-    [displayLabels, pushToast, swapSlots]
+    [displayLabels, pushToast, swapSlots, t]
   );
 
   const handleLoadClick = useCallback(
@@ -370,27 +376,27 @@ export default function SaveDataPanel({
         if (warnings.length > 0) {
           pushToast({
             type: 'warning',
-            title: 'Imported with warnings',
-            message: warnings.slice(0, 3).join(' '),
+            title: t('importedWithWarnings'),
+            message: t('importWarningsDetails'),
           });
         } else {
           pushToast({
             type: 'success',
-            title: 'Trip imported',
-            message: `Loaded "${adjustedExportable.tripName}" from file.`,
+            title: t('tripImported'),
+            message: t('tripImportedMessage', { trip: adjustedExportable.tripName }),
           });
         }
-      } catch (err) {
+      } catch {
         pushToast({
           type: 'error',
-          title: 'Import failed',
-          message: err instanceof Error ? err.message : 'Could not read the file.',
+          title: t('importFailed'),
+          message: t('couldNotReadFile'),
         });
       } finally {
         setIsImporting(false);
       }
     },
-    [cancelSaveContinuation, importRateMode, loadSnapshot, markClean, pushToast],
+    [cancelSaveContinuation, importRateMode, loadSnapshot, markClean, pushToast, t],
   );
 
   // ── Import handler ──
@@ -446,7 +452,7 @@ export default function SaveDataPanel({
   // ── Export handler ──
   const handleExport = useCallback(async () => {
     if (exportSource.type === 'active' && useTripStore.getState().dateDraftError) {
-      pushToast({ type: 'warning', title: 'Trip dates need attention', message: useTripStore.getState().dateDraftError });
+      pushToast({ type: 'warning', title: t('tripDatesNeedAttention'), message: t('invalidTripDateDraft') });
       return;
     }
     setIsExporting(true);
@@ -457,7 +463,7 @@ export default function SaveDataPanel({
       if (exportSource.type === 'slot') {
         const slot = slots[exportSource.slotIndex];
         if (!slot) {
-          pushToast({ type: 'warning', title: 'Slot is empty', message: 'Select a slot with saved data.' });
+          pushToast({ type: 'warning', title: t('slotEmptyTitle'), message: t('emptySlotSelect') });
           return;
         }
         snapshot = slot.data;
@@ -479,14 +485,14 @@ export default function SaveDataPanel({
 
       pushToast({
         type: 'success',
-        title: 'Exported',
-        message: `Trip exported as ${exportSchema === 'three-sheet' ? 'multi-sheet' : 'single-sheet'} .xlsx.`,
+        title: t('exported'),
+        message: t('tripExported', { format: t(exportSchema === 'three-sheet' ? 'multiSheetFormat' : 'singleSheetFormat') }),
       });
-    } catch (err) {
+    } catch {
       pushToast({
         type: 'error',
-        title: 'Export failed',
-        message: err instanceof Error ? err.message : 'Could not generate the file.',
+        title: t('exportFailed'),
+        message: t('couldNotGenerateFile'),
       });
     } finally {
       setIsExporting(false);
@@ -501,47 +507,48 @@ export default function SaveDataPanel({
     displayLabels,
     getSnapshot,
     pushToast,
+    t,
   ]);
 
   // Build export source options
   const exportSourceOptions = useMemo(() => {
     const options: { label: string; source: ExportSource }[] = [
-      { label: 'Active Trip', source: { type: 'active' } },
+      { label: t('activeTrip'), source: { type: 'active' } },
     ];
     for (let i = 0; i < MAX_SAVE_SLOTS; i++) {
       const slot = slots[i];
       if (slot) {
         options.push({
-          label: `${displayLabels[i]} — ${slot.tripName || 'Untitled'}`,
+          label: `${displayLabels[i]} — ${slot.tripName || t('untitledTrip')}`,
           source: { type: 'slot', slotIndex: i },
         });
       }
     }
     return options;
-  }, [slots, displayLabels]);
+  }, [slots, displayLabels, t]);
 
   const selectedExportSourceLabel = useMemo(() => {
     if (exportSource.type === 'active') {
-      return 'Active Trip';
+      return t('activeTrip');
     }
     const option = exportSourceOptions.find(
       (item) => item.source.type === 'slot' && item.source.slotIndex === exportSource.slotIndex,
     );
-    return option?.label ?? `Slot ${exportSource.slotIndex + 1}`;
-  }, [exportSource, exportSourceOptions]);
+    return option?.label ?? t('slotNumber', { number: exportSource.slotIndex + 1 });
+  }, [exportSource, exportSourceOptions, t]);
 
   const namePresetLabel = useMemo(() => {
-    if (namePreset === 'tripName') return 'Trip Name';
-    if (namePreset === 'slotLabel') return 'Slot Name';
-    if (namePreset === 'custom') return 'Custom';
-    return 'Trip ID';
-  }, [namePreset]);
+    if (namePreset === 'tripName') return t('tripNamePreset');
+    if (namePreset === 'slotLabel') return t('slotNamePreset');
+    if (namePreset === 'custom') return t('customPreset');
+    return t('tripId');
+  }, [namePreset, t]);
 
   const importRateModeLabel = useMemo(() => {
-    if (importRateMode === 'keep-imported') return 'Keep imported rates';
-    if (importRateMode === 'refresh-live') return 'Refresh with live';
-    return 'Hybrid rates';
-  }, [importRateMode]);
+    if (importRateMode === 'keep-imported') return t('keepImportedRates');
+    if (importRateMode === 'refresh-live') return t('refreshWithLive');
+    return t('hybridRates');
+  }, [importRateMode, t]);
 
   if (!open) {
     return null;
@@ -563,9 +570,9 @@ export default function SaveDataPanel({
         >
           <div className="save-data-panel-header">
             <div>
-              <h2 id={titleId}>Save Data Slots</h2>
+              <h2 id={titleId}>{t('saveDataSlots')}</h2>
               <p id={bodyId}>
-                Active trip: <strong>{tripName || 'Untitled Trip'}</strong> (ID {tripId})
+                {t('activeTrip')}: <strong><bdi dir="auto">{tripName || t('untitledTrip')}</bdi></strong> ({t('tripId')} <bdi dir="ltr">{tripId}</bdi>)
                 {statusText}
               </p>
             </div>
@@ -574,7 +581,7 @@ export default function SaveDataPanel({
                 <div
                   className="save-data-panel-swap-actions"
                   role="group"
-                  aria-label="Swap selection actions"
+                  aria-label={t('swapSelectionActions')}
                 >
                   {canSwap ? (
                     <button
@@ -589,7 +596,7 @@ export default function SaveDataPanel({
                       }}
                     >
                       <ArrowLeftRight size={14} aria-hidden="true" />
-                      Swap Selected Slots
+                      {t('swapSelectedSlots')}
                     </button>
                   ) : null}
                   <button
@@ -598,11 +605,11 @@ export default function SaveDataPanel({
                     onClick={() => setSelectedForSwap([])}
                   >
                     <RotateCcw size={13} aria-hidden="true" />
-                    Clear Swap Selection
+                    {t('clearSwapSelection')}
                   </button>
                 </div>
               ) : null}
-              <button type="button" className="save-data-panel-close" onClick={onClose} aria-label="Close save data panel">
+              <button type="button" className="save-data-panel-close" onClick={onClose} aria-label={t('closeSaveDataPanel')}>
                 <X size={16} />
               </button>
             </div>
@@ -611,7 +618,7 @@ export default function SaveDataPanel({
           {/* ── Import / Export row ── */}
           <div className="save-data-io-row">
             <div className="save-data-io-left">
-              <span className="save-data-io-label">Data:</span>
+              <span className="save-data-io-label">{t('dataLabel')}</span>
               <button
                 type="button"
                 className="save-data-io-btn"
@@ -619,7 +626,7 @@ export default function SaveDataPanel({
                 disabled={isImporting}
               >
                 <span style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                  <ImportIcon /> Import
+                  <ImportIcon /> {t('import')}
                 </span>
               </button>
               <input
@@ -661,8 +668,8 @@ export default function SaveDataPanel({
                       }}
                     >
                       <span className="save-data-io-dropdown-dot" style={{ background: '#5AA3FF' }} />
-                      <span>Hybrid rates</span>
-                      <span className="save-data-io-dropdown-desc">Keep overrides, refresh others</span>
+                      <span>{t('hybridRates')}</span>
+                      <span className="save-data-io-dropdown-desc">{t('keepOverridesRefreshOthers')}</span>
                     </button>
                     <button
                       type="button"
@@ -675,8 +682,8 @@ export default function SaveDataPanel({
                       }}
                     >
                       <span className="save-data-io-dropdown-dot" style={{ background: '#2CBF6D' }} />
-                      <span>Keep imported rates</span>
-                      <span className="save-data-io-dropdown-desc">Freeze all from file</span>
+                      <span>{t('keepImportedRates')}</span>
+                      <span className="save-data-io-dropdown-desc">{t('freezeRatesFromFile')}</span>
                     </button>
                     <button
                       type="button"
@@ -689,8 +696,8 @@ export default function SaveDataPanel({
                       }}
                     >
                       <span className="save-data-io-dropdown-dot" style={{ background: '#F2B65A' }} />
-                      <span>Refresh with live</span>
-                      <span className="save-data-io-dropdown-desc">Live rates override imported</span>
+                      <span>{t('refreshWithLive')}</span>
+                      <span className="save-data-io-dropdown-desc">{t('liveRatesOverrideImported')}</span>
                     </button>
                   </div>
                 ) : null}
@@ -698,7 +705,7 @@ export default function SaveDataPanel({
             </div>
 
             <div className="save-data-io-right">
-              <span className="save-data-io-label">Export as:</span>
+              <span className="save-data-io-label">{t('exportAs')}</span>
 
               {/* Schema selector (dropdown) */}
               <div className="save-data-io-dropdown-wrap">
@@ -727,7 +734,7 @@ export default function SaveDataPanel({
                     >
                       <span className="save-data-io-dropdown-dot" style={{ background: '#2CBF6D' }} />
                       <span>.xlsx v1</span>
-                      <span className="save-data-io-dropdown-desc">Multi-sheet</span>
+                      <span className="save-data-io-dropdown-desc">{t('multiSheet')}</span>
                     </button>
                     <button
                       type="button"
@@ -738,7 +745,7 @@ export default function SaveDataPanel({
                     >
                       <span className="save-data-io-dropdown-dot" style={{ background: '#9CE7B5' }} />
                       <span>.xlsx v2</span>
-                      <span className="save-data-io-dropdown-desc">Single sheet</span>
+                      <span className="save-data-io-dropdown-desc">{t('singleSheet')}</span>
                     </button>
                   </div>
                 ) : null}
@@ -807,10 +814,10 @@ export default function SaveDataPanel({
                 {namePresetDropdownOpen ? (
                   <div className="save-data-io-dropdown" role="listbox">
                     {[
-                      { value: 'tripId' as const, label: 'Trip ID' },
-                      { value: 'tripName' as const, label: 'Trip Name' },
-                      { value: 'slotLabel' as const, label: 'Slot Name' },
-                      { value: 'custom' as const, label: 'Custom' },
+                      { value: 'tripId' as const, label: t('tripId') },
+                      { value: 'tripName' as const, label: t('tripNamePreset') },
+                      { value: 'slotLabel' as const, label: t('slotNamePreset') },
+                      { value: 'custom' as const, label: t('customPreset') },
                     ].map((item) => (
                       <button
                         key={item.value}
@@ -837,13 +844,13 @@ export default function SaveDataPanel({
                   checked={includeDateInFileName}
                   onChange={(e) => setIncludeDateInFileName(e.target.checked)}
                 />
-                <span>Add date</span>
+                <span>{t('addDate')}</span>
               </label>
               {namePreset === 'custom' ? (
                 <input
                   className="save-data-io-name-input"
                   type="text"
-                  placeholder="File name…"
+                  placeholder={t('fileName')}
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value.slice(0, 60))}
                   maxLength={60}
@@ -858,14 +865,14 @@ export default function SaveDataPanel({
                   disabled={isExporting}
                 >
                   <span style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                    <ExportIcon /> Export
+                    <ExportIcon /> {t('export')}
                   </span>
                 </button>
                 <button
                   type="button"
                   className="save-data-io-cog-btn"
                   onClick={() => setSettingsModalOpen(true)}
-                  aria-label="Import / Export settings"
+                  aria-label={t('importExportSettings')}
                 >
                   <CogIcon />
                 </button>
@@ -876,7 +883,7 @@ export default function SaveDataPanel({
           <div className="save-slot-grid">
             {Array.from({ length: MAX_SAVE_SLOTS }, (_, slotIndex) => {
               const slot = slots[slotIndex] ?? null;
-              const label = displayLabels[slotIndex];
+              const label = displayLabels[slotIndex] ?? getDefaultSlotLabel(slotIndex);
               const selected = selectedForSwap.includes(slotIndex);
 
               return (
@@ -898,7 +905,7 @@ export default function SaveDataPanel({
                         }}
                         maxLength={MAX_SLOT_LABEL_LENGTH}
                         autoFocus
-                        aria-label={`Rename ${label}`}
+                        aria-label={t('renameSlot', { label })}
                       />
                     ) : (
                       <h3>{label}</h3>
@@ -907,7 +914,7 @@ export default function SaveDataPanel({
                       type="button"
                       className="save-slot-icon-btn"
                       onClick={() => openRename(slotIndex)}
-                      aria-label={`Rename ${label}`}
+                      aria-label={t('renameSlot', { label })}
                     >
                       <Edit2 size={13} />
                     </button>
@@ -916,42 +923,42 @@ export default function SaveDataPanel({
                   {slot ? (
                     <>
                       <div className="save-slot-meta">
-                        <div><span>Trip</span><strong>{slot.tripName || 'Untitled Trip'}</strong></div>
-                        <div><span>ID</span><strong>{slot.tripId}</strong></div>
-                        <div><span>Saved</span><strong>{formatRelativeTime(slot.savedAt)}</strong></div>
-                        <div><span>Party</span><strong>{slot.coupleCount} groups</strong></div>
-                        <div><span>Costs</span><strong>{slot.costCount} entries</strong></div>
-                        <div><span>Currency</span><strong>{slot.targetCurrency}</strong></div>
+                        <div><span>{t('tripLabel')}</span><strong><bdi dir="auto">{slot.tripName || t('untitledTrip')}</bdi></strong></div>
+                        <div><span>{t('tripId')}</span><strong><bdi dir="ltr">{slot.tripId}</bdi></strong></div>
+                        <div><span>{t('savedLabel')}</span><strong>{formatRelativeTime(slot.savedAt)}</strong></div>
+                        <div><span>{t('partyLabel')}</span><strong>{t('groupCount', { count: slot.coupleCount })}</strong></div>
+                        <div><span>{t('costsLabel')}</span><strong>{t('entryCount', { count: slot.costCount })}</strong></div>
+                        <div><span>{t('currencyLabel')}</span><strong><bdi dir="ltr">{slot.targetCurrency}</bdi></strong></div>
                       </div>
                       <div className="save-slot-chip-row">
                         <span className="save-slot-chip">v{slot.schemaVersion}</span>
                       </div>
                       <div className="save-slot-actions">
                         <button type="button" className="save-slot-btn" onClick={() => handleLoadClick(slotIndex)}>
-                          Load
+                          {t('load')}
                         </button>
                         <button
                           type="button"
                           className="save-slot-btn"
                           onClick={() => setConfirmIntent({ type: 'overwrite', slotIndex })}
                         >
-                          Overwrite
+                          {t('overwrite')}
                         </button>
                         <button
                           type="button"
                           className="save-slot-btn danger"
                           onClick={() => setConfirmIntent({ type: 'clear', slotIndex })}
                         >
-                          Clear
+                          {t('clear')}
                         </button>
                       </div>
                     </>
                   ) : (
                     <>
-                      <p className="save-slot-empty">No trip saved in this slot yet.</p>
+                      <p className="save-slot-empty">{t('noSavedTripInSlot')}</p>
                       <div className="save-slot-actions">
                         <button type="button" className="save-slot-btn" onClick={() => runSave(slotIndex)}>
-                          Save Here
+                          {t('saveHere')}
                         </button>
                       </div>
                     </>
@@ -962,7 +969,7 @@ export default function SaveDataPanel({
                     className={`save-slot-swap-btn${selected ? ' is-selected' : ''}`}
                     onClick={() => handleSwapToggle(slotIndex)}
                   >
-                    {selected ? 'Selected for swap' : 'Select for swap'}
+                    {selected ? t('selectedForSwap') : t('selectForSwap')}
                   </button>
                 </section>
               );
@@ -980,27 +987,27 @@ export default function SaveDataPanel({
           icon="⚠️"
           title={
             confirmIntent.type === 'load'
-              ? 'Load saved trip?'
+              ? t('loadSavedTripTitle')
               : confirmIntent.type === 'overwrite'
-              ? 'Overwrite slot data?'
+              ? t('overwriteSlotTitle')
               : confirmIntent.type === 'clear'
-              ? 'Clear this slot?'
+              ? t('clearSlotTitle')
               : confirmIntent.type === 'import'
-              ? 'Import and overwrite current trip?'
-              : 'Swap selected slots?'
+              ? t('importOverwriteTripTitle')
+              : t('swapSlotsTitle')
           }
           body={
             confirmIntent.type === 'load'
-              ? `This will replace your current trip in the workspace. Unsaved changes${dateDraftError ? ' and the invalid trip date draft' : ''} will be lost.`
+              ? t(dateDraftError ? 'loadTripWithInvalidDateBody' : 'loadTripBody')
               : confirmIntent.type === 'overwrite'
-              ? 'This slot already has saved data. Overwrite it with the current trip?'
+              ? t('overwriteSlotBody')
               : confirmIntent.type === 'clear'
-              ? 'This removes all saved data from the selected slot.'
+              ? t('clearSlotBody')
               : confirmIntent.type === 'import'
-              ? `Importing will replace the current workspace trip data${dateDraftError ? ' and discard the invalid trip date draft' : ''}.`
-              : 'This swaps the saved data between the two selected slots.'
+              ? t(dateDraftError ? 'importWithInvalidDateBody' : 'importTripBody')
+              : t('swapSlotsBody')
           }
-          confirmLabel="Confirm"
+          confirmLabel={t('confirm')}
           onConfirm={handleConfirmAction}
           onCancel={() => {
             if (confirmIntent.type === 'import') {

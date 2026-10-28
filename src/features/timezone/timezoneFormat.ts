@@ -1,4 +1,5 @@
 import { DateTime } from 'luxon';
+import { activeLocale } from '@/i18n/format';
 
 export interface ClockDisplayData {
   time24: string;
@@ -13,7 +14,7 @@ export interface ClockDisplayData {
 }
 
 export function getClockDisplayData(now: DateTime, tz: string): ClockDisplayData {
-  const dt = now.setZone(tz);
+  const dt = now.setZone(tz).setLocale(activeLocale());
   const hour = dt.hour % 12;
   const minute = dt.minute;
   const second = dt.second;

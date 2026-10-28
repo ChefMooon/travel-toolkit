@@ -5,6 +5,8 @@ import Tooltip from '@/components/Tooltip';
 import Select from '@/components/Select/Select';
 import NumericInput from '@/components/NumericInput/NumericInput';
 import { isValidDateOnly } from './dateUtils';
+import { useTranslation } from 'react-i18next';
+import { activeLocale } from '@/i18n/format';
 
 type Props = { id: string; label: string; value: string; onChange: (value: string) => void; invalid?: boolean; describedBy?: string; showToday?: boolean };
 type View = { year: number; month: number };
@@ -22,6 +24,7 @@ const monthView = (view: View, amount: number) => {
 };
 
 export default function DatePicker({ id, label, value, onChange, invalid, describedBy, showToday = false }: Props) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const initialDate = isValidDateOnly(value) ? new Date(`${value}T00:00:00Z`) : new Date();
   const [view, setView] = useState<View>(() => ({ year: isValidDateOnly(value) ? initialDate.getUTCFullYear() : initialDate.getFullYear(), month: isValidDateOnly(value) ? initialDate.getUTCMonth() : initialDate.getMonth() }));
@@ -35,7 +38,7 @@ export default function DatePicker({ id, label, value, onChange, invalid, descri
   const grid = useRef<HTMLDivElement>(null);
   const pendingFocus = useRef(false);
   const keepHeaderFocus = useRef(false);
-  const monthLabel = new Intl.DateTimeFormat(undefined, { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(dateAt(view.year, view.month, 1));
+  const monthLabel = new Intl.DateTimeFormat(activeLocale(), { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(dateAt(view.year, view.month, 1));
   const days = useMemo(() => {
     const first = dateAt(view.year, view.month, 1).getUTCDay();
     const count = dateAt(view.year, view.month + 1, 0).getUTCDate();
@@ -122,35 +125,36 @@ export default function DatePicker({ id, label, value, onChange, invalid, descri
   };
   const now = new Date();
   const today = `${String(now.getFullYear()).padStart(4, '0')}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-  const monthNames = Array.from({ length: 12 }, (_, month) => new Intl.DateTimeFormat(undefined, { month: 'long', timeZone: 'UTC' }).format(dateAt(2024, month, 1)));
+  const monthNames = Array.from({ length: 12 }, (_, month) => new Intl.DateTimeFormat(activeLocale(), { month: 'long', timeZone: 'UTC' }).format(dateAt(2024, month, 1)));
+  const weekdays = Array.from({ length: 7 }, (_, day) => new Intl.DateTimeFormat(activeLocale(), { weekday: 'narrow', timeZone: 'UTC' }).format(dateAt(2024, 0, day + 7)));
   const formatHintId = `${id}-format-hint`;
   const describedByIds = [describedBy, formatHintId].filter(Boolean).join(' ');
   return <div className="date-picker" ref={root}>
-    <div className="date-picker-label-row"><label className="date-picker-label" htmlFor={id}>{label}</label><Tooltip content="Enter date as YYYY-MM-DD." showOnClick><button type="button" className="date-picker-info" aria-label={`${label} format information`}><Info size={14} aria-hidden="true" /></button></Tooltip></div>
+    <div className="date-picker-label-row"><label className="date-picker-label" htmlFor={id}>{label}</label><Tooltip content={t('dateFormatHint')} showOnClick><button type="button" className="date-picker-info" aria-label={t('formatInformation', { label })}><Info size={14} aria-hidden="true" /></button></Tooltip></div>
     <div className="date-picker-control">
-      <input ref={input} id={id} type="text" inputMode="numeric" autoComplete="off" placeholder="YYYY-MM-DD" aria-label={label} aria-invalid={invalid || undefined} aria-describedby={describedByIds} value={value} onChange={(event) => onChange(event.target.value)} />
-      {value && <button type="button" className="date-picker-clear" aria-label={`Clear ${label.toLowerCase()}`} onClick={() => { setOpen(false); onChange(''); input.current?.focus(); }}><X size={16} aria-hidden="true" /></button>}
-      <button ref={trigger} type="button" className="date-picker-trigger" aria-label={`Choose ${label.toLowerCase()}`} aria-haspopup="dialog" aria-expanded={open} aria-controls={`${id}-calendar`} onClick={() => {
+      <input ref={input} id={id} type="text" inputMode="numeric" autoComplete="off" placeholder={t('dateFormatPlaceholder')} aria-label={label} aria-invalid={invalid || undefined} aria-describedby={describedByIds} value={value} onChange={(event) => onChange(event.target.value)} />
+      {value && <button type="button" className="date-picker-clear" aria-label={t('clearDate', { label: label.toLowerCase() })} onClick={() => { setOpen(false); onChange(''); input.current?.focus(); }}><X size={16} aria-hidden="true" /></button>}
+      <button ref={trigger} type="button" className="date-picker-trigger" aria-label={t('chooseDate', { label: label.toLowerCase() })} aria-haspopup="dialog" aria-expanded={open} aria-controls={`${id}-calendar`} onClick={() => {
         if (!open && isValidDateOnly(value)) { const date = new Date(`${value}T00:00:00Z`); const next = { year: date.getUTCFullYear(), month: date.getUTCMonth() }; setView(next); setFocusDay(Number(value.slice(-2))); }
         setOpen(!open);
       }}><CalendarDays size={18} aria-hidden="true" /></button>
     </div>
-    <span id={formatHintId} className="sr-only">Enter date as YYYY-MM-DD.</span>
-    {open && createPortal(<div id={`${id}-calendar`} ref={popup} className="date-picker-popover" style={popupStyle} role="dialog" aria-label={`${label} calendar`}>
+    <span id={formatHintId} className="sr-only">{t('dateFormatHint')}</span>
+    {open && createPortal(<div id={`${id}-calendar`} ref={popup} className="date-picker-popover" style={popupStyle} role="dialog" aria-label={t('calendarFor', { date: label })}>
       <div className="date-picker-header">
-        <button type="button" aria-label="Previous month" onClick={() => setCalendarMonth(monthView(view, -1))}><ChevronLeft size={18} /></button>
+        <button type="button" aria-label={t('previousMonth')} onClick={() => setCalendarMonth(monthView(view, -1))}><ChevronLeft size={18} /></button>
         <span className="sr-only" aria-live="polite">{monthLabel}</span>
         <div className="date-picker-month-year" aria-live="polite">
-          <label className="sr-only" htmlFor={`${id}-month`}>Choose month</label><Select id={`${id}-month`} aria-label="Choose month" className="date-picker-month" value={String(view.month)} options={monthNames.map((_, month) => String(month))} getOptionLabel={(month) => monthNames[Number(month)] ?? ''} onChange={(month) => setCalendarMonth({ ...view, month: Number(month) })} />
-          <label className="sr-only" htmlFor={`${id}-year`}>Choose year</label><NumericInput id={`${id}-year`} aria-label="Choose year" min="1" max="9999" step="1" shiftSteps={10} acceleratedSteps={100} value={yearDraft} onChange={(event) => { const text = event.target.value; setYearDraft(text); const year = Number(text); if (Number.isInteger(year) && year >= 1 && year <= 9999 && year !== view.year) { keepHeaderFocus.current = true; setFocusDay((day) => Math.min(day, dateAt(year, view.month + 1, 0).getUTCDate())); setView((current) => ({ ...current, year })); } }} onBlur={() => { const year = Number(yearDraft); if (!yearDraft || !Number.isInteger(year) || year < 1 || year > 9999) setYearDraft(String(view.year)); }} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); }} />
+          <label className="sr-only" htmlFor={`${id}-month`}>{t('chooseMonth')}</label><Select id={`${id}-month`} aria-label={t('chooseMonth')} className="date-picker-month" value={String(view.month)} options={monthNames.map((_, month) => String(month))} getOptionLabel={(month) => monthNames[Number(month)] ?? ''} onChange={(month) => setCalendarMonth({ ...view, month: Number(month) })} />
+          <label className="sr-only" htmlFor={`${id}-year`}>{t('chooseYear')}</label><NumericInput id={`${id}-year`} aria-label={t('chooseYear')} min="1" max="9999" step="1" shiftSteps={10} acceleratedSteps={100} value={yearDraft} onChange={(event) => { const text = event.target.value; setYearDraft(text); const year = Number(text); if (Number.isInteger(year) && year >= 1 && year <= 9999 && year !== view.year) { keepHeaderFocus.current = true; setFocusDay((day) => Math.min(day, dateAt(year, view.month + 1, 0).getUTCDate())); setView((current) => ({ ...current, year })); } }} onBlur={() => { const year = Number(yearDraft); if (!yearDraft || !Number.isInteger(year) || year < 1 || year > 9999) setYearDraft(String(view.year)); }} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); }} />
         </div>
-        <button type="button" aria-label="Next month" onClick={() => setCalendarMonth(monthView(view, 1))}><ChevronRight size={18} /></button>
+        <button type="button" aria-label={t('nextMonth')} onClick={() => setCalendarMonth(monthView(view, 1))}><ChevronRight size={18} /></button>
       </div>
-      <div className="date-picker-weekdays" aria-hidden="true">{'SMTWTFS'.split('').map((d, i) => <span key={i}>{d}</span>)}</div>
+      <div className="date-picker-weekdays" aria-hidden="true">{weekdays.map((day, index) => <span key={index}>{day}</span>)}</div>
       <div className="date-picker-grid" role="grid" aria-label={monthLabel} aria-rowcount={days.length / 7} ref={grid} onKeyDown={handleGridKey}>
         {Array.from({ length: days.length / 7 }, (_, row) => <div role="row" className="date-picker-row" key={row}>
           {days.slice(row * 7, row * 7 + 7).map((day, col) => <div role="gridcell" key={col} aria-selected={day ? value === fromParts(view.year, view.month + 1, day) : undefined}>
-            {day ? <button type="button" data-day={day} tabIndex={day === focusDay ? 0 : -1} aria-label={new Intl.DateTimeFormat(undefined, { dateStyle: 'full', timeZone: 'UTC' }).format(dateAt(view.year, view.month, day))} aria-current={fromParts(view.year, view.month + 1, day) === today ? 'date' : undefined} onFocus={() => setFocusDay(day)} onClick={() => choose(day)}>{day}</button> : null}
+            {day ? <button type="button" data-day={day} tabIndex={day === focusDay ? 0 : -1} aria-label={new Intl.DateTimeFormat(activeLocale(), { dateStyle: 'full', timeZone: 'UTC' }).format(dateAt(view.year, view.month, day))} aria-current={fromParts(view.year, view.month + 1, day) === today ? 'date' : undefined} onFocus={() => setFocusDay(day)} onClick={() => choose(day)}>{day}</button> : null}
           </div>)}
         </div>)}
       </div>
@@ -159,7 +163,7 @@ export default function DatePicker({ id, label, value, onChange, invalid, descri
         onChange(fromParts(current.getFullYear(), current.getMonth() + 1, current.getDate()));
         setOpen(false);
         trigger.current?.focus();
-      }}>Today</button></div>}
+      }}>{t('today')}</button></div>}
     </div>, document.body)}
   </div>;
 }

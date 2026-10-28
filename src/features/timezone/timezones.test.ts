@@ -33,6 +33,15 @@ describe('timezone utilities', () => {
     expect(summerNewYork?.offset).toBe('UTC-04:00');
   });
 
+  it('localizes the timezone display name and retains the stable IANA identifier', () => {
+    const english = buildTimezoneOptions(new Date('2026-01-15T12:00:00Z'), 'en-US').find((item) => item.tz === 'America/Toronto');
+    const french = buildTimezoneOptions(new Date('2026-01-15T12:00:00Z'), 'fr-CA').find((item) => item.tz === 'America/Toronto');
+    expect(english?.localizedLabel).toContain('Eastern Standard Time');
+    expect(french?.localizedLabel).toContain('heure normale de l’Est');
+    expect(french?.label).toBe('America/Toronto');
+    expect(french?.tz).toBe('America/Toronto');
+  });
+
   it('buildTimezoneOptions falls back when Intl.supportedValuesOf is unavailable', () => {
     const fallbackTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 

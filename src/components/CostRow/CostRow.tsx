@@ -1,6 +1,6 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { useTripStore } from '@/store/tripStore';
-import { getEffectiveMarkup, getCostWithMarkup, formatCurrency, validateCost } from '@/lib/calculations';
+import { getEffectiveMarkup, getCostWithMarkup, validateCost } from '@/lib/calculations';
 import { createPortal } from 'react-dom';
 import { Pencil, Copy, Trash2, GripVertical, ChevronLeft, ChevronRight, AlertCircle } from 'lucide-react';
 import type { CostEntry, SplitType } from '@/store/types';
@@ -14,6 +14,8 @@ import Tooltip from '@/components/Tooltip';
 import Select from '@/components/Select/Select';
 import CostTypePicker from '@/components/CostTypePicker/CostTypePicker';
 import { useDraftStore } from '@/store/draftStore';
+import { useTranslation } from 'react-i18next';
+import { formatCurrency as formatLocaleCurrency, formatNumber } from '@/i18n/format';
 
 interface CostRowProps {
   cost: CostEntry;
@@ -25,6 +27,7 @@ interface CostRowProps {
 }
 
 export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDuplicate, onDelete }: CostRowProps) {
+  const { t } = useTranslation();
   const globalMarkup = useTripStore((s) => s.globalMarkup);
   const region = useTripStore((s) => s.region);
   const theme = useResolvedTheme();
@@ -308,7 +311,7 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
           className={`drag-h${isDragging ? ' dragging' : ''}`}
           {...attributes}
           {...listeners}
-          aria-label={`Reorder ${cost.name}`}
+          aria-label={t('reorderCost', { name: cost.name })}
         >
           <GripVertical size={15} />
         </span>
@@ -319,7 +322,7 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
           type="checkbox"
           checked={isSelected}
           onChange={onToggleSelect}
-          aria-label={`Select ${cost.name}`}
+          aria-label={t('selectCost', { name: cost.name })}
         />
       </td>
       <td>
@@ -330,7 +333,7 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
             className="inline-edit-input"
             type="text"
             value={editName}
-            aria-label={`Cost name for ${cost.name}`}
+            aria-label={t('costNameFor', { name: cost.name })}
             onChange={(e) => setEditName(e.target.value)}
             onBlur={handleNameSave}
             onKeyDown={handleNameKeyDown}
@@ -341,11 +344,11 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
             <button
               type="button"
               className="cost-name cell-edit-trigger"
-              aria-label={`Edit name for ${cost.name}`}
+              aria-label={t('editCostName', { name: cost.name })}
               onClick={handleNameEdit}
               tabIndex={editingField === 'name' ? -1 : undefined}
             >
-              {cost.name}
+              <bdi dir="auto">{cost.name}</bdi>
             </button>
           </Tooltip>
         </div>
@@ -354,7 +357,7 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
       <td>
         <Select
           className="cur-select"
-          aria-label={`Currency for ${cost.name}`}
+          aria-label={t('currencyForCost', { name: cost.name })}
           value={cost.currency}
           options={getAvailableCurrencies(region)}
           onChange={(value) => editCost(cost.id, { currency: value })}
@@ -376,7 +379,7 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
             step="0.01"
             min="0"
             value={editAmount}
-            aria-label={`Amount for ${cost.name}`}
+            aria-label={t('amountForCost', { name: cost.name })}
             onChange={(e) => setEditAmount(e.target.value)}
             onKeyDown={handleAmountKeyDown}
           />
@@ -385,34 +388,34 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
           <button
             type="button"
             className="amt cell-edit-trigger"
-            aria-label={`Edit amount for ${cost.name}`}
+            aria-label={t('editCostAmount', { name: cost.name })}
             onClick={handleAmountEdit}
             tabIndex={editingField === 'amount' ? -1 : undefined}
           >
-            {cost.value.toFixed(2)}
+            {formatNumber(cost.value, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </button>
         </div>
         </div>
       </td>
       <td>
         <div className="markup-inline">
-          <Tooltip content="Decrease markup">
+          <Tooltip content={t('decreaseMarkup')}>
             <button
               className="arrow-btn left"
               onClick={() => handleMarkupArrow('left')}
-              aria-label="Decrease markup"
+              aria-label={t('decreaseMarkup')}
             >
               <ChevronLeft size={12} />
             </button>
           </Tooltip>
-          <Tooltip content={`${isCustomMarkup ? 'Custom' : 'Global'} markup: ${effectiveMarkup}%`}>
+          <Tooltip content={t('markupValue', { kind: isCustomMarkup ? t('customMarkup') : t('globalMarkupLabel'), value: formatNumber(effectiveMarkup, { maximumFractionDigits: 2 }) })}>
             <input
               className="markup-input mono"
               type="number"
               step="1"
               min="0"
               value={effectiveMarkup}
-              aria-label={`${isCustomMarkup ? 'Custom' : 'Global'} markup: ${effectiveMarkup}%`}
+              aria-label={t('markupValue', { kind: isCustomMarkup ? t('customMarkup') : t('globalMarkupLabel'), value: formatNumber(effectiveMarkup, { maximumFractionDigits: 2 }) })}
               onChange={(e) => {
                 const val = parseFloat(e.target.value);
                 if (!isNaN(val)) handleMarkupChange(val);
@@ -427,21 +430,21 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
               }}
             />
           </Tooltip>
-          <Tooltip content="Increase markup">
+          <Tooltip content={t('increaseMarkup')}>
             <button
               className="arrow-btn right"
               onClick={() => handleMarkupArrow('right')}
-              aria-label="Increase markup"
+              aria-label={t('increaseMarkup')}
             >
               <ChevronRight size={12} />
             </button>
           </Tooltip>
-          <Tooltip content="Reset to global markup">
+          <Tooltip content={t('resetGlobalMarkup')}>
             <button
               className="reset-markup-btn"
               type="button"
               onClick={() => handleMarkupChange(globalMarkup)}
-              aria-label={`Reset markup for ${cost.name} to global markup`}
+              aria-label={t('resetMarkupFor', { name: cost.name })}
             >
               r
             </button>
@@ -451,10 +454,10 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
       <td>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           {!validation.isValid && (
-            <Tooltip content={validation.errorMessage ?? 'Invalid cost'}>
+            <Tooltip content={validation.errorMessage === 'Solo cost must have 1 person assigned' ? t('soloCostNeedsGroup') : validation.errorMessage === 'Subset cost must have ≥1 person assigned' ? t('subsetCostNeedsGroup') : t('invalidCost')}>
               <span
                 role="img"
-                aria-label="Invalid cost"
+                aria-label={t('invalidCost')}
                 tabIndex={0}
                 style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}
               >
@@ -463,14 +466,14 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
             </Tooltip>
           )}
           <div className="split-popover-container" ref={splitPopoverRef}>
-            <Tooltip content="Change split type">
+            <Tooltip content={t('changeSplitType')}>
               <button
                 ref={splitBtnRef}
                 className={`split split-${cost.splitType}`}
                 type="button"
                 aria-expanded={splitPopoverOpen}
                 aria-controls={splitOptionsId}
-                aria-label={`Change split type for ${cost.name}; current split: ${cost.splitType}`}
+                aria-label={t('splitTypeForCost', { name: cost.name, splitType: t(cost.splitType) })}
                 onClick={() => {
                   if (!splitPopoverOpen && splitBtnRef.current) {
                     const rect = splitBtnRef.current.getBoundingClientRect();
@@ -479,9 +482,9 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
                   setSplitPopoverOpen(!splitPopoverOpen);
                 }}
               >
-                {cost.splitType === 'shared' && '◆ Shared'}
-                {cost.splitType === 'subset' && '◑ Subset'}
-                {cost.splitType === 'individual' && '◉ Solo'}
+                {cost.splitType === 'shared' && `◆ ${t('shared')}`}
+                {cost.splitType === 'subset' && `◑ ${t('subset')}`}
+                {cost.splitType === 'individual' && `◉ ${t('solo')}`}
               </button>
             </Tooltip>
           </div>
@@ -491,7 +494,7 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
               id={splitOptionsId}
               className="popover split-popover"
               role="group"
-              aria-label={`Split type for ${cost.name}`}
+              aria-label={t('splitTypeForCost', { name: cost.name, splitType: t(cost.splitType) })}
               hidden={!splitPopoverOpen || !splitPopoverPos}
               style={{
                 position: 'fixed',
@@ -506,7 +509,7 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
                 aria-pressed={cost.splitType === 'shared'}
                 onClick={() => handleSplitChange('shared')}
               >
-                ◆ Shared
+                ◆ {t('shared')}
               </button>
               <button
                 type="button"
@@ -514,7 +517,7 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
                 aria-pressed={cost.splitType === 'subset'}
                 onClick={() => handleSplitChange('subset')}
               >
-                ◑ Subset
+                ◑ {t('subset')}
               </button>
               <button
                 type="button"
@@ -522,7 +525,7 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
                 aria-pressed={cost.splitType === 'individual'}
                 onClick={() => handleSplitChange('individual')}
               >
-                ◉ Solo
+                ◉ {t('solo')}
               </button>
             </div>,
             document.body
@@ -532,16 +535,16 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
       <td>
         <div className="couple-popover-container" ref={couplePopoverRef}>
           {cost.splitType === 'shared' ? (
-            <span className="who-label">All</span>
+            <span className="who-label">{t('allGroups')}</span>
           ) : (
             <Tooltip content={assignedGroupNames
-              ? `Currently assigned to: ${assignedGroupNames}`
-              : 'Choose which groups share this cost'}>
+              ? t('currentlyAssignedTo', { groups: assignedGroupNames })
+              : t('chooseGroupsSharingCost')}>
               <button
                 type="button"
                 className="who-select"
                 onClick={handleWhoDotsClick}
-                aria-label={`Change assigned groups for ${cost.name}`}
+                aria-label={t('changeGroups', { name: cost.name })}
                 aria-haspopup="dialog"
               >
                 <span className="who-dots" aria-hidden="true">
@@ -563,27 +566,27 @@ export default function CostRow({ cost, isSelected, onToggleSelect, onEdit, onDu
           value={cost.type ?? null}
           onChange={(type) => editCost(cost.id, { type })}
           optionsId={`cost-${cost.id}-type-options`}
-          label={`Change type for ${cost.name}${typeEntry ? `; current type: ${typeEntry.type_name}` : '; no type selected'}`}
-          groupLabel={`Cost type for ${cost.name}`}
+          label={t('changeCostType', { name: cost.name })}
+          groupLabel={t('costTypeFor', { name: cost.name })}
         />
       </td>
       <td>
-        <span className="total-num">{formatCurrency(totalWithMarkup, cost.currency)}</span>
+        <span className="total-num">{formatLocaleCurrency(totalWithMarkup, cost.currency)}</span>
       </td>
       <td>
         <div className="row-acts">
-          <Tooltip content="Edit this cost">
-            <button type="button" className="ibtn" onClick={onEdit} aria-label={`Edit ${cost.name}`}>
+          <Tooltip content={t('editCost')}>
+            <button type="button" className="ibtn" onClick={onEdit} aria-label={t('editNamedCost', { name: cost.name })}>
               <Pencil size={13} aria-hidden="true" />
             </button>
           </Tooltip>
-          <Tooltip content="Duplicate this cost">
-            <button type="button" className="ibtn" onClick={onDuplicate} aria-label={`Duplicate ${cost.name}`}>
+          <Tooltip content={t('duplicateCost')}>
+            <button type="button" className="ibtn" onClick={onDuplicate} aria-label={t('duplicateNamedCost', { name: cost.name })}>
               <Copy size={13} aria-hidden="true" />
             </button>
           </Tooltip>
-          <Tooltip content="Delete this cost">
-            <button type="button" className="ibtn del" onClick={onDelete} aria-label={`Delete ${cost.name}`}>
+          <Tooltip content={t('deleteCost')}>
+            <button type="button" className="ibtn del" onClick={onDelete} aria-label={t('deleteNamedCost', { name: cost.name })}>
               <Trash2 size={13} aria-hidden="true" />
             </button>
           </Tooltip>

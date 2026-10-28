@@ -73,6 +73,21 @@ describe('SaveDataPanel', () => {
     vi.mocked(importWorkbook).mockResolvedValue({ snapshot: importedSnapshot, warnings: [] });
   });
 
+  it('closes only the nested settings dialog on Escape', () => {
+    const onClose = vi.fn();
+    render(<SaveDataPanel open onClose={onClose} />);
+    const settingsButton = screen.getByRole('button', { name: 'Import / Export Settings' });
+    settingsButton.focus();
+    fireEvent.click(settingsButton);
+    expect(screen.getByRole('dialog', { name: 'Import / Export Settings' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Close settings' })).toHaveFocus();
+    fireEvent.keyDown(document.activeElement ?? document.body, { key: 'Escape' });
+    expect(screen.queryByRole('dialog', { name: 'Import / Export Settings' })).not.toBeInTheDocument();
+    expect(screen.getByRole('dialog', { name: 'Save Data Slots' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Import / Export Settings' })).toHaveFocus();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
   it('calls the completion callback once after saving to an empty slot without a duplicate toast', () => {
     const onSaveComplete = vi.fn(() => {
       useToastStore.getState().pushToast({

@@ -26,6 +26,9 @@ import { FORECAST_GEOCODE_MIN_QUERY_LENGTH, useClimateData, useGeocode } from '.
 import { useForecastStore } from '../../store/forecastStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { climateDisplay } from './climateUnits';
+import { formatDate, formatNumber } from '@/i18n/format';
+import { useTranslation } from 'react-i18next';
+import type { TranslationKey } from '@/i18n';
 
 const FORECAST_GEOCODE_DEBOUNCE_MS = 500;
 
@@ -52,21 +55,22 @@ function formatMonthDay(monthDay: string): string {
   }
 
   const date = new Date(Date.UTC(2001, month - 1, day));
-  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(date);
+  return formatDate(date, { month: 'short', day: 'numeric', timeZone: 'UTC' });
 }
 
 function formatPopulation(population: number): string {
-  if (population >= 1_000_000_000) {
-    return `Pop. ${(population / 1_000_000_000).toFixed(1)}B`;
-  }
-  if (population >= 1_000_000) {
-    return `Pop. ${(population / 1_000_000).toFixed(1)}M`;
-  }
-  if (population >= 1_000) {
-    return `Pop. ${(population / 1_000).toFixed(1)}K`;
-  }
-  return `Pop. ${population}`;
+  return formatNumber(population);
 }
+
+function formatClimateValue(value: number): string {
+  return formatNumber(value, { maximumFractionDigits: 1 });
+}
+
+const metricKeys: Record<string, TranslationKey> = {
+  Snowfall: 'forecastSnowfall', Precipitation: 'forecastPrecipitation', 'Avg Mean Temp': 'forecastAvgMeanTemp',
+  Rainfall: 'forecastRainfall', 'Total Precipitation': 'forecastTotalPrecipitation', 'Max Wind Speed': 'forecastMaxWindSpeed',
+  Sunshine: 'forecastSunshine', Daylight: 'forecastDaylight', 'Max Wind': 'forecastMaxWind',
+};
 
 function renderEventDateRange(event: ForecastEvent): string {
   const start = formatMonthDay(event.startDate);
@@ -115,6 +119,7 @@ function getDailyDetailMetrics(day: DailyClimate): DailyMetric[] {
 }
 
 function ForecastAttribution() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -136,9 +141,9 @@ function ForecastAttribution() {
         className="forecast-badge-btn"
         onClick={() => setOpen(!open)}
         aria-expanded={open}
-        aria-label="Weather data source information"
+        aria-label={t('forecastWeatherSourceInfo')}
       >
-        Weather data from{' '}
+        {t('forecastWeatherDataFrom')}{' '}
         <a
           href="https://open-meteo.com"
           target="_blank"
@@ -152,7 +157,7 @@ function ForecastAttribution() {
       </button>
       {open && (
         <div className="forecast-popover" role="tooltip">
-          Climate averages are sourced from Open-Meteo's Climate API, based on historical weather model data spanning multiple decades.
+          {t('forecastClimateAverages')}
         </div>
       )}
     </div>
@@ -160,6 +165,7 @@ function ForecastAttribution() {
 }
 
 function ForecastEventDisclaimer() {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -181,13 +187,13 @@ function ForecastEventDisclaimer() {
         className="forecast-badge-btn"
         onClick={() => setOpen(!open)}
         aria-expanded={open}
-        aria-label="Event data source information"
+        aria-label={t('forecastEventSourceInfo')}
       >
         <Info size={14} strokeWidth={2} />
       </button>
       {open && (
         <div className="forecast-popover" role="tooltip">
-          This is a personal data source. All event dates are estimates and may not reflect exact scheduling.
+          {t('forecastEventDisclaimer')}
         </div>
       )}
     </div>
@@ -195,20 +201,21 @@ function ForecastEventDisclaimer() {
 }
 
 function DailyBreakdownToggle() {
+  const { t } = useTranslation();
   const { dailyBreakdownView, setDailyBreakdownView } = useForecastStore();
 
   return (
-    <div className="forecast-view-toggle" role="radiogroup" aria-label="Daily breakdown view mode">
+    <div className="forecast-view-toggle" role="radiogroup" aria-label={t('forecastBreakdownView')}>
       <button
         type="button"
         className={`forecast-view-toggle-btn${dailyBreakdownView === 'table' ? ' is-active' : ''}`}
         onClick={() => setDailyBreakdownView('table')}
         role="radio"
         aria-checked={dailyBreakdownView === 'table'}
-        aria-label="Table view"
+        aria-label={t('forecastTableView')}
       >
         <Table2 size={14} strokeWidth={2} />
-        <span className="forecast-view-toggle-label">Table</span>
+        <span className="forecast-view-toggle-label">{t('forecastTable')}</span>
       </button>
       <button
         type="button"
@@ -216,16 +223,17 @@ function DailyBreakdownToggle() {
         onClick={() => setDailyBreakdownView('single-day')}
         role="radio"
         aria-checked={dailyBreakdownView === 'single-day'}
-        aria-label="Day view"
+        aria-label={t('forecastDayView')}
       >
         <PanelTop size={14} strokeWidth={2} />
-        <span className="forecast-view-toggle-label">Day View</span>
+        <span className="forecast-view-toggle-label">{t('forecastDayView')}</span>
       </button>
     </div>
   );
 }
 
 function DailyTableView({ days }: { days: DailyClimate[] }) {
+  const { t } = useTranslation();
   const imperial = useSettingsStore((s) => s.measurementSystem === 'imperial');
   const [expandedDate, setExpandedDate] = useState<string | null>(null);
 
@@ -234,14 +242,14 @@ function DailyTableView({ days }: { days: DailyClimate[] }) {
   };
 
   return (
-    <div className="forecast-table" role="table" aria-label="Daily climate breakdown">
+    <div className="forecast-table" role="table" aria-label={t('forecastDailyBreakdown')}>
       <div className="forecast-table-header" role="row">
-        <span role="columnheader">Date</span>
-        <span role="columnheader">High / Low</span>
-        <span role="columnheader" className="forecast-table-col-hide">Precip.</span>
-        <span role="columnheader" className="forecast-table-col-hide-sm">Sunshine</span>
-        <span role="columnheader" className="forecast-table-col-hide-sm">Daylight</span>
-        <span role="columnheader" className="forecast-table-col-expand"><span className="sr-only">Expand</span></span>
+        <span role="columnheader">{t('forecastDate')}</span>
+        <span role="columnheader">{t('forecastHighLow')}</span>
+        <span role="columnheader" className="forecast-table-col-hide">{t('forecastPrecipShort')}</span>
+        <span role="columnheader" className="forecast-table-col-hide-sm">{t('forecastSunshine')}</span>
+        <span role="columnheader" className="forecast-table-col-hide-sm">{t('forecastDaylight')}</span>
+        <span role="columnheader" className="forecast-table-col-expand"><span className="sr-only">{t('forecastExpand')}</span></span>
       </div>
       {days.map((day) => {
         const isExpanded = expandedDate === day.date;
@@ -260,16 +268,16 @@ function DailyTableView({ days }: { days: DailyClimate[] }) {
                 {formatMonthDay(day.date)}
               </span>
               <span className="forecast-table-cell" role="cell">
-                {climateDisplay(day.tempMaxC, '°C', imperial).value} / {climateDisplay(day.tempMinC, '°C', imperial).value} <span className="forecast-table-unit">{imperial ? '°F' : '°C'}</span>
+                {formatClimateValue(climateDisplay(day.tempMaxC, '°C', imperial).value)} / {formatClimateValue(climateDisplay(day.tempMinC, '°C', imperial).value)} <span className="forecast-table-unit">{imperial ? '°F' : '°C'}</span>
               </span>
               <span className="forecast-table-cell forecast-table-col-hide" role="cell">
-                {climateDisplay(precipMetric.value, precipMetric.unit, imperial).value} <span className="forecast-table-unit">{climateDisplay(precipMetric.value, precipMetric.unit, imperial).unit}</span>
+                {formatClimateValue(climateDisplay(precipMetric.value, precipMetric.unit, imperial).value)} <span className="forecast-table-unit">{climateDisplay(precipMetric.value, precipMetric.unit, imperial).unit}</span>
               </span>
               <span className="forecast-table-cell forecast-table-col-hide-sm" role="cell">
-                {day.sunshineDurationHrs} <span className="forecast-table-unit">hrs</span>
+                {formatClimateValue(day.sunshineDurationHrs)} <span className="forecast-table-unit">h</span>
               </span>
               <span className="forecast-table-cell forecast-table-col-hide-sm" role="cell">
-                {day.daylightDurationHrs} <span className="forecast-table-unit">hrs</span>
+                {formatClimateValue(day.daylightDurationHrs)} <span className="forecast-table-unit">h</span>
               </span>
               <span className="forecast-table-cell forecast-table-col-expand" role="cell">
                 <ChevronDown size={16} strokeWidth={2} className={`forecast-table-chevron${isExpanded ? ' is-rotated' : ''}`} />
@@ -282,9 +290,9 @@ function DailyTableView({ days }: { days: DailyClimate[] }) {
                     <div className="forecast-summary-metric-image" aria-hidden="true">
                       <metric.Icon size={18} strokeWidth={2} />
                     </div>
-                    <p className="forecast-summary-metric-label">{metric.label}</p>
+                    <p className="forecast-summary-metric-label">{metricKeys[metric.label] ? t(metricKeys[metric.label]!) : metric.label}</p>
                     <p className="forecast-summary-metric-value">
-                      {climateDisplay(metric.value, metric.unit, imperial).value}
+                      {formatClimateValue(climateDisplay(metric.value, metric.unit, imperial).value)}
                       <span>{climateDisplay(metric.value, metric.unit, imperial).unit}</span>
                     </p>
                   </article>
@@ -299,6 +307,7 @@ function DailyTableView({ days }: { days: DailyClimate[] }) {
 }
 
 function DailySingleDayView({ days }: { days: DailyClimate[] }) {
+  const { t } = useTranslation();
   const imperial = useSettingsStore((s) => s.measurementSystem === 'imperial');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const stripRef = useRef<HTMLDivElement>(null);
@@ -329,11 +338,11 @@ function DailySingleDayView({ days }: { days: DailyClimate[] }) {
           className="forecast-day-strip-arrow"
           onClick={goToPrev}
           disabled={selectedIndex === 0}
-          aria-label="Previous day"
+          aria-label={t('forecastPreviousDay')}
         >
           <ChevronLeft size={18} strokeWidth={2} />
         </button>
-        <div className="forecast-day-strip" ref={stripRef} role="tablist" aria-label="Select forecast day">
+        <div className="forecast-day-strip" ref={stripRef} role="tablist" aria-label={t('forecastSelectDay')}>
           {days.map((day, index) => (
             <button
               key={day.date}
@@ -352,13 +361,13 @@ function DailySingleDayView({ days }: { days: DailyClimate[] }) {
           className="forecast-day-strip-arrow"
           onClick={goToNext}
           disabled={selectedIndex === days.length - 1}
-          aria-label="Next day"
+          aria-label={t('forecastNextDay')}
         >
           <ChevronRight size={18} strokeWidth={2} />
         </button>
       </div>
 
-      <div className="forecast-single-day-panel" role="tabpanel" aria-label={`Forecast for ${formatMonthDay(selectedDay.date)}`}>
+      <div className="forecast-single-day-panel" role="tabpanel" aria-label={t('forecastForDate', { date: formatMonthDay(selectedDay.date) })}>
         <h3 className="forecast-single-day-title">{formatMonthDay(selectedDay.date)}</h3>
 
         <div className="forecast-single-day-primary">
@@ -366,36 +375,36 @@ function DailySingleDayView({ days }: { days: DailyClimate[] }) {
             <div className="forecast-summary-metric-image" aria-hidden="true">
               <Thermometer size={18} strokeWidth={2} />
             </div>
-            <p className="forecast-summary-metric-label">High / Low</p>
+            <p className="forecast-summary-metric-label">{t('forecastHighLow')}</p>
             <p className="forecast-summary-metric-value">
-              {climateDisplay(selectedDay.tempMaxC, '°C', imperial).value} / {climateDisplay(selectedDay.tempMinC, '°C', imperial).value}<span>{imperial ? '°F' : '°C'}</span>
+              {formatClimateValue(climateDisplay(selectedDay.tempMaxC, '°C', imperial).value)} / {formatClimateValue(climateDisplay(selectedDay.tempMinC, '°C', imperial).value)}<span>{imperial ? '°F' : '°C'}</span>
             </p>
           </article>
           <article className="forecast-summary-metric">
             <div className="forecast-summary-metric-image" aria-hidden="true">
               <precipMetric.Icon size={18} strokeWidth={2} />
             </div>
-            <p className="forecast-summary-metric-label">{precipMetric.label}</p>
+            <p className="forecast-summary-metric-label">{metricKeys[precipMetric.label] ? t(metricKeys[precipMetric.label]!) : precipMetric.label}</p>
             <p className="forecast-summary-metric-value">
-              {climateDisplay(precipMetric.value, precipMetric.unit, imperial).value}<span>{climateDisplay(precipMetric.value, precipMetric.unit, imperial).unit}</span>
+              {formatClimateValue(climateDisplay(precipMetric.value, precipMetric.unit, imperial).value)}<span>{climateDisplay(precipMetric.value, precipMetric.unit, imperial).unit}</span>
             </p>
           </article>
           <article className="forecast-summary-metric">
             <div className="forecast-summary-metric-image" aria-hidden="true">
               <CloudSun size={18} strokeWidth={2} />
             </div>
-            <p className="forecast-summary-metric-label">Sunshine</p>
+            <p className="forecast-summary-metric-label">{t('forecastSunshine')}</p>
             <p className="forecast-summary-metric-value">
-              {selectedDay.sunshineDurationHrs}<span>hrs</span>
+              {formatClimateValue(selectedDay.sunshineDurationHrs)}<span>{t('forecastHoursShort')}</span>
             </p>
           </article>
           <article className="forecast-summary-metric">
             <div className="forecast-summary-metric-image" aria-hidden="true">
               <Sunrise size={18} strokeWidth={2} />
             </div>
-            <p className="forecast-summary-metric-label">Daylight</p>
+            <p className="forecast-summary-metric-label">{t('forecastDaylight')}</p>
             <p className="forecast-summary-metric-value">
-              {selectedDay.daylightDurationHrs}<span>hrs</span>
+              {formatClimateValue(selectedDay.daylightDurationHrs)}<span>{t('forecastHoursShort')}</span>
             </p>
           </article>
         </div>
@@ -406,9 +415,9 @@ function DailySingleDayView({ days }: { days: DailyClimate[] }) {
               <div className="forecast-summary-metric-image" aria-hidden="true">
                 <metric.Icon size={18} strokeWidth={2} />
               </div>
-              <p className="forecast-summary-metric-label">{metric.label}</p>
+              <p className="forecast-summary-metric-label">{metricKeys[metric.label] ? t(metricKeys[metric.label]!) : metric.label}</p>
               <p className="forecast-summary-metric-value">
-                {climateDisplay(metric.value, metric.unit, imperial).value}<span>{climateDisplay(metric.value, metric.unit, imperial).unit}</span>
+                {formatClimateValue(climateDisplay(metric.value, metric.unit, imperial).value)}<span>{climateDisplay(metric.value, metric.unit, imperial).unit}</span>
               </p>
             </article>
           ))}
@@ -419,6 +428,7 @@ function DailySingleDayView({ days }: { days: DailyClimate[] }) {
 }
 
 export default function ForecastTool() {
+  const { t } = useTranslation();
   const clockFormat = useSettingsStore((s) => s.clockFormat);
   const imperial = useSettingsStore((s) => s.measurementSystem === 'imperial');
   const suggestionListId = 'forecast-suggestion-list';
@@ -609,19 +619,19 @@ export default function ForecastTool() {
   };
 
   return (
-    <main className="tool-page" data-page-entrance aria-label="Destination forecast">
-      <h1>Destination Forecast</h1>
+    <main className="tool-page" data-page-entrance aria-label={t('toolForecast')}>
+      <h1>{t('toolForecast')}</h1>
 
       <div className="card forecast-search-card">
         <div className="card-header">
-          <p className="card-title">Location Search &amp; Date Range</p>
+          <p className="card-title">{t('forecastSearchDateRange')}</p>
           <ForecastAttribution />
         </div>
         <div className="card-body tool-controls">
           <div className="forecast-location-grid">
             <div className="forecast-search-wrap">
               <label className="tool-field">
-                <span className="tool-label">Destination</span>
+                <span className="tool-label">{t('forecastDestination')}</span>
                 <div className="forecast-search-input-wrap">
                   <input
                     ref={searchInputRef}
@@ -634,20 +644,20 @@ export default function ForecastTool() {
                     onBlur={() => {
                       globalThis.setTimeout(() => setShowSuggestions(false), 100);
                     }}
-                    placeholder="Search city name"
+                    placeholder={t('forecastSearchCity')}
                     role="combobox"
                     aria-expanded={showSuggestions && geocodeSuggestions.length > 0}
                     aria-haspopup="listbox"
                     aria-autocomplete="list"
                     aria-controls={suggestionListId}
                     aria-activedescendant={activeIndex >= 0 ? `forecast-option-${activeIndex}` : undefined}
-                    aria-label="Search destination"
+                    aria-label={t('forecastSearchDestination')}
                   />
                   {searchInput.length > 0 ? (
                     <button
                       type="button"
                       className="forecast-search-clear"
-                      aria-label="Clear search"
+                      aria-label={t('forecastClearSearch')}
                       onMouseDown={(event) => event.preventDefault()}
                       onClick={handleClearSearch}
                     >
@@ -676,7 +686,7 @@ export default function ForecastTool() {
             </div>
 
             <label className="tool-field">
-              <span className="tool-label">From</span>
+              <span className="tool-label">{t('forecastDateFrom')}</span>
               <input
                 className="tool-input"
                 type="date"
@@ -687,7 +697,7 @@ export default function ForecastTool() {
             </label>
 
             <label className="tool-field">
-              <span className="tool-label">To</span>
+              <span className="tool-label">{t('forecastDateTo')}</span>
               <input
                 className="tool-input"
                 type="date"
@@ -698,13 +708,13 @@ export default function ForecastTool() {
             </label>
           </div>
           {!selectedLocation && searchInput.trim().length >= FORECAST_GEOCODE_MIN_QUERY_LENGTH && (!currentGeocodeQuery || (!geocodeQuery.isError && (geocodeQuery.isFetching || geocodeQuery.isPending || geocodeQuery.isPlaceholderData))) ? (
-            <p className="tool-status">Searching destinations...</p>
+            <p className="tool-status">{t('forecastSearchingDestinations')}</p>
           ) : null}
           {!selectedLocation && searchInput.trim().length >= FORECAST_GEOCODE_MIN_QUERY_LENGTH && geocodeReady && geocodeSuggestions.length === 0 ? (
-            <p className="tool-status">No matching destinations found.</p>
+            <p className="tool-status">{t('forecastNoMatchingDestinations')}</p>
           ) : null}
           {!selectedLocation && searchInput.trim().length >= FORECAST_GEOCODE_MIN_QUERY_LENGTH && currentGeocodeQuery && geocodeQuery.isError ? (
-            <p className="tool-status tool-status-error">Unable to resolve destination right now.</p>
+            <p className="tool-status tool-status-error">{t('forecastResolveDestinationError')}</p>
           ) : null}
         </div>
       </div>
@@ -712,24 +722,24 @@ export default function ForecastTool() {
       {selectedLocation ? (
         <div className="card">
           <div className="card-header">
-            <p className="card-title">Destination Summary</p>
+            <p className="card-title">{t('forecastDestinationSummary')}</p>
           </div>
           <div className="card-body tool-results">
-            <div className="forecast-destination-summary" aria-label="Destination summary details">
+            <div className="forecast-destination-summary" aria-label={t('forecastDestinationSummaryDetails')}>
               <div className="forecast-destination-summary-item">
-                <span className="forecast-destination-summary-label">Local time</span>
+                <span className="forecast-destination-summary-label">{t('forecastLocalTime')}</span>
                 <span className="forecast-destination-summary-value"><Clock3 size={16} aria-hidden="true" /> {localTime}</span>
               </div>
               <div className="forecast-destination-summary-item">
-                <span className="forecast-destination-summary-label">Time zone</span>
+                <span className="forecast-destination-summary-label">{t('forecastTimeZone')}</span>
                 <span className="forecast-destination-summary-value">
-                  <MapPin size={16} aria-hidden="true" /> {selectedLocation.timezone} ({selectedLocation.countryCode})
+                  <MapPin size={16} aria-hidden="true" /> <bdi dir="ltr">{selectedLocation.timezone} ({selectedLocation.countryCode})</bdi>
                 </span>
               </div>
               <div className="forecast-destination-summary-item">
-                <span className="forecast-destination-summary-label">Population</span>
+                <span className="forecast-destination-summary-label">{t('forecastPopulation')}</span>
                 <span className="forecast-destination-summary-value">
-                  <UsersRound size={16} aria-hidden="true" /> {selectedLocation.population.toLocaleString('en-US')}
+                  <UsersRound size={16} aria-hidden="true" /> {formatNumber(selectedLocation.population)}
                 </span>
               </div>
             </div>
@@ -737,15 +747,15 @@ export default function ForecastTool() {
         </div>
       ) : null}
 
-      {!selectedLocation ? <p className="tool-status">Select a destination to load climate data.</p> : null}
-      {selectedLocation && (climateQuery.isPending || (climateQuery.isFetching && !currentClimateData)) ? <p className="tool-status">Loading climate data...</p> : null}
+      {!selectedLocation ? <p className="tool-status">{t('forecastSelectDestination')}</p> : null}
+      {selectedLocation && (climateQuery.isPending || (climateQuery.isFetching && !currentClimateData)) ? <p className="tool-status">{t('forecastLoadingClimate')}</p> : null}
 
       {selectedLocation && climateQuery.isError ? (
         <div className="card">
           <div className="card-body tool-controls">
-            <p className="tool-status tool-status-error">Unable to load climate data right now.</p>
+            <p className="tool-status tool-status-error">{t('forecastLoadClimateError')}</p>
             <button type="button" className="tool-button" onClick={() => climateQuery.refetch()}>
-              Retry
+              {t('retry')}
             </button>
           </div>
         </div>
@@ -754,12 +764,12 @@ export default function ForecastTool() {
       {selectedLocation && matchedEvents.length > 0 ? (
         <div className="card">
           <div className="card-header card-header-inline-mobile">
-            <p className="card-title">Events During Your Dates</p>
+            <p className="card-title">{t('forecastEventsDuringDates')}</p>
             <ForecastEventDisclaimer />
           </div>
           <div className="card-body tool-results">
             {matchedEvents.map((event) => (
-              <article key={event.id} className="forecast-event-card">
+              <article key={event.id} className="forecast-event-card" lang="en">
                 <div className="forecast-event-title-row">
                   <h2>{event.name}</h2>
                   <span className="forecast-event-type">{event.type}</span>
@@ -776,7 +786,7 @@ export default function ForecastTool() {
         <>
           <div className="card">
             <div className="card-header">
-              <p className="card-title">Climate Summary</p>
+              <p className="card-title">{t('forecastClimateSummary')}</p>
             </div>
             <div className="card-body tool-results">
               <div className="forecast-summary-hero-layout">
@@ -784,24 +794,29 @@ export default function ForecastTool() {
                   <div className="forecast-summary-metric-image forecast-hero-card-icon" aria-hidden="true">
                     <Thermometer size={28} strokeWidth={2} />
                   </div>
-                  <p className="forecast-summary-metric-label">Avg Mean Temp</p>
+                  <p className="forecast-summary-metric-label">{t('forecastAvgMeanTemp')}</p>
                   <p className="forecast-hero-card-value">
-                    {climateDisplay(currentClimateData.avgMeanC, '°C', imperial).value}<span>{imperial ? '°F' : '°C'}</span>
+                    {formatClimateValue(climateDisplay(currentClimateData.avgMeanC, '°C', imperial).value)}<span>{imperial ? '°F' : '°C'}</span>
                   </p>
                   <p className="forecast-hero-card-sublabel">
-                    High {climateDisplay(currentClimateData.avgHighC, '°C', imperial).value}° · Low {climateDisplay(currentClimateData.avgLowC, '°C', imperial).value}°
+                    {t('forecastHighLowValues', { high: formatClimateValue(climateDisplay(currentClimateData.avgHighC, '°C', imperial).value), low: formatClimateValue(climateDisplay(currentClimateData.avgLowC, '°C', imperial).value) })}
                   </p>
                 </article>
-                <div className="forecast-support-grid" role="list" aria-label="Climate summary stats">
+                <div className="forecast-support-grid" role="list" aria-label={t('forecastClimateSummaryStats')}>
                   {supportMetrics.map((metric) => (
                     <article key={metric.label} className="forecast-summary-metric" role="listitem">
                       <div className="forecast-summary-metric-image" aria-hidden="true">
                         <metric.Icon size={18} strokeWidth={2} />
                       </div>
-                      <p className="forecast-summary-metric-label">{metric.label}</p>
+                      <p className="forecast-summary-metric-label">{metricKeys[metric.label] ? t(metricKeys[metric.label]!) : metric.label}</p>
                       <p className="forecast-summary-metric-value">
-                        {climateDisplay(metric.value, metric.unit, imperial).value}
-                        <span>{climateDisplay(metric.value, metric.unit, imperial).unit}</span>
+                        {formatClimateValue(climateDisplay(metric.value, metric.unit, imperial).value)}
+                        <span>{(() => {
+                          const unit = climateDisplay(metric.value, metric.unit, imperial).unit;
+                          if (!unit.endsWith('/day')) return unit;
+                          const base = unit.slice(0, -4);
+                          return t('forecastUnitPerDay', { unit: base === 'hrs' ? t('forecastHoursShort') : base });
+                        })()}</span>
                       </p>
                     </article>
                   ))}
@@ -812,7 +827,7 @@ export default function ForecastTool() {
 
           <div className="card">
             <div className="card-header card-header-inline-mobile">
-              <p className="card-title">Daily Breakdown</p>
+              <p className="card-title">{t('forecastDailyBreakdown')}</p>
               <DailyBreakdownToggle />
             </div>
             <div className="card-body tool-results">

@@ -1,13 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchClimateData, fetchGeocodingResults } from './forecastData';
 import type { GeoLocation } from './forecastTypes';
+import { useSettingsStore } from '@/store/settingsStore';
 
 export const FORECAST_GEOCODE_MIN_QUERY_LENGTH = 3;
 
 export function useGeocode(query: string) {
+  const language = useSettingsStore((s) => s.language) === 'fr-CA' ? 'fr' : 'en';
   return useQuery({
-    queryKey: ['forecast', 'geocode', query],
-    queryFn: ({ signal }) => fetchGeocodingResults(query, 5, signal),
+    queryKey: ['forecast', 'geocode', language, query],
+    queryFn: ({ signal }) => fetchGeocodingResults(query, 5, signal, language),
     enabled: query.trim().length >= FORECAST_GEOCODE_MIN_QUERY_LENGTH,
     staleTime: 1000 * 60 * 60,
     placeholderData: [],

@@ -14,6 +14,7 @@ vi.mock('@/features/forecast/useForecast', () => ({
 
 import { useGeocode, useClimateData } from '@/features/forecast/useForecast';
 import { useSettingsStore } from '@/store/settingsStore';
+import { activateLanguage } from '@/i18n';
 
 const mockLocation: GeoLocation = {
   id: 1,
@@ -156,6 +157,23 @@ describe('ForecastTool', () => {
     expect(within(climateStatsList).getAllByText('in/day').length).toBeGreaterThan(0);
     expect(within(climateStatsList).getByText('11')).toBeInTheDocument();
     expect(mockClimateSummary.avgMeanC).toBe(14.3);
+  });
+
+  it('localizes the climate summary labels and daily units in French', async () => {
+    (useGeocode as ReturnType<typeof vi.fn>).mockReturnValue(readyGeoQuery);
+    (useClimateData as ReturnType<typeof vi.fn>).mockReturnValue(readyClimateQuery);
+    render(<ForecastTool />);
+    selectFirstSuggestion();
+
+    vi.useRealTimers();
+    await act(async () => { await activateLanguage('fr-CA'); });
+    const stats = screen.getByRole('list', { name: 'Statistiques climatiques' });
+    expect(within(stats).getByText('Ensoleillement')).toBeInTheDocument();
+    expect(within(stats).getByText('Durée du jour')).toBeInTheDocument();
+    expect(within(stats).getByText('Vent maximal')).toBeInTheDocument();
+    expect(within(stats).getAllByText('h/jour')).toHaveLength(2);
+    expect(within(stats).getAllByText('mm/jour')).toHaveLength(2);
+    await act(async () => { await activateLanguage('en'); });
   });
 
   it('FE-FOR-007 events section appears when events overlap the selected date range', () => {

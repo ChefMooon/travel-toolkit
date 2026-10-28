@@ -4,6 +4,7 @@ import AnalogClock from './AnalogClock';
 import DigitalClock from './DigitalClock';
 import { getClockDisplayData } from './timezoneFormat';
 import { useSettingsStore } from '@/store/settingsStore';
+import { useTranslation } from 'react-i18next';
 
 interface ClockCardProps {
   zone: TrackedZone;
@@ -11,6 +12,7 @@ interface ClockCardProps {
 }
 
 export default function ClockCard({ zone, now }: ClockCardProps) {
+  useTranslation();
   const data = getClockDisplayData(now, zone.tz);
   const clockFormat = useSettingsStore((s) => s.clockFormat);
 

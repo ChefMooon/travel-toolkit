@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import i18n from '@/i18n';
 
 export type ToastType = 'success' | 'warning' | 'error';
 
@@ -32,22 +33,22 @@ function generateToastId(): string {
 }
 
 export function getSaveFailureCopy(error: unknown, mode: 'new' | 'edit'): Pick<ToastItem, 'type' | 'title' | 'message'> {
-  const saveTarget = mode === 'new' ? 'new cost entry' : 'cost changes';
+  const title = i18n.t(mode === 'new' ? 'couldNotSaveNewCost' : 'couldNotSaveCostChanges');
 
   if (error instanceof DOMException) {
     if (error.name === 'QuotaExceededError') {
       return {
         type: 'error',
-        title: `Could not save ${saveTarget}`,
-        message: 'Browser storage is full. Clear some trip data in this browser and try again.',
+        title,
+        message: i18n.t('browserStorageFull'),
       };
     }
 
     if (error.name === 'SecurityError') {
       return {
         type: 'error',
-        title: `Could not save ${saveTarget}`,
-        message: 'Browser storage is blocked in this context. Enable local storage and try again.',
+        title,
+        message: i18n.t('browserStorageBlocked'),
       };
     }
   }
@@ -55,15 +56,15 @@ export function getSaveFailureCopy(error: unknown, mode: 'new' | 'edit'): Pick<T
   if (error instanceof Error && /storage|persist|localStorage/i.test(error.message)) {
     return {
       type: 'error',
-      title: `Could not save ${saveTarget}`,
-      message: 'Storage failed while saving. Try refreshing and saving again.',
+      title,
+      message: i18n.t('storageFailedSaving'),
     };
   }
 
   return {
     type: 'error',
-    title: `Could not save ${saveTarget}`,
-    message: 'An unexpected error occurred while saving. Please try again.',
+    title,
+    message: i18n.t('unexpectedSaveError'),
   };
 }
 

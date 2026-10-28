@@ -1,6 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { TOOLS } from '@/lib/tools';
 import { Link } from '@tanstack/react-router';
+import { useTranslation } from 'react-i18next';
+import type { TranslationKey } from '@/i18n';
+
+const toolTitleKeys: Record<string, TranslationKey> = { 'Trip Cost': 'toolTripCost', 'Currency Converter': 'toolCurrency', 'Timezone Tracker': 'toolTimezone', 'Unit Converter': 'toolUnits', 'Destination Forecast': 'toolForecast', 'Travel Countdown': 'toolCountdown' };
 
 type GridPanelProps = {
   open: boolean;
@@ -9,6 +13,7 @@ type GridPanelProps = {
 };
 
 export default function GridPanel({ open, onClose, triggerRef }: GridPanelProps) {
+  const { t } = useTranslation();
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -81,7 +86,7 @@ export default function GridPanel({ open, onClose, triggerRef }: GridPanelProps)
         ref={panelRef}
         className="grid-panel"
         role="dialog"
-        aria-label="Tool navigation"
+        aria-label={t('toolNavigation')}
         aria-modal="true"
         tabIndex={-1}
       >
@@ -95,7 +100,7 @@ export default function GridPanel({ open, onClose, triggerRef }: GridPanelProps)
             <span className="tool-launcher-icon" aria-hidden="true">
               <tool.icon focusable="false" strokeWidth={2} />
             </span>
-            <span className="grid-panel-item-title">{tool.label}</span>
+            <span className="grid-panel-item-title">{toolTitleKeys[tool.label] ? t(toolTitleKeys[tool.label]!) : tool.label}</span>
           </Link>
         ))}
       </div>

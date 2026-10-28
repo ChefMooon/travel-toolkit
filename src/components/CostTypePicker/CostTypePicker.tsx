@@ -2,6 +2,8 @@ import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { COST_ENTRY_TYPES } from '@/store/types';
 import Tooltip from '@/components/Tooltip';
+import { useTranslation } from 'react-i18next';
+import '@/i18n';
 
 interface CostTypePickerProps {
   value: string | null;
@@ -14,6 +16,7 @@ interface CostTypePickerProps {
 }
 
 export default function CostTypePicker({ value, onChange, optionsId, groupLabel, id, label, form = false }: CostTypePickerProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<CSSProperties>({});
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -60,14 +63,14 @@ export default function CostTypePicker({ value, onChange, optionsId, groupLabel,
 
   return <>
     <div className={`type-popover-container${form ? ' type-picker-form' : ''}`}>
-      <Tooltip content={selected ? `Change type: ${selected.type_name}` : 'Change type'}>
+      <Tooltip content={selected ? t('changeCostTypeTooltip', { type: t(`costType_${selected.id}`, { defaultValue: selected.type_name }) }) : t('changeType')}>
         <button ref={triggerRef} id={id} type="button"
           className={`type-trigger-btn${selected ? '' : ' is-empty'}${form ? ' type-picker-form-trigger' : ''}`}
           style={selected ? { '--cost-type-color': selected.color } as CSSProperties : undefined}
-          aria-label={label ?? (form ? `Type: ${selected?.type_name ?? 'None'}` : undefined)} aria-expanded={open} aria-controls={optionsId}
+          aria-label={label ?? (form ? t('typeValue', { type: selected ? t(`costType_${selected.id}`, { defaultValue: selected.type_name }) : t('none') }) : undefined)} aria-expanded={open} aria-controls={optionsId}
           onBlur={(event) => { if (!menuRef.current?.contains(event.relatedTarget as Node)) setOpen(false); }}
           onClick={() => setOpen((current) => !current)}>
-          {selected ? <><span aria-hidden="true">{selected.symbol}</span><span className="type-trigger-label">{selected.type_name}</span></> : 'Set type'}
+          {selected ? <><span aria-hidden="true">{selected.symbol}</span><span className="type-trigger-label">{t(`costType_${selected.id}`, { defaultValue: selected.type_name })}</span></> : t('setType')}
         </button>
       </Tooltip>
     </div>
@@ -77,14 +80,14 @@ export default function CostTypePicker({ value, onChange, optionsId, groupLabel,
         if (!event.currentTarget.contains(event.relatedTarget as Node) && event.relatedTarget !== triggerRef.current) setOpen(false);
       }}
       style={{ ...position, display: open ? 'flex' : 'none' }}>
-      <button type="button" className={`popover-item${!value ? ' selected' : ''}`} aria-pressed={!value} onClick={() => choose(null)}>✕ None</button>
+      <button type="button" className={`popover-item${!value ? ' selected' : ''}`} aria-pressed={!value} onClick={() => choose(null)}>✕ {t('none')}</button>
       {COST_ENTRY_TYPES.map((entry) => {
         const isSelected = value === entry.id;
         return <button key={entry.id} type="button" className="popover-item" aria-pressed={isSelected}
           style={{ backgroundColor: isSelected ? entry.color + '33' : entry.color + '20', color: isSelected ? entry.color : undefined, fontWeight: isSelected ? 800 : undefined }}
           onMouseEnter={(event) => { event.currentTarget.style.backgroundColor = entry.color + '40'; }}
           onMouseLeave={(event) => { event.currentTarget.style.backgroundColor = isSelected ? entry.color + '33' : entry.color + '20'; }}
-          onClick={() => choose(entry.id)}>{entry.symbol} {entry.type_name}</button>;
+          onClick={() => choose(entry.id)}>{entry.symbol} {t(`costType_${entry.id}`, { defaultValue: entry.type_name })}</button>;
       })}
     </div>, document.body)}
   </>;

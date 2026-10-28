@@ -10,6 +10,7 @@ import {
 } from './types';
 import { useToastStore } from './toastStore';
 import { isValidDateOnly } from '@/components/DatePicker/dateUtils';
+import i18n from '@/i18n';
 
 interface SaveSlotStore {
   slots: Array<SaveSlot | null>;
@@ -210,8 +211,8 @@ export const useSaveSlotStore = create<SaveSlotStore>()(
         if (duplicateIndex >= 0) {
           useToastStore.getState().pushToast({
             type: 'warning',
-            title: 'Duplicate trip ID',
-            message: `Trip ID ${snapshot.tripId} is already saved in ${labels[duplicateIndex] ?? getDefaultSlotLabel(duplicateIndex)}.`,
+            title: i18n.t('duplicateTripIdTitle'),
+            message: i18n.t('duplicateTripIdSlotMessage', { id: snapshot.tripId, slot: labels[duplicateIndex] ?? getDefaultSlotLabel(duplicateIndex) }),
           });
           return false;
         }
@@ -256,8 +257,8 @@ export const useSaveSlotStore = create<SaveSlotStore>()(
         if (!migrated) {
           useToastStore.getState().pushToast({
             type: 'error',
-            title: 'Unsupported save format',
-            message: 'This slot uses an older format and cannot be loaded yet.',
+            title: i18n.t('unsupportedSaveTitle'),
+            message: i18n.t('unsupportedSaveMessage'),
           });
           return null;
         }

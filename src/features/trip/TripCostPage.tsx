@@ -6,8 +6,10 @@ import { calculateCountdown } from '@/features/countdown/countdown';
 import { useLocalDate } from '@/features/countdown/useLocalDate';
 import { Link } from '@tanstack/react-router';
 import { CalendarDays } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 function TripCountdownStrip() {
+  const { t } = useTranslation();
   const start = useTripStore((s) => s.tripStartDate);
   const end = useTripStore((s) => s.tripEndDate);
   const today = useLocalDate();
@@ -15,12 +17,12 @@ function TripCountdownStrip() {
   const previousSummary = useRef('');
   let summary = '';
   switch (result.kind) {
-    case 'upcoming': summary = `${result.daysUntil} ${result.daysUntil === 1 ? 'day' : 'days'} until departure`; break;
-    case 'today': summary = 'Your trip starts today'; break;
-    case 'active': summary = `${result.daysRemaining} ${result.daysRemaining === 1 ? 'day' : 'days'} remaining`; break;
-    case 'lastDay': summary = 'Last day of your trip'; break;
-    case 'ended': summary = `Trip ended ${result.daysAgo} ${result.daysAgo === 1 ? 'day' : 'days'} ago`; break;
-    case 'elapsed': summary = `Started ${result.daysAgo} ${result.daysAgo === 1 ? 'day' : 'days'} ago`; break;
+    case 'upcoming': summary = t('daysUntilDeparture', { count: result.daysUntil }); break;
+    case 'today': summary = t('tripStartsTodayShort'); break;
+    case 'active': summary = t('daysRemain', { count: result.daysRemaining }); break;
+    case 'lastDay': summary = t('lastDayOfTrip'); break;
+    case 'ended': summary = t('daysAgoTripEnded', { count: result.daysAgo }); break;
+    case 'elapsed': summary = t('daysAgoStarted', { count: result.daysAgo }); break;
     default: break;
   }
   if (summary) previousSummary.current = summary;
@@ -28,7 +30,7 @@ function TripCountdownStrip() {
     <div className="trip-countdown-transition-inner">
       <div className="trip-countdown-strip">
         <span role="status">{summary || previousSummary.current}</span>
-        <Link to="/countdown" search={{ fromTrip: true }} className="trip-countdown-link" aria-label="Open travel countdown" title="Open travel countdown" tabIndex={summary ? undefined : -1}>
+        <Link to="/countdown" search={{ fromTrip: true }} className="trip-countdown-link" aria-label={t('openCountdown')} title={t('openCountdown')} tabIndex={summary ? undefined : -1}>
           <CalendarDays size={17} aria-hidden="true" />
         </Link>
       </div>

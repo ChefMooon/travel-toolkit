@@ -23,8 +23,11 @@ import { Plus } from 'lucide-react';
 import { getAvailableCurrencies, getDefaultCurrency, type SplitType, MAX_COST_ENTRIES } from '@/store/types';
 import { getSaveFailureCopy, useToastStore } from '@/store/toastStore';
 import Select from '@/components/Select/Select';
+import { useTranslation } from 'react-i18next';
+import '@/i18n';
 
 export default function CostLedger() {
+  const { t } = useTranslation();
   const rawCosts = useTripStore((s) => s.costs);
   const costs = useMemo(() => [...rawCosts].sort((a, b) => a.sortOrder - b.sortOrder), [rawCosts]);
   const addCost = useTripStore((s) => s.addCost);
@@ -200,10 +203,10 @@ export default function CostLedger() {
       <div className="card cost-ledger-card" style={{ marginTop: 16 }}>
         <div className="card-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-            <h2 id="cost-ledger-heading" className="card-title">Cost Ledger</h2>
+            <h2 id="cost-ledger-heading" className="card-title">{t('costLedger')}</h2>
             <span aria-hidden="true" style={{ color: 'var(--text-3)', fontWeight: 700 }}>·</span>
             <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 700 }}>
-              {costs.length} {costs.length === 1 ? 'entry' : 'entries'}
+              {t('entryCount', { count: costs.length })}
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -211,7 +214,7 @@ export default function CostLedger() {
               htmlFor="default-entry-currency-select"
               style={{ fontSize: 13, color: 'var(--text-2)', fontWeight: 600 }}
             >
-              Default currency
+              {t('defaultCurrency')}
             </label>
             <Select
               id="default-entry-currency-select"
@@ -221,7 +224,7 @@ export default function CostLedger() {
               value={defaultEntryCurrency}
               options={availableBulkCurrencies}
               onChange={setDefaultEntryCurrency}
-              aria-label="Default currency"
+              aria-label={t('defaultCurrency')}
             />
           </div>
         </div>
@@ -245,17 +248,17 @@ export default function CostLedger() {
           <table className="ledger">
             <thead>
               <tr>
-                  <th scope="col" style={{ width: 26 }}><span className="sr-only">Reorder cost</span></th>
-                  <th scope="col" style={{ width: 26 }}><span className="sr-only">Select cost</span></th>
-                  <th scope="col">Name</th>
-                  <th scope="col" style={{ width: 60 }}>Cur.</th>
-                  <th scope="col" style={{ width: 92 }}>Amount</th>
-                  <th scope="col" style={{ width: 96 }}>Markup</th>
-                  <th scope="col" style={{ width: 92 }}>Split</th>
-                  <th scope="col" style={{ width: 60 }}>Who</th>
-                  <th scope="col" style={{ width: 48 }}>Type</th>
-                  <th scope="col" style={{ width: 96 }}>Total</th>
-                  <th scope="col" style={{ width: 90 }}><span className="sr-only">Actions</span></th>
+                  <th scope="col" style={{ width: 26 }}><span className="sr-only">{t('reorderCostColumn')}</span></th>
+                  <th scope="col" style={{ width: 26 }}><span className="sr-only">{t('selectCostColumn')}</span></th>
+                  <th scope="col">{t('name')}</th>
+                  <th scope="col" style={{ width: 60 }}>{t('currencyAbbreviation')}</th>
+                  <th scope="col" style={{ width: 92 }}>{t('amount')}</th>
+                  <th scope="col" style={{ width: 96 }}>{t('markup')}</th>
+                  <th scope="col" style={{ width: 92 }}>{t('split')}</th>
+                  <th scope="col" style={{ width: 60 }}>{t('who')}</th>
+                  <th scope="col" style={{ width: 48 }}>{t('type')}</th>
+                  <th scope="col" style={{ width: 96 }}>{t('total')}</th>
+                  <th scope="col" style={{ width: 90 }}><span className="sr-only">{t('actions')}</span></th>
               </tr>
             </thead>
             <tbody>
@@ -297,7 +300,7 @@ export default function CostLedger() {
                 <tr className="add-row">
                   <td colSpan={11}>
                     <button className="add-row-btn" onClick={() => setIsAdding(true)} disabled={costs.length >= MAX_COST_ENTRIES}>
-                      <Plus size={14} /> Add Cost Entry
+                      <Plus size={14} /> {t('addCostEntry')}
                     </button>
                   </td>
                 </tr>
@@ -310,9 +313,9 @@ export default function CostLedger() {
       {deletingId && costToDelete && (
         <Modal
           icon="🗑️"
-          title="Delete this cost?"
-          body={`"${costToDelete.name}" will be permanently removed. This action cannot be undone.`}
-          confirmLabel="Delete"
+          title={t('deleteCostTitle')}
+          body={t('deleteCostBody', { name: costToDelete.name })}
+          confirmLabel={t('delete')}
           onConfirm={() => {
             deleteCost(deletingId);
             setDeletingId(null);
@@ -333,13 +336,9 @@ export default function CostLedger() {
       {isBulkDeleteOpen && selectedIds.size > 0 && (
         <Modal
           icon="🗑️"
-          title={selectedIds.size === 1 ? 'Delete selected cost?' : 'Delete selected costs?'}
-          body={
-            selectedIds.size === 1
-              ? 'The selected cost entry will be permanently removed. This action cannot be undone.'
-              : `${selectedIds.size} selected cost entries will be permanently removed. This action cannot be undone.`
-          }
-          confirmLabel="Delete Selected"
+          title={t('deleteSelectedCostsTitle', { count: selectedIds.size })}
+          body={t('deleteSelectedCostsBody', { count: selectedIds.size })}
+          confirmLabel={t('deleteSelected')}
           onConfirm={handleConfirmBulkDelete}
           onCancel={() => setIsBulkDeleteOpen(false)}
         />

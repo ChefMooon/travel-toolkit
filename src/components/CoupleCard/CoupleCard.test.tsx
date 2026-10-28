@@ -380,7 +380,7 @@ describe('CoupleCard', () => {
 
     it('no-rate state: shows dash and edit affordance when no rate exists', () => {
       render(<CoupleCard summary={eurSummary} />);
-      expect(screen.getByText('1 EUR = — USD')).toBeInTheDocument();
+      expect(document.querySelector('.ex-lbl')?.textContent).toBe('1 EUR = — USD');
       expect(screen.getByLabelText('Add rate for EUR')).toBeInTheDocument();
       fireEvent.focus(screen.getByLabelText('Add rate for EUR'));
       expect(screen.getByRole('tooltip')).toHaveTextContent('Add an exchange rate');
@@ -389,7 +389,7 @@ describe('CoupleCard', () => {
     it('auto-state: shows read-only rate text and pencil when rate exists and not overridden', () => {
       useTripStore.getState().hydrateExchangeRates({ EUR: 0.91 });
       render(<CoupleCard summary={eurSummary} />);
-      expect(screen.getByText(/1 EUR = .* USD/)).toBeInTheDocument();
+      expect(document.querySelector('.ex-lbl')?.textContent).toMatch(/1 EUR = .* USD/);
       expect(screen.getByLabelText('Edit rate for EUR')).toBeInTheDocument();
     });
 
@@ -481,7 +481,7 @@ describe('CoupleCard', () => {
         grandTotal: 159.09,
       };
       render(<CoupleCard summary={eurTarget} />);
-      expect(screen.getByText('(€)')).toBeInTheDocument();
+      expect(document.querySelector('.s-grand-lbl-sub')?.textContent).toBe('(€)');
     });
   });
 });

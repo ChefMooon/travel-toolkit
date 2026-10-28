@@ -3,6 +3,7 @@ import GroupSetup from '@/components/GroupSetup';
 import CostLedger from '@/components/CostLedger';
 import CostSummary from '@/components/CostSummary';
 import MobileNav from '@/components/MobileNav';
+import { useTranslation } from 'react-i18next';
 
 type MobileTab = 'party' | 'costs' | 'summary';
 type ViewportSize = 'mobile' | 'tablet' | 'desktop';
@@ -25,6 +26,7 @@ function getViewportSize(width: number): ViewportSize {
 }
 
 export default function App() {
+  const { t } = useTranslation();
   const [mobileTab, setMobileTab] = useState<MobileTab>('costs');
   const [viewportSize, setViewportSize] = useState<ViewportSize>(() => {
     if (typeof window === 'undefined') return 'desktop';
@@ -47,7 +49,7 @@ export default function App() {
   return (
     <>
       <main className="main" data-mobile-tab={mobileTab} data-viewport={viewportSize}>
-        <h1 className="sr-only">Trip Cost</h1>
+        <h1 className="sr-only">{t('srTripCost')}</h1>
         <section
           id={panelIds.party}
           data-section="party"

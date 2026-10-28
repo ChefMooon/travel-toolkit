@@ -3,6 +3,7 @@ import { useTripStore } from './tripStore';
 import { useSettingsStore } from './settingsStore';
 import { useToastStore } from './toastStore';
 import { useSaveSlotStore } from './saveSlotStore';
+import { activateLanguage } from '@/i18n';
 import {
   MAX_GROUPS,
   MAX_KIDS_PER_GROUP,
@@ -22,6 +23,16 @@ describe('tripStore — new actions', () => {
     });
 
     describe('trip id and dirty state', () => {
+    it('creates localized validation warnings in the active language', async () => {
+      await activateLanguage('fr-CA');
+      try {
+        const previous = useTripStore.getState().tripId;
+        useTripStore.getState().setTripId('bad');
+        expect(useTripStore.getState().tripId).toBe(previous);
+        const toasts = useToastStore.getState().toasts;
+        expect(toasts[toasts.length - 1]).toMatchObject({ title: 'L’identifiant du voyage doit comporter 6 chiffres', message: 'Saisissez un identifiant numérique comme 123456.' });
+      } finally { await activateLanguage('en'); }
+    });
     it('setTripId accepts a valid 6-digit value', () => {
       useTripStore.getState().setTripId('123456');
       expect(useTripStore.getState().tripId).toBe('123456');

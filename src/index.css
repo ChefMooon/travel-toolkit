@@ -344,13 +344,9 @@ body::before {
 
 .grid-panel-item-title {
   line-height: 1.2;
-  max-width: 11ch;
+  max-width: 100%;
   min-height: calc(1.2em * 2);
-  line-clamp: 2;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  overflow-wrap: anywhere;
   text-wrap: pretty;
 }
 
@@ -2165,6 +2161,10 @@ body::before {
   color: var(--c3);
 }
 
+.forecast-destination-summary-value bdi {
+  min-width: 0;
+}
+
 
 
 .forecast-summary-metric {
@@ -2496,8 +2496,8 @@ body::before {
 
 .forecast-table-header {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr 0.8fr 0.8fr 40px;
-  gap: 0;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 0.8fr) minmax(0, 1.1fr) minmax(0, 1.1fr) 32px;
+  gap: 6px;
   padding: 8px 12px;
   font-size: 11px;
   font-weight: 800;
@@ -2505,6 +2505,11 @@ body::before {
   text-transform: uppercase;
   color: var(--text-3);
   border-bottom: 1.5px solid var(--border);
+}
+
+.forecast-table-header > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .forecast-table-row-group {
@@ -2517,8 +2522,8 @@ body::before {
 
 .forecast-table-row {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr 0.8fr 0.8fr 40px;
-  gap: 0;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 0.8fr) minmax(0, 1.1fr) minmax(0, 1.1fr) 32px;
+  gap: 6px;
   padding: 10px 12px;
   font-size: 13px;
   font-weight: 600;
@@ -3508,9 +3513,9 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
 
   /* ── GRID PLACEMENT ── */
 
-  /* Hide drag handle and checkbox */
+  /* Keep selection available in the card layout; the drag handle remains hidden. */
   table.ledger tbody td:nth-child(1) { display: none; }
-  table.ledger tbody td:nth-child(2) { display: none; }
+  table.ledger tbody td:nth-child(2) { grid-column: 1; grid-row: 1; z-index: 1; width: max-content; }
 
   /* Row 1: Name (cols 1–3) */
   table.ledger tbody td:nth-child(3) {
@@ -3518,6 +3523,7 @@ table.ledger tbody td { padding: 9px 11px; vertical-align: middle; font-size: 13
     grid-row: 1;
     min-width: 0;
     overflow: hidden;
+    padding-inline-start: 26px;
   }
 
   /* Row 1, Right: Actions (col 4) */
@@ -6405,7 +6411,7 @@ table.ledger .ledger-inline-field > .numeric-input {
 .shared-select.bulk-sel { min-height: 28px; padding: 4px 8px; gap: 7px; background-image: none; }
 
 .settings-menu { position: relative; }
-.global-settings-panel { position: absolute; z-index: 1200; right: 0; top: calc(100% + 8px); display: grid; gap: 12px; width: min(280px, calc(100vw - 24px)); padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); box-shadow: 0 12px 32px #0002; }
+.global-settings-panel { position: absolute; z-index: 1200; inset-inline-end: 0; top: calc(100% + 8px); display: grid; gap: 12px; width: min(280px, calc(100vw - 24px)); padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); box-shadow: 0 12px 32px #0002; }
 .global-settings-panel label { display: grid; gap: 5px; color: var(--text-2); font-size: 12px; font-weight: 700; }
 .global-settings-theme { display: grid; gap: 5px; color: var(--text-2); font-size: 12px; font-weight: 700; }
 .global-settings-theme .theme-selector { width: 100%; }
@@ -6452,11 +6458,11 @@ table.ledger .ledger-inline-field > .numeric-input {
 .date-picker-label-row { display: flex; align-items: center; gap: 4px; }
 .date-picker-info { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; margin: -3px 0; padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--text-2); cursor: pointer; }
 .date-picker-control { display: flex; min-width: 0; }
-.date-picker-control input { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; padding: 8px 10px; border: 1px solid var(--border-2); border-right: 0; border-radius: 9px 0 0 9px; background: var(--surface); color: var(--text); font: 600 13px 'JetBrains Mono', monospace; }
+.date-picker-control input { box-sizing: border-box; width: 100%; min-width: 0; min-height: 44px; padding: 8px 10px; border: 1px solid var(--border-2); border-inline-end: 0; border-start-start-radius: 9px; border-end-start-radius: 9px; background: var(--surface); color: var(--text); font: 600 13px 'JetBrains Mono', monospace; }
 .date-picker-control input:focus-visible, .date-picker button:focus-visible { position: relative; z-index: 1; outline: 2px solid var(--focus); outline-offset: 2px; }
 .date-picker-clear, .date-picker-trigger, .date-picker-header > button { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 44px; min-height: 44px; border: 1px solid var(--border-2); background: var(--bg-2); color: var(--text-2); cursor: pointer; }
-.date-picker-clear { border-right: 0; background: var(--surface); }
-.date-picker-trigger { border-radius: 0 9px 9px 0; }
+.date-picker-clear { border-inline-end: 0; background: var(--surface); }
+.date-picker-trigger { border-start-end-radius: 9px; border-end-end-radius: 9px; }
 .date-picker-popover { z-index: 1500; box-sizing: border-box; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); color: var(--text); box-shadow: var(--shadow-lg); overscroll-behavior: contain; }
 .date-picker-header { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
 .date-picker-month-year { display: flex; min-width: 0; align-items: center; justify-content: center; gap: 4px; }

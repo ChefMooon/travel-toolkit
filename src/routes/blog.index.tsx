@@ -1,14 +1,16 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { BlogTagLinks } from '@/components/BlogTagLinks';
 import { blogPosts, getBlogPostDisplayDate } from '@/lib/blogPosts';
+import { useTranslation } from 'react-i18next';
 
 function BlogPostCard({
   post,
 }: {
   post: (typeof blogPosts)[number];
 }) {
+  const { t, i18n } = useTranslation();
   return (
-    <article className="blog-post-card">
+    <article className="blog-post-card" lang="en">
       <header className="blog-post-card-header">
         <h2>
           <Link
@@ -19,13 +21,13 @@ function BlogPostCard({
             {post.title}
           </Link>
         </h2>
-        <time className="blog-post-date" dateTime={post.publishedAt}>
+        <time className="blog-post-date" dateTime={post.publishedAt} lang={i18n.resolvedLanguage ?? 'en'}>
           {getBlogPostDisplayDate(post.publishedAt)}
         </time>
       </header>
       <p className="blog-post-summary">{post.summary}</p>
       <BlogTagLinks
-        ariaLabel={`Tags for ${post.title}`}
+        ariaLabel={t('tagsForPost', { title: post.title })}
         tags={post.tags}
         activeTag={undefined}
       />
@@ -34,6 +36,7 @@ function BlogPostCard({
 }
 
 function BlogIndexPage() {
+  const { t } = useTranslation();
   const { tag } = Route.useSearch();
   const tags = [...new Set(blogPosts.flatMap((post) => post.tags))].sort();
   const filteredPosts =
@@ -42,14 +45,14 @@ function BlogIndexPage() {
   return (
     <main className="blog-page" data-page-entrance aria-labelledby="blog-title">
       <header className="blog-page-header">
-        <h1 id="blog-title">Blog</h1>
-        <p>Articles and changelogs from Travel Toolkit.</p>
+        <h1 id="blog-title">{t('blog')}</h1>
+        <p>{t('blogDescription')}</p>
       </header>
 
       <section className="blog-filter" aria-labelledby="blog-filter-title">
-        <h2 id="blog-filter-title">Filter by tag</h2>
+        <h2 id="blog-filter-title">{t('filterByTag')}</h2>
         <BlogTagLinks
-          ariaLabel="Filter posts by tag"
+          ariaLabel={t('filterPostsByTag')}
           tags={tags}
           activeTag={tag}
           showAll
@@ -60,29 +63,25 @@ function BlogIndexPage() {
         <div className="blog-empty-state" role="status">
           <p>
             {tag === undefined
-              ? 'There are no published blog posts yet.'
-              : `No posts were found for the “${tag}” tag.`}
+              ? t('noPublishedPosts')
+              : t('noPostsForTag', { tag })}
           </p>
           <Link
             to="/blog"
             search={{ tag: undefined }}
             className="blog-clear-filter-link"
           >
-            {tag === undefined ? 'View all posts' : 'Clear tag filter'}
+            {tag === undefined ? t('viewAllPosts') : t('clearTagFilter')}
           </Link>
         </div>
       ) : (
-        <section className="blog-results" aria-label="Blog posts">
+        <section className="blog-results" aria-label={t('blogPosts')}>
           <p className="blog-results-summary" role="status">
             {tag === undefined
-              ? `Showing all ${filteredPosts.length} published ${
-                  filteredPosts.length === 1 ? 'post' : 'posts'
-                }.`
-              : `Showing ${filteredPosts.length} ${
-                  filteredPosts.length === 1 ? 'post' : 'posts'
-                } tagged “${tag}”.`}
+              ? t('showingAllPosts', { count: filteredPosts.length })
+              : t('showingTaggedPosts', { count: filteredPosts.length, tag })}
           </p>
-          <ul className="blog-post-list" aria-label="Published blog posts">
+          <ul className="blog-post-list" aria-label={t('publishedBlogPosts')}>
             {filteredPosts.map((post) => (
               <li key={post.slug}>
                 <BlogPostCard post={post} />

@@ -2,7 +2,7 @@
 /// <reference types="@testing-library/jest-dom" />
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import RegionSelector from '@/components/RegionSelector';
 
 vi.mock('@/store/tripStore', () => ({
@@ -11,6 +11,7 @@ vi.mock('@/store/tripStore', () => ({
 
 import { useTripStore } from '@/store/tripStore';
 import { useDraftStore } from '@/store/draftStore';
+import { activateLanguage } from '@/i18n';
 vi.mock('@/store/draftStore', () => ({ useDraftStore: vi.fn() }));
 
 const setDraft = vi.fn();
@@ -19,6 +20,7 @@ const setDraft = vi.fn();
 const mockStoreState = {
   region: 'Europe',
   tripStartDate: '', tripEndDate: '', tripIdentityRevision: 0,
+  dateDraftError: '',
   setRegion: vi.fn(),
   setDateDraftError: vi.fn(),
   setTripDates: vi.fn(),
@@ -89,6 +91,19 @@ describe('RegionSelector', () => {
     expect(mockStoreState.setTripDates).not.toHaveBeenCalled();
     fireEvent.change(start, { target: { value: '2027-02-30' } });
     expect(mockStoreState.setTripDates).not.toHaveBeenCalled();
+  });
+
+  it('updates an active invalid draft message when the review language changes without changing trip dates', async () => {
+    mockStoreState.dateDraftError = 'Enter a valid trip start date in YYYY-MM-DD format.';
+    const { container } = render(<RegionSelector />);
+    expect(screen.getByRole('alert')).toHaveTextContent(mockStoreState.dateDraftError);
+    await act(async () => { await activateLanguage('fr-CA'); });
+    expect(screen.getByRole('alert')).toHaveTextContent('Saisissez une date de début valide au format AAAA-MM-JJ.');
+    expect(screen.getByLabelText('Date de début')).toHaveValue('');
+    expect(mockStoreState.tripStartDate).toBe('');
+    expect(mockStoreState.tripEndDate).toBe('');
+    expect(container.querySelector('#trip-date-error')).toBeInTheDocument();
+    await act(async () => { await activateLanguage('en'); });
   });
 
   it('commits valid date-only values and preserves an empty end date', () => {

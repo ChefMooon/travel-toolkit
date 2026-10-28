@@ -26,6 +26,9 @@ import RegionSelector from '../RegionSelector';
 import Tooltip from '@/components/Tooltip';
 import { useResolvedTheme } from '@/store/theme';
 import { getGroupPresentation } from '@/lib/groupPresentation';
+import { useTranslation } from 'react-i18next';
+import '@/i18n';
+import '@/i18n';
 
 interface SortableGroupProps {
   couple: { id: string; name: string; iconIndex: number; colorIndex: number };
@@ -48,6 +51,7 @@ function SortableGroup({
   onRemove,
   onRemoveChild,
 }: SortableGroupProps) {
+  const { t } = useTranslation();
   const {
     attributes,
     listeners,
@@ -78,29 +82,29 @@ function SortableGroup({
             color: coupleColor,
           }}
         >
-          <Tooltip content="Drag to reorder group">
+          <Tooltip content={t('dragReorderGroup')}>
             <button
               type="button"
               className="chip-grip"
               {...attributes}
               {...listeners}
-              aria-label={`Reorder ${couple.name}`}
+              aria-label={t('reorderGroup', { name: couple.name })}
             >
               ⠿
             </button>
           </Tooltip>
-          <Tooltip content="Choose a different group icon">
+          <Tooltip content={t('chooseDifferentGroupIcon')}>
             <button
               type="button"
               className="icon-interactive"
               onClick={() => onChangeIcon(couple.id)}
               style={{ position: 'relative', zIndex: 10 }}
-              aria-label={`Change icon for ${couple.name}`}
+              aria-label={t('changeGroupIcon', { name: couple.name })}
             >
               <span className="chip-icon">{COUPLE_ICONS[couple.iconIndex]?.symbol}</span>
             </button>
           </Tooltip>
-          <Tooltip content="Change the group's color">
+          <Tooltip content={t('changeGroupColor')}>
             <button
               type="button"
               className="color-dot-interactive"
@@ -110,7 +114,7 @@ function SortableGroup({
                 zIndex: 10,
                 '--group-color': coupleColor,
               } as React.CSSProperties}
-              aria-label={`Change color for ${couple.name}`}
+              aria-label={t('changeGroupColorFor', { name: couple.name })}
             >
               <span className="chip-dot" />
             </button>
@@ -121,14 +125,14 @@ function SortableGroup({
             onChange={(e) => onRename(couple.id, e.target.value)}
             style={{ color: 'inherit' }}
             maxLength={MAX_GROUP_NAME_LENGTH}
-            aria-label={`Rename ${couple.name}`}
+            aria-label={t('renameGroup', { name: couple.name })}
           />
-          <Tooltip content="Remove this group">
+          <Tooltip content={t('removeThisGroup')}>
             <button
               type="button"
               className="chip-x"
               onClick={() => onRemove(couple.id)}
-              aria-label={`Remove ${couple.name}`}
+              aria-label={t('removeGroup', { name: couple.name })}
             >
               <X size={12} aria-hidden="true" />
             </button>
@@ -148,13 +152,13 @@ function SortableGroup({
                 color: coupleColor,
               }}
             >
-              👶 {child.label}
-              <Tooltip content="Remove this child from the group">
+              👶 <bdi dir="auto">{child.label}</bdi>
+              <Tooltip content={t('removeChildFromGroup')}>
                 <button
                   type="button"
                   className="chip-x"
                   onClick={() => onRemoveChild(child.id)}
-                  aria-label={`Remove ${child.label}`}
+                  aria-label={t('removeChild', { name: child.label })}
                 >
                   <X size={10} aria-hidden="true" />
                 </button>
@@ -168,6 +172,7 @@ function SortableGroup({
 }
 
 export default function GroupSetup() {
+  const { t } = useTranslation();
   const couples = useTripStore((s) => s.couples);
   const nonPayingTravellers = useTripStore((s) => s.nonPayingTravellers);
   const theme = useResolvedTheme();
@@ -225,10 +230,10 @@ export default function GroupSetup() {
       <RegionSelector />
       <div className="card">
         <div className="card-header">
-          <h2 id="party-heading" className="card-title">Travelling Party</h2>
+          <h2 id="party-heading" className="card-title">{t('travellingParty')}</h2>
           <div className="add-btns">
             <button type="button" className="btn-add" onClick={() => addCouple()} disabled={couples.length >= MAX_GROUPS}>
-              <Plus size={12} /> Add Group
+              <Plus size={12} /> {t('addGroup')}
             </button>
             <div style={{ position: 'relative' }} ref={pickerRef}>
               <button
@@ -239,17 +244,17 @@ export default function GroupSetup() {
                 aria-expanded={showChildPicker && couples.length > 0}
                 aria-controls="group-child-picker"
               >
-                <Plus size={12} /> Add Child
+                <Plus size={12} /> {t('addChild')}
               </button>
               <div
                 id="group-child-picker"
                 className="child-picker"
                 role="group"
-                aria-label="Assign child to group"
+                aria-label={t('assignChildToGroup')}
                 hidden={!showChildPicker || couples.length === 0}
               >
                   <div style={{ padding: '4px 14px', fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--text-3)' }}>
-                    Assign to group:
+                    {t('assignToGroup')}
                   </div>
                   {couples.map((c) => {
                     const kidsCount = nonPayingTravellers.filter((t) => t.coupleId === c.id).length;
@@ -263,7 +268,7 @@ export default function GroupSetup() {
                         disabled={atKidLimit}
                         style={{ color: atKidLimit ? 'var(--text-3)' : getColorThemeValue(c.colorIndex, theme) }}
                       >
-                        ● {c.name}{atKidLimit ? ' (max)' : ''}
+                        ● <bdi dir="auto">{c.name}</bdi>{atKidLimit ? ` (${t('max')})` : ''}
                       </button>
                     );
                   })}
@@ -275,8 +280,8 @@ export default function GroupSetup() {
           {couples.length === 0 ? (
             <div className="empty-state">
               <div className="empty-state-icon">👥</div>
-              <div className="empty-state-text">No groups yet</div>
-              <div className="empty-state-sub">Add groups to start splitting costs</div>
+              <div className="empty-state-text">{t('noGroupsYet')}</div>
+              <div className="empty-state-sub">{t('addGroupsToSplitCosts')}</div>
             </div>
           ) : (
             <div className="party-groups">
@@ -350,9 +355,9 @@ export default function GroupSetup() {
       {removingCouple && coupleToRemove && (
         <Modal
           icon="👋"
-          title={`Remove ${coupleToRemove.name}?`}
-          body={`This will remove ${coupleToRemove.name} and their children from the trip. Costs assigned to them will be unassigned.`}
-          confirmLabel="Remove"
+          title={t('removeGroupTitle', { name: coupleToRemove.name })}
+          body={t('removeGroupBody', { name: coupleToRemove.name })}
+          confirmLabel={t('remove')}
           onConfirm={() => {
             removeCouple(removingCouple);
             setRemovingCouple(null);

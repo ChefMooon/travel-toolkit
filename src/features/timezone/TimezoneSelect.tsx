@@ -2,13 +2,15 @@ import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 're
 import type { CSSProperties } from 'react';
 import { buildTimezoneOptions, type TimezoneOption } from './timezones';
 import Select from '@/components/Select/Select';
+import { useTranslation } from 'react-i18next';
+import { activeLocale } from '@/i18n/format';
 
-let cachedOptions: { minute: number; options: TimezoneOption[] } | null = null;
+let cachedOptions: { minute: number; locale: string; options: TimezoneOption[] } | null = null;
 
-function getAllOptions(now = Date.now()): TimezoneOption[] {
+function getAllOptions(now = Date.now(), locale = activeLocale()): TimezoneOption[] {
   const minute = Math.floor(now / 60_000);
-  if (!cachedOptions || cachedOptions.minute !== minute) {
-    cachedOptions = { minute, options: buildTimezoneOptions(new Date(now)) };
+  if (!cachedOptions || cachedOptions.minute !== minute || cachedOptions.locale !== locale) {
+    cachedOptions = { minute, locale, options: buildTimezoneOptions(new Date(now), locale) };
   }
 
   return cachedOptions.options;
@@ -32,12 +34,15 @@ interface PopoverPosition {
 export default function TimezoneSelect({
   value,
   onChange,
-  placeholder = 'Select timezone',
+  placeholder,
   searchable = true,
   addedTimezones = [],
 }: TimezoneSelectProps) {
+  const { t } = useTranslation();
+  const selectPlaceholder = placeholder ?? t('zoneSelectTimezone');
   const [query, setQuery] = useState('');
-  const [options, setOptions] = useState(() => getAllOptions());
+  const locale = activeLocale();
+  const [options, setOptions] = useState(() => getAllOptions(Date.now(), locale));
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const [popoverPosition, setPopoverPosition] = useState<PopoverPosition | null>(null);
@@ -49,7 +54,7 @@ export default function TimezoneSelect({
   useEffect(() => {
     let timer = 0;
     const refresh = () => {
-      setOptions(getAllOptions());
+      setOptions(getAllOptions(Date.now(), locale));
       window.clearTimeout(timer);
       timer = window.setTimeout(refresh, 60_000 - (Date.now() % 60_000) + 20);
     };
@@ -64,23 +69,24 @@ export default function TimezoneSelect({
       window.removeEventListener('focus', refreshWhenVisible);
       document.removeEventListener('visibilitychange', refreshWhenVisible);
     };
-  }, []);
+  }, [locale]);
 
   const filtered = useMemo(() => {
     const allOptions = options;
 
     if (!searchable) return allOptions;
 
-    const normalized = query.trim().toLowerCase();
+    const normalized = query.trim().toLocaleLowerCase(locale);
     if (!normalized) return allOptions;
 
     return allOptions.filter(
       (option) =>
-        option.tz.toLowerCase().includes(normalized) ||
-        option.label.toLowerCase().includes(normalized) ||
-        option.offset.toLowerCase().includes(normalized)
+        option.tz.toLocaleLowerCase(locale).includes(normalized) ||
+        option.label.toLocaleLowerCase(locale).includes(normalized) ||
+        option.localizedLabel.toLocaleLowerCase(locale).includes(normalized) ||
+        option.offset.toLocaleLowerCase(locale).includes(normalized)
     );
-  }, [options, query, searchable]);
+  }, [options, query, searchable, locale]);
 
   const showResults = searchable && isOpen && query.trim().length > 0;
 
@@ -233,8 +239,8 @@ export default function TimezoneSelect({
           setIsOpen(false);
           setActiveIndex(-1);
         }}
-        placeholder="Search timezones"
-        aria-label="Search timezones"
+        placeholder={t('zoneSearchTimezones')}
+        aria-label={t('zoneSearchTimezones')}
         role="combobox"
         aria-expanded={showResults && filtered.length > 0}
         aria-haspopup="listbox"
@@ -273,16 +279,16 @@ export default function TimezoneSelect({
                     if (!addedTimezones.includes(option.tz)) selectOption(option);
                   }}
                 >
-                  <span className="timezone-search-result-label">{option.label}</span>
+                  <span className="timezone-search-result-label"><bdi dir="ltr">{option.label}</bdi> — {option.localizedLabel}</span>
                   <span className="timezone-search-result-offset">
-                    {addedTimezones.includes(option.tz) ? 'Added' : option.offset}
+                    {addedTimezones.includes(option.tz) ? t('zoneAdded') : option.offset}
                   </span>
                 </li>
               ))}
             </ul>
           ) : (
             <div className="timezone-search-empty" role="status" style={popoverStyle}>
-              No timezones match "{query.trim()}".
+              {t('zoneNoMatchingTimezones', { query: query.trim() })}
             </div>
           )}
         </>
@@ -294,12 +300,12 @@ export default function TimezoneSelect({
       value={value}
       options={[...(value ? [] : ['']), ...filtered.map((option) => option.tz)]}
       getOptionLabel={(tz) => {
-        if (!tz) return placeholder;
+        if (!tz) return selectPlaceholder;
         const option = filtered.find((candidate) => candidate.tz === tz) ?? options.find((candidate) => candidate.tz === tz);
-        return option ? `${option.label} (${option.offset})` : tz;
+        return option ? `${option.label} (${option.offset}) — ${option.localizedLabel}` : tz;
       }}
       onChange={onChange}
-      aria-label={placeholder}
+      aria-label={selectPlaceholder}
     />
   );
 

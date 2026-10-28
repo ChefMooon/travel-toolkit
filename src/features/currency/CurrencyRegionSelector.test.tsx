@@ -10,7 +10,7 @@ describe('CurrencyRegionSelector', () => {
 
   it('shows and updates the stored region using the shared select', () => {
     render(<CurrencyRegionSelector />);
-    const select = screen.getByRole('combobox', { name: 'Currency region' });
+    const select = screen.getByRole('combobox', { name: 'Region' });
     expect(select).toHaveTextContent('Europe');
     fireEvent.click(select);
     fireEvent.click(screen.getByRole('option', { name: 'Asia' }));
