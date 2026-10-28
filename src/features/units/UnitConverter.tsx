@@ -60,7 +60,7 @@ export default function UnitConverter() {
         <div className="card-body unit-controls">
           <fieldset className="unit-measurement">
             <legend className="tool-label">{t('measurement')}</legend>
-            <div className="unit-measurement-options">
+            <div className="unit-measurement-options" data-category={category}>
               {measurements.map(({ label, icon: Icon }) => (
                 <label className="unit-measurement-option" key={label}>
                   <input type="radio" name="measurement" value={label} checked={category === label} onChange={() => changeCategory(label)} />

@@ -6515,16 +6515,21 @@ table.ledger .ledger-inline-field > .numeric-input {
 .unit-controls { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); gap: 16px; }
 .unit-measurement { grid-column: 1 / -1; min-width: 0; margin: 0; padding: 0; border: 0; }
 .unit-measurement legend { margin-bottom: 6px; }
-.unit-measurement-options { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 4px; border: 1px solid var(--border-2); border-radius: 12px; background: var(--bg-2); }
+.unit-measurement-options { position: relative; isolation: isolate; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; padding: 4px; border: 1px solid var(--border-2); border-radius: 12px; background: var(--bg-2); }
+.unit-measurement-options::before { position: absolute; z-index: -1; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px - 12px) / 4); border: 1px solid color-mix(in srgb, var(--topbar-accent) 32%, var(--border) 68%); border-radius: 8px; background: var(--surface); box-shadow: var(--shadow-sm); content: ''; pointer-events: none; }
+.unit-measurement-options[data-category="Distance"]::before { transform: translateX(calc(100% + 4px)); }
+.unit-measurement-options[data-category="Weight"]::before { transform: translateX(calc((100% + 4px) * 2)); }
+.unit-measurement-options[data-category="Volume"]::before { transform: translateX(calc((100% + 4px) * 3)); }
 .unit-measurement-option { position: relative; min-width: 0; cursor: pointer; }
 .unit-measurement-option input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .unit-measurement-option span { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 6px; border: 1px solid transparent; border-radius: 8px; color: var(--text-2); font-size: 14px; font-weight: 700; transition: background-color 150ms, color 150ms; }
 .unit-measurement-option svg { flex: 0 0 auto; }
-.unit-measurement-option input:checked + span { background: var(--surface); border-color: var(--border-2); color: var(--text); box-shadow: var(--shadow-sm); }
+.unit-measurement-option input:checked + span { background: transparent; border-color: transparent; color: var(--text); box-shadow: none; }
 .unit-measurement-option input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: 2px; }
 @media (hover: hover) { .unit-measurement-option:hover span { color: var(--text); } }
-@media (forced-colors: active) { .unit-measurement-option input:checked + span { border-color: Highlight; color: Highlight; } }
-@media (prefers-reduced-motion: reduce) { .unit-measurement-option span { transition: none; } }
+@media (prefers-reduced-motion: no-preference) { .unit-measurement-options::before { transition: transform 320ms cubic-bezier(0.2, 0, 0, 1); } .unit-measurement-option span { transition: color 150ms ease-out, scale 150ms ease-out; } .unit-measurement-option input:checked + span { scale: 1.04; } .unit-measurement-option input:not(:disabled):active + span { scale: 0.96; } }
+@media (forced-colors: active) { .unit-measurement-options::before { display: none; } .unit-measurement-option input:checked + span { background: Highlight; border-color: Highlight; color: HighlightText; box-shadow: none; } }
+@media (prefers-reduced-motion: reduce) { .unit-measurement-options::before { display: none; } .unit-measurement-option span { transition: none; } .unit-measurement-option input:checked + span { background: var(--surface); border-color: var(--border-2); box-shadow: var(--shadow-sm); } }
 .unit-controls > .tool-field { min-width: 0; }
 .unit-controls > .tool-field:nth-child(2) { grid-column: 1 / -1; }
 .unit-controls .shared-select.tool-input, .unit-controls .numeric-input, .unit-controls .numeric-input-field { width: 100%; min-height: 44px; }
@@ -6535,7 +6540,7 @@ table.ledger .ledger-inline-field > .numeric-input {
 .unit-result > * { min-width: 0; }
 .unit-result span { color: var(--text-2); font-size: 1rem; }
 .unit-result strong { font-size: 1.5rem; }
-@media (max-width: 600px) { .unit-measurement-options { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 600px) { .unit-measurement-options { grid-template-columns: repeat(2, minmax(0, 1fr)); } .unit-measurement-options[data-category="Weight"]::before { transform: translateY(calc(100% + 4px)); } .unit-measurement-options[data-category="Volume"]::before { transform: translate(100%, calc(100% + 4px)); } }
 @media (max-width: 479px) { .unit-controls { grid-template-columns: minmax(0, 1fr); } .unit-measurement-option span { gap: 4px; padding-inline: 3px; font-size: 12px; } .unit-swap { justify-self: center; } .unit-result { flex-direction: column; align-items: center; gap: 2px; } }
 
 @media (min-width: 768px) {
