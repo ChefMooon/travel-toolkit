@@ -32,7 +32,7 @@ export default function CountdownPage({ fromTrip = false }: { fromTrip?: boolean
     <section className="card" aria-labelledby="countdown-dates-title">
       <div className="card-header"><h2 id="countdown-dates-title" className="card-title">Trip dates</h2></div>
       <div className="card-body countdown-date-fields">
-        <DatePicker id="countdown-start" label="Start date" value={dates.start} invalid={!!error} describedBy={error ? 'countdown-date-error' : undefined} onChange={(start) => setDates((current) => ({ ...current, start }))} />
+        <DatePicker showToday id="countdown-start" label="Start date" value={dates.start} invalid={!!error} describedBy={error ? 'countdown-date-error' : undefined} onChange={(start) => setDates((current) => ({ ...current, start }))} />
         <DatePicker id="countdown-end" label="End date (optional)" value={dates.end} invalid={!!error} describedBy={error ? 'countdown-date-error' : undefined} onChange={(end) => setDates((current) => ({ ...current, end }))} />
         {error && <p className="trip-date-error" id="countdown-date-error" role="alert">{error}</p>}
       </div>

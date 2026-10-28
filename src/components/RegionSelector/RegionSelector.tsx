@@ -51,7 +51,7 @@ export default function RegionSelector() {
             aria-label="Region"
           /></div>
           <div className="trip-date-fields">
-            <DatePicker id="trip-start-date" label="Start date" value={draft.start} invalid={!!error} describedBy={error ? 'trip-date-error' : undefined} onChange={(value) => editDate('start', value)} />
+            <DatePicker showToday id="trip-start-date" label="Start date" value={draft.start} invalid={!!error} describedBy={error ? 'trip-date-error' : undefined} onChange={(value) => editDate('start', value)} />
             <DatePicker id="trip-end-date" label="End date" value={draft.end} invalid={!!error} describedBy={error ? 'trip-date-error' : undefined} onChange={(value) => editDate('end', value)} />
           </div>
           {error && <p id="trip-date-error" className="trip-date-error" role="alert">{error}</p>}

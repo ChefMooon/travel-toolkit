@@ -3,9 +3,34 @@
 
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
+import { useState } from 'react';
 import DatePicker from './DatePicker';
 
 describe('DatePicker calendar accessibility and navigation', () => {
+  it('clears a filled date and returns focus to its input', () => {
+    function Example() {
+      const [value, setValue] = useState('2026-10-15');
+      return <DatePicker id="date" label="Start date" value={value} onChange={setValue} />;
+    }
+    render(<Example />);
+    fireEvent.click(screen.getByRole('button', { name: 'Clear start date' }));
+    expect(screen.getByLabelText('Start date')).toHaveValue('');
+    expect(screen.getByLabelText('Start date')).toHaveFocus();
+    expect(screen.queryByRole('button', { name: 'Clear start date' })).not.toBeInTheDocument();
+  });
+  it('selects the current local date and restores focus when Today is enabled', () => {
+    const onChange = vi.fn();
+    render(<DatePicker id="date" label="Start date" value="2020-01-01" onChange={onChange} showToday />);
+    const trigger = screen.getByRole('button', { name: 'Choose start date' });
+    fireEvent.click(trigger);
+    fireEvent.click(screen.getByRole('button', { name: 'Today' }));
+    const now = new Date();
+    const expected = `${String(now.getFullYear()).padStart(4, '0')}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    expect(onChange).toHaveBeenCalledWith(expected);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(trigger).toHaveFocus();
+  });
+
   it('uses shared month selection and year step modifiers', () => {
     render(<DatePicker id="date" label="Start date" value="2026-10-15" onChange={vi.fn()} />);
     fireEvent.click(screen.getByRole('button', { name: 'Choose start date' }));

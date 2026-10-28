@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { CalendarDays, ChevronLeft, ChevronRight, Info } from 'lucide-react';
+import { CalendarDays, ChevronLeft, ChevronRight, Info, X } from 'lucide-react';
 import Tooltip from '@/components/Tooltip';
 import Select from '@/components/Select/Select';
 import NumericInput from '@/components/NumericInput/NumericInput';
 import { isValidDateOnly } from './dateUtils';
 
-type Props = { id: string; label: string; value: string; onChange: (value: string) => void; invalid?: boolean; describedBy?: string };
+type Props = { id: string; label: string; value: string; onChange: (value: string) => void; invalid?: boolean; describedBy?: string; showToday?: boolean };
 type View = { year: number; month: number };
 const pad = (n: number) => String(n).padStart(2, '0');
 const fromParts = (y: number, m: number, d: number) => `${String(y).padStart(4, '0')}-${pad(m)}-${pad(d)}`;
@@ -21,7 +21,7 @@ const monthView = (view: View, amount: number) => {
   return { year: date.getUTCFullYear(), month: date.getUTCMonth() };
 };
 
-export default function DatePicker({ id, label, value, onChange, invalid, describedBy }: Props) {
+export default function DatePicker({ id, label, value, onChange, invalid, describedBy, showToday = false }: Props) {
   const [open, setOpen] = useState(false);
   const initialDate = isValidDateOnly(value) ? new Date(`${value}T00:00:00Z`) : new Date();
   const [view, setView] = useState<View>(() => ({ year: isValidDateOnly(value) ? initialDate.getUTCFullYear() : initialDate.getFullYear(), month: isValidDateOnly(value) ? initialDate.getUTCMonth() : initialDate.getMonth() }));
@@ -129,6 +129,7 @@ export default function DatePicker({ id, label, value, onChange, invalid, descri
     <div className="date-picker-label-row"><label className="date-picker-label" htmlFor={id}>{label}</label><Tooltip content="Enter date as YYYY-MM-DD." showOnClick><button type="button" className="date-picker-info" aria-label={`${label} format information`}><Info size={14} aria-hidden="true" /></button></Tooltip></div>
     <div className="date-picker-control">
       <input ref={input} id={id} type="text" inputMode="numeric" autoComplete="off" placeholder="YYYY-MM-DD" aria-label={label} aria-invalid={invalid || undefined} aria-describedby={describedByIds} value={value} onChange={(event) => onChange(event.target.value)} />
+      {value && <button type="button" className="date-picker-clear" aria-label={`Clear ${label.toLowerCase()}`} onClick={() => { setOpen(false); onChange(''); input.current?.focus(); }}><X size={16} aria-hidden="true" /></button>}
       <button ref={trigger} type="button" className="date-picker-trigger" aria-label={`Choose ${label.toLowerCase()}`} aria-haspopup="dialog" aria-expanded={open} aria-controls={`${id}-calendar`} onClick={() => {
         if (!open && isValidDateOnly(value)) { const date = new Date(`${value}T00:00:00Z`); const next = { year: date.getUTCFullYear(), month: date.getUTCMonth() }; setView(next); setFocusDay(Number(value.slice(-2))); }
         setOpen(!open);
@@ -153,6 +154,12 @@ export default function DatePicker({ id, label, value, onChange, invalid, descri
           </div>)}
         </div>)}
       </div>
+      {showToday && <div className="date-picker-footer"><button type="button" className="date-picker-today" onClick={() => {
+        const current = new Date();
+        onChange(fromParts(current.getFullYear(), current.getMonth() + 1, current.getDate()));
+        setOpen(false);
+        trigger.current?.focus();
+      }}>Today</button></div>}
     </div>, document.body)}
   </div>;
 }
