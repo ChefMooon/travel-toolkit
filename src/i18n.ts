@@ -84,7 +84,7 @@ function changeLanguageForRequest(language: AppLanguage, requestVersion: number)
   return change;
 }
 
-/** French is an owner-review preview; it is never inferred from browser settings. */
+/** Activates the selected language, including the French translation review preview. */
 export async function activateLanguage(
   language: AppLanguage,
   loadFrench: () => Promise<{ default: Record<string, string> }> = () => import('./i18n/locales/fr-CA'),

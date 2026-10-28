@@ -1,7 +1,8 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useSettingsStore } from './settingsStore';
 
 describe('global settings', () => {
+  afterEach(() => vi.restoreAllMocks());
   beforeEach(() => {
     localStorage.clear();
     useSettingsStore.persist.clearStorage();
@@ -30,6 +31,30 @@ describe('global settings', () => {
     await useSettingsStore.persist.rehydrate();
     expect(useSettingsStore.getState().language).toBe('fr-CA');
     localStorage.setItem('travel-toolkit-settings-data', JSON.stringify({ state: { language: 'ar' }, version: 0 }));
+    await useSettingsStore.persist.rehydrate();
+    expect(useSettingsStore.getState().language).toBe('en');
+  });
+
+  it('detects the first supported browser language when no language is saved', async () => {
+    vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['de-DE', 'fr-ca', 'en-US']);
+    localStorage.setItem('travel-toolkit-settings-data', JSON.stringify({ state: {}, version: 0 }));
+    await useSettingsStore.persist.rehydrate();
+    expect(useSettingsStore.getState().language).toBe('fr-CA');
+
+    vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['en-CA', 'fr-CA']);
+    localStorage.setItem('travel-toolkit-settings-data', JSON.stringify({ state: {}, version: 0 }));
+    await useSettingsStore.persist.rehydrate();
+    expect(useSettingsStore.getState().language).toBe('en');
+  });
+
+  it('preserves a saved language and falls back to English for unsupported locales', async () => {
+    vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['fr-CA']);
+    localStorage.setItem('travel-toolkit-settings-data', JSON.stringify({ state: { language: 'en' }, version: 0 }));
+    await useSettingsStore.persist.rehydrate();
+    expect(useSettingsStore.getState().language).toBe('en');
+
+    vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['fr-FR', 'de-DE']);
+    localStorage.setItem('travel-toolkit-settings-data', JSON.stringify({ state: {}, version: 0 }));
     await useSettingsStore.persist.rehydrate();
     expect(useSettingsStore.getState().language).toBe('en');
   });

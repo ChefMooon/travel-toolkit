@@ -82,6 +82,16 @@ function isImportRateMode(value: unknown): value is ImportRateMode {
 function isMeasurementSystem(value: unknown): value is MeasurementSystem { return value === 'metric' || value === 'imperial'; }
 function isClockFormat(value: unknown): value is ClockFormat { return value === '12h' || value === '24h'; }
 function isAppLanguage(value: unknown): value is AppLanguage { return value === 'en' || value === 'fr-CA'; }
+function browserLanguage(): AppLanguage {
+  if (typeof navigator === 'undefined') return 'en';
+  const languages = navigator.languages?.length ? navigator.languages : [navigator.language];
+  for (const language of languages) {
+    const normalized = language?.toLowerCase();
+    if (normalized === 'fr-ca') return 'fr-CA';
+    if (normalized === 'en' || normalized?.startsWith('en-')) return 'en';
+  }
+  return 'en';
+}
 function isPreferredCurrency(value: unknown): value is string { return typeof value === 'string' && /^[A-Z]{3}$/.test(value); }
 function isPreferredRegion(value: unknown): value is Region | null { return value === null || (typeof value === 'string' && REGION_LIST.includes(value as Region)); }
 
@@ -124,7 +134,7 @@ export const useSettingsStore = create<SettingsStore>()(
       clockFormat: '12h',
       preferredCurrency: 'USD',
       preferredRegion: null,
-      language: 'en',
+      language: browserLanguage(),
       setThemePreference: (themePreference) => set({ themePreference }),
       setExportSchema: (exportSchema) => set({ exportSchema }),
       setExportFilenamePreset: (exportFilenamePreset) => set({ exportFilenamePreset }),
@@ -177,7 +187,7 @@ export const useSettingsStore = create<SettingsStore>()(
           clockFormat: isClockFormat(persisted.clockFormat) ? persisted.clockFormat : currentState.clockFormat,
           preferredCurrency: isPreferredCurrency(persisted.preferredCurrency) ? persisted.preferredCurrency : currentState.preferredCurrency,
           preferredRegion: isPreferredRegion(persisted.preferredRegion) ? persisted.preferredRegion : currentState.preferredRegion,
-          language: isAppLanguage(persisted.language) ? persisted.language : 'en',
+          language: isAppLanguage(persisted.language) ? persisted.language : persisted.language === undefined ? browserLanguage() : 'en',
         };
       },
       onRehydrateStorage: () => (state, error) => {
