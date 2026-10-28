@@ -2,12 +2,13 @@ import {
   ArrowLeftRight,
   Calculator,
   CloudSun,
+  CalendarClock,
   Clock,
   Ruler,
   type LucideIcon,
 } from 'lucide-react';
 
-export type ToolRoute = '/trip' | '/currency' | '/timezone' | '/forecast' | '/units';
+export type ToolRoute = '/trip' | '/currency' | '/timezone' | '/forecast' | '/units' | '/countdown';
 
 export type Tool = {
   route: ToolRoute;
@@ -46,5 +47,11 @@ export const TOOLS: Tool[] = [
     label: 'Destination Forecast',
     description: 'Check weather and event forecasts before travel.',
     icon: CloudSun,
+  },
+  {
+    route: '/countdown',
+    label: 'Travel Countdown',
+    description: 'Count down to your trip and track days remaining.',
+    icon: CalendarClock,
   },
 ];

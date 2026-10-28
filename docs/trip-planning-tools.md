@@ -71,6 +71,19 @@ with related tools rather than maintaining separate dates.
 set. Calculate by calendar day in the traveler's local timezone; define how
 past dates and an active trip are displayed.
 
+**Implementation result:** The standalone `/countdown` page accepts independent
+start and optional end dates and does not change Trip Cost data. It validates
+date-only values, counts by UTC calendar ordinals against the local calendar
+date (so daylight-saving transitions do not alter day counts), and handles
+upcoming trips, trips starting today, active trips with inclusive duration and
+remaining days excluding today, ended trips, and past starts without an end
+date. Its local date refreshes at midnight and when the page regains focus or
+visibility. Trip Cost also shows a compact strip below its toolbar whenever a
+committed trip start date exists, using the same calculation. The standalone
+tool keeps its own date inputs. Opening it from the strip copies the committed
+trip dates into those inputs; subsequent edits remain independent of Trip Cost.
+Neither countdown surface mutates trip data.
+
 ### Packing checklist
 
 **What it does:** Lets travelers add, check off, and organize items to pack.
@@ -166,7 +179,8 @@ tools become more useful once destination data is available and trip dates are s
 
 1. **Unit converter** — useful immediately, with no external data or trip-model
    changes.
-2. **Travel-day countdown** — a small feature using the existing shared trip date.
+2. **Travel-day countdown** — implemented as a standalone tool and a compact
+   Trip Cost strip using existing trip dates.
 3. **Packing checklist** — high traveler value and a natural use for
    trip-specific saved data.
 4. **Itinerary** — valuable, but requires a richer dated-item model and

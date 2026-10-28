@@ -14,6 +14,7 @@ import { Route as TripRouteImport } from './routes/trip'
 import { Route as TimezoneRouteImport } from './routes/timezone'
 import { Route as ForecastRouteImport } from './routes/forecast'
 import { Route as CurrencyRouteImport } from './routes/currency'
+import { Route as CountdownRouteImport } from './routes/countdown'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as BlogIndexRouteImport } from './routes/blog.index'
 import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
@@ -43,6 +44,11 @@ const CurrencyRoute = CurrencyRouteImport.update({
   path: '/currency',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CountdownRoute = CountdownRouteImport.update({
+  id: '/countdown',
+  path: '/countdown',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -61,6 +67,7 @@ const BlogSlugRoute = BlogSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/countdown': typeof CountdownRoute
   '/currency': typeof CurrencyRoute
   '/forecast': typeof ForecastRoute
   '/timezone': typeof TimezoneRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/countdown': typeof CountdownRoute
   '/currency': typeof CurrencyRoute
   '/forecast': typeof ForecastRoute
   '/timezone': typeof TimezoneRoute
@@ -82,6 +90,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/countdown': typeof CountdownRoute
   '/currency': typeof CurrencyRoute
   '/forecast': typeof ForecastRoute
   '/timezone': typeof TimezoneRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/countdown'
     | '/currency'
     | '/forecast'
     | '/timezone'
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/countdown'
     | '/currency'
     | '/forecast'
     | '/timezone'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/countdown'
     | '/currency'
     | '/forecast'
     | '/timezone'
@@ -125,6 +137,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CountdownRoute: typeof CountdownRoute
   CurrencyRoute: typeof CurrencyRoute
   ForecastRoute: typeof ForecastRoute
   TimezoneRoute: typeof TimezoneRoute
@@ -171,6 +184,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CurrencyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/countdown': {
+      id: '/countdown'
+      path: '/countdown'
+      fullPath: '/countdown'
+      preLoaderRoute: typeof CountdownRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -197,6 +217,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CountdownRoute: CountdownRoute,
   CurrencyRoute: CurrencyRoute,
   ForecastRoute: ForecastRoute,
   TimezoneRoute: TimezoneRoute,

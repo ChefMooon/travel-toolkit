@@ -43,6 +43,11 @@ const expectedTools = [
     description: 'Check weather and event forecasts before travel.',
     route: '/forecast',
   },
+  {
+    label: 'Travel Countdown',
+    description: 'Count down to your trip and track days remaining.',
+    route: '/countdown',
+  },
 ];
 
 describe('landing route', () => {

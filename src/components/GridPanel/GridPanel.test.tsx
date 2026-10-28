@@ -37,11 +37,12 @@ describe('GridPanel', () => {
     expect(screen.getByRole('link', { name: 'Timezone Tracker' })).toHaveAttribute('href', '/timezone');
     expect(screen.getByRole('link', { name: 'Unit Converter' })).toHaveAttribute('href', '/units');
     expect(screen.getByRole('link', { name: 'Destination Forecast' })).toHaveAttribute('href', '/forecast');
+    expect(screen.getByRole('link', { name: 'Travel Countdown' })).toHaveAttribute('href', '/countdown');
     expect(
       container.querySelectorAll(
         '.tool-launcher-icon[aria-hidden="true"] > svg[focusable="false"]',
       ),
-    ).toHaveLength(5);
+    ).toHaveLength(6);
     expect(
       Array.from(container.querySelectorAll('.tool-launcher-icon svg')).every(
         (icon) => icon.getAttribute('stroke-width') === '2',
