@@ -904,7 +904,7 @@ body::before {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 244px));
   justify-content: center;
-  width: min(100%, 1040px);
+  width: min(100%, 764px);
   margin: 0 auto;
   gap: 14px;
 }
@@ -2759,12 +2759,6 @@ body::before {
   .forecast-location-grid {
     grid-template-columns: 1.4fr 1fr 1fr;
     align-items: end;
-  }
-}
-
-@media (min-width: 1024px) {
-  .tool-grid {
-    gap: 16px;
   }
 }
 
