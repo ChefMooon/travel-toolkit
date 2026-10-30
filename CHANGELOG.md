@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [1.4.1] - 2026-10-29
+
+### Changed
+
+- Improved the visual balance of the tool launcher cards on the homepage.
+
 ## [1.4.0] - 2026-10-28
 
 ### Added
