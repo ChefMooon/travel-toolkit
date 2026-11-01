@@ -1,17 +1,19 @@
 # Travel Toolkit
 
-Travel Toolkit is a travel planning toolkit built with TanStack Start and deployed to Cloudflare Workers. It combines four focused tools in one app: a trip cost splitter, a currency converter, a timezone tracker, and a destination forecast planner.
+Travel Toolkit is a travel planning toolkit built with TanStack Start and deployed to Cloudflare Workers. It combines six focused tools in one app: a trip cost splitter, currency and unit converters, a timezone tracker, a destination forecast planner, and a travel countdown.
 
 ## What Travel Toolkit Includes
 
 - **Trip Cost** — split shared, subset, or individual expenses across trip groups with multi-currency entries and USD rollups
 - **Currency Converter** — compare exchange-rate snapshots across supported currencies
-- **Timezone Converter** — track and customize timezones for the places that matter to your trip
+- **Timezone Tracker** — track and customize timezones for the places that matter to your trip
+- **Unit Converter** — convert temperature, distance, weight, and volume measurements for travel
 - **Destination Forecast** — search destinations, inspect climate averages by date range, and surface matching events
+- **Travel Countdown** — track upcoming, active, and past trips using their dates
 
 ## Features
 
-- **Four travel tools in one app** — launch tools from the home page and move between them with the shared grid navigation
+- **Six travel tools in one app** — launch tools from the home page and move between them with the shared grid navigation
 - **Flexible trip cost splitting** — use shared, subset, or individual assignment modes for each cost
 - **Trip-level and per-cost markup** — set a global markup and override it on individual entries when needed
 - **Multi-currency trip logging** — keep original trip currencies, filter available currencies by region, and add manual USD exchange rates for final totals
@@ -21,62 +23,23 @@ Travel Toolkit is a travel planning toolkit built with TanStack Start and deploy
 - **Configurable timezone cards** — save tracked zones, detect the browser timezone, reorder cards, and choose analog or digital display modes
 - **Destination climate lookup** — search locations, choose a date range, view climate averages, and compare local time at the destination
 - **Forecast event overlay** — show curated destination events that overlap with the selected trip dates
-- **Persistent local state** — trip data, site-wide theme preference, and timezone settings are stored in `localStorage`; transient UI state stays in memory
+- **Trip dates and countdown** — set trip dates, see a countdown in Trip Cost, and open the standalone countdown tool
+- **Global travel preferences** — save a preferred trip region and use browser-language detection on first use
+- **Persistent local state** — trip data, site preferences, and timezone settings are stored in `localStorage`; transient UI state stays in memory
 - **Responsive theming** — choose System, Light, or Dark across the app; System follows the device color scheme
 
-## Prerequisites
+## Getting Started
 
-- Node.js 22.12 or later
-- npm
-- [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) for deployment
-
-## Installation
-
-```sh
-npm install
-```
-
-## Development
-
-```sh
-npm run dev
-```
-
-The development server runs at `http://localhost:5173`.
-
-## Analytics and Consent
-
-Configure Google Analytics in `.env`:
-
-```dotenv
-VITE_GA_MEASUREMENT_ID=G-XXXXXXXXXX
-```
-
-Behavior in the app:
-
-- Analytics is only enabled in production builds.
-- A cookie consent banner is shown on first visit.
-- GA initialization and `page_view` events are blocked until analytics consent is accepted.
-- Rejecting consent keeps analytics disabled.
-
-Exclude internal/admin traffic in GA4:
-
-1. Open **Admin** in Google Analytics.
-2. Go to **Data Streams** for your web stream.
-3. Create internal traffic rules for office/home public IP addresses.
-4. In GA4 report filters, set internal traffic to **Exclude**.
-5. Keep IP rules updated if your public IP changes.
-
-## Basic Usage
-
-1. Start the app and open the home page.
+1. Open the Travel Toolkit home page.
 2. Choose a tool from the launcher grid.
 3. Use the shared navigation in the top bar to switch tools without leaving the app shell.
 
 Example workflow:
 
 - Open **Trip Cost** to build a trip ledger, assign costs, and enter manual USD rates for final totals.
-- Open **Timezone Converter** to save destination clocks for the same trip.
+- Set the trip dates to see a countdown, or open **Travel Countdown** to check dates independently.
+- Open **Timezone Tracker** to save destination clocks for the same trip.
+- Use **Unit Converter** to convert temperatures, distances, weights, or volumes.
 - Open **Destination Forecast** to search a city, pick travel dates, and check climate averages plus matching events.
 
 ## Available Routes
@@ -86,83 +49,22 @@ Example workflow:
 | `/` | Travel Toolkit home | Launch and navigate between tools |
 | `/trip` | Trip Cost | Split group expenses and summarize totals |
 | `/currency` | Currency Converter | Convert supported currencies using snapshot data |
-| `/timezone` | Timezone Converter | Track and customize saved timezone cards |
+| `/timezone` | Timezone Tracker | Track and customize saved timezone cards |
+| `/units` | Unit Converter | Convert temperature, distance, weight, and volume |
 | `/forecast` | Destination Forecast | Search destinations and inspect date-range climate data |
+| `/countdown` | Travel Countdown | Track upcoming, active, and past trips from their dates |
 | `/blog` | Blog | Browse published articles and changelogs, with tag filtering |
 | `/blog/:slug` | Blog | Read a published post using its filename-derived slug |
 
-## Blog Content and Publishing
+## Saving Your Settings
 
-Published posts are Markdown files in `src/content/blog/`. A post's filename must be a unique kebab-case slug, using lowercase letters and numbers separated by single hyphens. For example, `introducing-the-travel-toolkit-blog.md` is available at `/blog/introducing-the-travel-toolkit-blog`.
+Trip information, timezone cards, and preferences are saved in your browser on this device. They are not synced between devices.
 
-Add a `.md` file with YAML frontmatter containing a non-empty `title`, a canonical UTC `publishedAt` timestamp in `YYYY-MM-DDTHH:mm:ssZ` format, a non-empty `summary`, and one or more `tags` written as lowercase letters and numbers separated by single hyphens. The visible calendar date comes from the UTC date in `publishedAt`; a separate `date` field is not needed. Write the article body in Markdown after the closing frontmatter delimiter:
+## Appearance
 
-```md
----
-title: "A sample article"
-publishedAt: "2026-09-29T09:00:00Z"
-summary: "A concise description of the article."
-tags:
-  - travel-planning
-  - changelog
----
+Choose **System**, **Light**, or **Dark** in the top bar. System mode follows your device's appearance setting, and the layout adapts to smaller screens.
 
-Write the article body in Markdown.
-```
-
-Every Markdown file in `src/content/blog/` is included in the built app and is public. Keep unpublished drafts outside this directory and off the deployment branch. To publish a post, add the file, run `npm run build`, then deploy with `wrangler deploy`; the post becomes available after that deployment.
-
-## Project Structure
-
-```text
-src/
-  content/blog/    Published Markdown blog posts
-  routes/          File-based route entry points for each tool page
-  features/        Tool-specific modules for currency, forecast, and timezone
-  components/      Shared UI and trip-cost components
-  store/           Persisted and ephemeral Zustand stores
-  lib/             Shared helpers, tool metadata, and core calculations
-docs/
-  ARCHITECTURE.md       Technical architecture reference
-  Travel Toolkit PRD.md Product requirements document
-  SITE-DESIGN-SPEC.md   UI and design system reference
-```
-
-## Testing
-
-Run the full test suite:
-
-```sh
-npm run test -- --run
-```
-
-Additional testing docs:
-
-- [Frontend Test Implementation Report](docs/plans/frontend-test-implementation-report.md)
-- [Frontend Test Coverage Matrix](docs/plans/frontend-test-matrix.md)
-- [Test Maintenance Guide](docs/plans/test-maintenance-guide.md)
-
-## Build
-
-```sh
-npm run build
-```
-
-Build output is written to `dist`.
-
-## Deploy
-
-```sh
-wrangler deploy
-```
-
-Deployment serves the built assets from `dist` using the Cloudflare SPA fallback configured in [wrangler.toml](wrangler.toml).
-
-## Further Documentation
-
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
-- [docs/Travel Toolkit PRD.md](docs/Travel%20Toolkit%20PRD.md)
-- [docs/SITE-DESIGN-SPEC.md](docs/SITE-DESIGN-SPEC.md)
+For maintainers, [blog publishing and project structure guidance](docs/CONTENT-AND-STRUCTURE.md) is available separately.
 
 ## License
 

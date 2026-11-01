@@ -81,6 +81,8 @@ The forecast tool overlays a small set of curated events from [src/features/fore
 
 The sync script validates each row, keeps only supported event types, and rewrites the checked-in TypeScript dataset.
 
+The rationale for using a generated snapshot instead of fetching the sheet at runtime is recorded in [ADR 0001](decisions/0001-keep-forecast-events-as-generated-snapshot.md).
+
 #### Syncing the dataset locally
 
 - Run `npm run sync:events` from the project root.
