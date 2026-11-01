@@ -210,6 +210,13 @@ describe('TripToolbar', () => {
     expect(screen.getByLabelText('Trip name')).toHaveValue('Summer Trip');
   });
 
+  it('renders an aria-hidden Trip Cost stamp inside the trip name pill', () => {
+    render(<TripToolbar />);
+
+    const pill = screen.getByLabelText('Trip name').closest('.trip-pill');
+    expect(pill?.querySelector('[data-tool="trip"] .stamp-wrap[aria-hidden="true"]')).not.toBeNull();
+  });
+
   it('FE-TBR-002 focusing trip name reveals clear button; clicking it calls setTripName with empty string', () => {
     render(<TripToolbar />);
 

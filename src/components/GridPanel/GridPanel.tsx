@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { TOOLS } from '@/lib/tools';
 import { Link } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
+import ToolStamp from '@/components/ToolStamp';
 import type { TranslationKey } from '@/i18n';
 
 const toolTitleKeys: Record<string, TranslationKey> = { 'Trip Cost': 'toolTripCost', 'Currency Converter': 'toolCurrency', 'Timezone Tracker': 'toolTimezone', 'Unit Converter': 'toolUnits', 'Destination Forecast': 'toolForecast', 'Travel Countdown': 'toolCountdown' };
@@ -90,19 +91,26 @@ export default function GridPanel({ open, onClose, triggerRef }: GridPanelProps)
         aria-modal="true"
         tabIndex={-1}
       >
-        {TOOLS.map((tool) => (
-          <Link
-            key={tool.route}
-            to={tool.route}
-            className={`grid-panel-item tool-card--${tool.route.slice(1)}`}
-            onClick={onClose}
-          >
-            <span className="tool-launcher-icon" aria-hidden="true">
-              <tool.icon focusable="false" strokeWidth={2} />
-            </span>
-            <span className="grid-panel-item-title">{toolTitleKeys[tool.label] ? t(toolTitleKeys[tool.label]!) : tool.label}</span>
-          </Link>
-        ))}
+        <ul className="grid-panel-list">
+          {TOOLS.map((tool) => (
+            <li key={tool.route}>
+              <Link
+                to={tool.route}
+                data-tool={tool.route.slice(1)}
+                className="grid-panel-item"
+                onClick={onClose}
+              >
+                {({ isActive }: { isActive: boolean }) => (
+                  <>
+                    <ToolStamp icon={tool.icon} size="row" />
+                    <span className="grid-panel-item-title">{toolTitleKeys[tool.label] ? t(toolTitleKeys[tool.label]!) : tool.label}</span>
+                    {isActive ? <span className="grid-panel-here" aria-hidden="true">{t('currentToolHere')}</span> : null}
+                  </>
+                )}
+              </Link>
+            </li>
+          ))}
+        </ul>
       </div>
     </>
   );
