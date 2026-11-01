@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { RotateCcw, Undo2, Redo2 } from 'lucide-react';
+import { Calculator, RotateCcw, Undo2, Redo2 } from 'lucide-react';
+import ToolStamp from '@/components/ToolStamp';
 import NumericInput from '@/components/NumericInput/NumericInput';
 import { useTripStore } from '@/store/tripStore';
 import { useToastStore } from '@/store/toastStore';
@@ -200,6 +201,9 @@ export default function TripToolbar() {
       <header className="trip-toolbar">
         <div className="trip-toolbar-center">
           <div className="trip-pill">
+            <span className="trip-pill-stamp" data-tool="trip">
+              <ToolStamp icon={Calculator} size="mini" />
+            </span>
             <input
               className="trip-pill-text"
               value={tripName}
@@ -228,7 +232,7 @@ export default function TripToolbar() {
         </div>
 
         <div className="trip-toolbar-id-row">
-          <div className="trip-id-pill">
+          <div className="trip-id-pill" data-tool="trip">
             <span className="trip-id-pill-label">{t('tripId')}</span>
             <input
               className="trip-id-pill-input"

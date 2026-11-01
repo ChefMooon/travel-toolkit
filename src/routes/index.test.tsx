@@ -58,25 +58,30 @@ describe('landing route', () => {
   it('renders accessible tool links with decorative Lucide icons', () => {
     const { container } = render(<LandingPage />);
 
-    expect(screen.getByRole('link', { name: 'Calculate trip cost' })).toHaveAttribute('href', '/trip');
+    expect(screen.queryByRole('link', { name: 'Calculate trip cost' })).not.toBeInTheDocument();
+    expect(screen.getByText('Everything you need to plan the trip, in one place.')).toBeInTheDocument();
 
     for (const { label, description, route } of expectedTools) {
       const link = screen.getByRole('link', { name: new RegExp(label) });
       expect(link).toHaveAttribute('href', route);
-      expect(link).toHaveClass(`tool-card--${route.slice(1)}`);
+      expect(link).toHaveAttribute('data-tool', route.slice(1));
       expect(link).toHaveTextContent(description);
     }
 
     expect(
       container.querySelectorAll(
-        '.tool-launcher-icon[aria-hidden="true"] > svg[focusable="false"]',
+        '.tool-card > .stamp-wrap[aria-hidden="true"] .stamp-inner > svg[focusable="false"]',
       ),
     ).toHaveLength(expectedTools.length);
+    expect(container.querySelectorAll('.tool-card .postmark')).toHaveLength(expectedTools.length);
     expect(
-      Array.from(container.querySelectorAll('.tool-launcher-icon svg')).every(
+      Array.from(container.querySelectorAll('.stamp-inner svg')).every(
         (icon) => icon.getAttribute('stroke-width') === '2',
       ),
     ).toBe(true);
+    expect(container.querySelector('.hero-map')).toHaveAttribute('aria-hidden', 'true');
+    expect(container.querySelector('.hero-route')).toHaveAttribute('aria-hidden', 'true');
+    expect(container.querySelector('.hero-route-plane')).toHaveAttribute('aria-hidden', 'true');
     expect(container.querySelector('.tool-grid')).toHaveAttribute('data-page-entrance');
   });
 

@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Plane } from 'lucide-react';
 import { TOOLS } from '@/lib/tools';
 import { blogPosts, getBlogPostDisplayDate } from '@/lib/blogPosts';
 import { useTranslation } from 'react-i18next';
 import type { TranslationKey } from '@/i18n';
+import ToolStamp from '@/components/ToolStamp';
 
 const toolKeys: Record<string, [TranslationKey, TranslationKey]> = {
   'Trip Cost': ['toolTripCost', 'descriptionTrip'], 'Currency Converter': ['toolCurrency', 'descriptionCurrency'],
@@ -17,12 +18,17 @@ export default function LandingPage() {
 
   return (
     <main className="tool-landing" aria-label={t('toolLauncher')}>
+      <span className="hero-map" aria-hidden="true" />
       <header className="tool-landing-header">
-        <h1>{t('travelToolkit')}</h1>
+        <div className="hero-title">
+          <svg className="hero-route" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+            <path d="M4 100 C 28 112, 62 88, 96 4" />
+          </svg>
+          <span className="hero-route-dot" aria-hidden="true" />
+          <Plane className="hero-route-plane" aria-hidden="true" focusable="false" size={22} strokeWidth={2} />
+          <h1>{t('travelToolkit')}</h1>
+        </div>
         <p>{t('homeIntro')}</p>
-        <Link to="/trip" className="tool-landing-cta">
-          {t('calculateTripCost')} <ArrowRight aria-hidden="true" focusable="false" size={18} strokeWidth={2.5} />
-        </Link>
       </header>
 
       <div className="tool-grid" data-page-entrance>
@@ -30,11 +36,10 @@ export default function LandingPage() {
           <Link
             key={tool.route}
             to={tool.route}
-            className={`tool-card tool-card--${tool.route.slice(1)}`}
+            className="tool-card"
+            data-tool={tool.route.slice(1)}
           >
-            <span className="tool-launcher-icon" aria-hidden="true">
-              <tool.icon focusable="false" strokeWidth={2} />
-            </span>
+            <ToolStamp icon={tool.icon} />
             <span className="tool-card-label">{toolKeys[tool.label] ? t(toolKeys[tool.label]![0]) : tool.label}</span>
             <span className="tool-card-desc">{toolKeys[tool.label] ? t(toolKeys[tool.label]![1]) : tool.description}</span>
           </Link>

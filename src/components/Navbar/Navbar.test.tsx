@@ -6,10 +6,14 @@ import { act, render, screen, fireEvent } from '@testing-library/react';
 import Navbar from '@/components/Navbar';
 import { useSettingsStore } from '@/store/settingsStore';
 
+const mockPathname = vi.hoisted(() => ({ value: '/' }));
+
 vi.mock('@tanstack/react-router', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@tanstack/react-router')>();
   return {
     ...actual,
+    useRouterState: ({ select }: { select: (state: { location: { pathname: string } }) => unknown }) =>
+      select({ location: { pathname: mockPathname.value } }),
     Link: ({ to, children, ...props }: React.ComponentProps<'a'> & { to: string }) => (
       <a href={to} {...props}>{children}</a>
     ),
@@ -49,6 +53,7 @@ vi.mock('@/components/GridPanel', () => ({
 describe('Navbar', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockPathname.value = '/';
     useSettingsStore.setState({ themePreference: 'light' });
   });
 
@@ -185,5 +190,11 @@ describe('Navbar', () => {
     expect(screen.getByTestId('grid-panel-state')).toHaveTextContent('closed');
     expect(trigger).not.toHaveFocus();
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+  });
+
+  it('colors the tools trigger with the current tool', () => {
+    mockPathname.value = '/units';
+    render(<Navbar />);
+    expect(screen.getByRole('button', { name: 'Open tool navigation' })).toHaveAttribute('data-tool', 'units');
   });
 });

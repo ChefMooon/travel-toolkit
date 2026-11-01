@@ -5,17 +5,26 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import GridPanel from '@/components/GridPanel';
 
+const mockPathname = vi.hoisted(() => ({ value: '/trip' }));
+
 vi.mock('@tanstack/react-router', () => ({
-  Link: ({ to, children, ...props }: React.ComponentProps<'a'> & { to: string }) => (
-    <a href={to} {...props}>
-      {children}
-    </a>
-  ),
+  Link: ({ to, children, ...props }: Omit<React.ComponentProps<'a'>, 'children'> & {
+    to: string;
+    children: React.ReactNode | ((state: { isActive: boolean }) => React.ReactNode);
+  }) => {
+    const isActive = to === mockPathname.value;
+    return (
+      <a href={to} aria-current={isActive ? 'page' : undefined} {...props}>
+        {typeof children === 'function' ? children({ isActive }) : children}
+      </a>
+    );
+  },
 }));
 
 describe('GridPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockPathname.value = '/trip';
   });
 
   it('renders nothing when closed', () => {
@@ -38,16 +47,24 @@ describe('GridPanel', () => {
     expect(screen.getByRole('link', { name: 'Unit Converter' })).toHaveAttribute('href', '/units');
     expect(screen.getByRole('link', { name: 'Destination Forecast' })).toHaveAttribute('href', '/forecast');
     expect(screen.getByRole('link', { name: 'Travel Countdown' })).toHaveAttribute('href', '/countdown');
-    expect(
-      container.querySelectorAll(
-        '.tool-launcher-icon[aria-hidden="true"] > svg[focusable="false"]',
-      ),
-    ).toHaveLength(6);
-    expect(
-      Array.from(container.querySelectorAll('.tool-launcher-icon svg')).every(
-        (icon) => icon.getAttribute('stroke-width') === '2',
-      ),
-    ).toBe(true);
+    expect(container.querySelectorAll('ul.grid-panel-list > li > a[data-tool]')).toHaveLength(6);
+    expect(container.querySelectorAll('a > .stamp-wrap[aria-hidden="true"] .stamp-inner > svg')).toHaveLength(6);
+  });
+
+  it('marks only the active tool with aria-current and an aria-hidden "Here" label', () => {
+    mockPathname.value = '/currency';
+    const triggerRef = { current: document.createElement('button') };
+    const { container } = render(<GridPanel open={true} onClose={vi.fn()} triggerRef={triggerRef} />);
+
+    const active = screen.getByRole('link', { name: 'Currency Converter' });
+    expect(active).toHaveAttribute('aria-current', 'page');
+    expect(active).toHaveAttribute('data-tool', 'currency');
+    expect(screen.getByRole('link', { name: 'Trip Cost' })).not.toHaveAttribute('aria-current');
+
+    const here = screen.getByText('Here');
+    expect(here).toHaveAttribute('aria-hidden', 'true');
+    expect(active).toContainElement(here);
+    expect(container.querySelectorAll('.grid-panel-here')).toHaveLength(1);
   });
 
   it('closes when selecting a tool link', () => {

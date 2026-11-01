@@ -6,43 +6,105 @@ Companion to [SITE-DESIGN-SPEC.md](./SITE-DESIGN-SPEC.md). This document covers 
 
 ## Home page tool cards
 
-Each home page tool card has a distinct accent inspired by the trip-cost group
-palette. The complete named palette and its light and dark values live in
-[`COUPLE_COLORS`](../src/store/types.ts); the first five Pressed Flowers colors
-also have CSS tokens near the top of [`src/index.css`](../src/index.css). The
-home-card shades are contrast-adjusted derivatives, not exact copies of those
-values. Choose a recognizable palette hue that is distinct from the existing
-cards, then tune it separately for each theme.
+Tools are shown as postcards carrying a postage stamp. Rule: **stamps mean
+tools.** The perforated stamp is reserved for tool identity (home cards, the
+tools popover, the Trip Cost toolbar pill) and is not used as general
+decoration.
 
-| Tool | Palette inspiration | Card class |
+### Tool color
+
+Each tool has a distinct accent inspired by the trip-cost group palette. The
+complete named palette lives in [`COUPLE_COLORS`](../src/store/types.ts); the
+first five Pressed Flowers colors also have CSS tokens near the top of
+[`src/index.css`](../src/index.css). The card shades are contrast-adjusted
+derivatives, not exact copies. Choose a recognizable palette hue that is
+distinct from the existing tools, then tune it separately for each theme.
+
+| Tool | Palette inspiration | `data-tool` |
 |---|---|---|
-| Trip Cost | Rose | `.tool-card--trip` (uses the base card's rose defaults) |
-| Currency Converter | Sage | `.tool-card--currency` |
-| Timezone Tracker | Periwinkle | `.tool-card--timezone` |
-| Destination Forecast | Tan, adjusted toward amber | `.tool-card--forecast` |
-| Unit Converter | Plum | `.tool-card--units` |
-| Travel Countdown | Teal | `.tool-card--countdown` |
+| Trip Cost | Rose | `trip` (also the default) |
+| Currency Converter | Sage | `currency` |
+| Timezone Tracker | Periwinkle | `timezone` |
+| Destination Forecast | Tan, adjusted toward amber | `forecast` |
+| Unit Converter | Plum | `units` |
+| Travel Countdown | Teal | `countdown` |
 
-The tool list is defined in [`src/lib/tools.ts`](../src/lib/tools.ts), and
-[`src/routes/index.tsx`](../src/routes/index.tsx) derives each card class from
-its route. Card-specific color variables and dark-theme overrides live in the
-`.tool-card` section of `src/index.css`. Keep colors tied to the tool route,
-not its position in the grid, so reordering tools does not change their colors.
+The tool list is defined in [`src/lib/tools.ts`](../src/lib/tools.ts). Color is
+applied through the `[data-tool]` attribute hook, set to the route name
+(`tool.route.slice(1)`). Any element with `data-tool` (card, popover row,
+toolbar pill, the navbar trigger for the current tool) receives these
+variables, with light and dark values in the `[data-tool]` block of
+`src/index.css`:
 
-When adding a tool, select an unused palette hue where practical and define
-light and dark values for `--card-edge`, `--card-start`, `--card-end`,
-`--card-icon`, and `--card-icon-bg` under its route class. The edge is solid at
-rest; hover uses a stationary two-color gradient. Keep the border static; a
-subtle card lift and shadow transition may provide hover feedback when motion
-is allowed. Keep the separate focus outline and forced-colors fallback.
-The navigation popover reuses these route classes and color variables for its
-compact cards and icon tiles, so the same tool keeps its color in both places.
+`--card-edge`, `--card-icon`, `--card-icon-bg`
+
+This block is the only place tool colors are defined; component rules such as
+`.tool-card` only read the variables. Keep colors tied to the tool route, not
+its grid position. When adding a tool, define light and dark values for all
+three variables under its `data-tool` value.
 
 Check contrast in both themes against the actual adjacent colors: the resting
-edge and every part of the hover gradient must reach at least 3:1 against the
-page background, and the icon must remain distinguishable from its tile. Check
-the focus outline as well. Palette colors and soft group borders are starting
-points, not a guarantee of sufficient contrast; adjust the shades as needed.
+edge must reach at least 3:1 against the page background, the icon must remain
+distinguishable from its stamp fill, and the focus outline must be visible.
+Palette colors are starting points, not a guarantee; adjust the shades as needed.
+
+### Postcard card
+
+`.tool-card` uses `--card-paper` as its surface, a 1.5px solid `--card-edge`
+border, 12px radius, and an inset 5px dashed frame (`::after`, 30% of the edge
+color). The card has a stamp on top, then the label and description. Hover
+deepens the shadow and, when motion is allowed, lifts the card 2px. The border
+stays static. Keep the separate `:focus-visible` outline in `--card-edge`.
+Settings and tools panels use `--card-paper` with a `--rule` border but no
+dashed inner frame.
+
+### ToolStamp
+
+[`ToolStamp`](../src/components/ToolStamp/ToolStamp.tsx) is the single
+component for tool icons. Do not hand-roll stamp markup.
+
+- Props: `icon` (Lucide component) and `size`: `card` (42px, default), `row`
+  (30px, popover rows), `mini` (26px, Trip Cost pill). Sizing is driven by
+  `--s`, `--step`, `--hole`, `--pad`, and `--pm-w` on `.stamp-wrap--{size}`.
+- Decorative: the wrapper is `aria-hidden="true"`; the adjacent text label
+  carries the name.
+- Perforation: `.stamp` fills with `--card-icon-bg` and is cut with four
+  radial-gradient masks (one per edge) combined by intersection. Declare both
+  `-webkit-mask` / `-webkit-mask-composite: source-in` and the standard
+  `mask` / `mask-composite: intersect`. An `@supports not (...)` fallback
+  removes the mask and uses a plain 10px radius.
+- Postmark: an SVG overlay, hidden at rest. On card hover or `:focus-visible`
+  it appears (about 0.6 opacity) with a short stamp-in animation, and the stamp
+  tilts -4deg. The current popover row shows its postmark at 0.7.
+- Reduced motion: no transitions, tilt or animation; the postmark simply appears
+  at its final state on hover and focus.
+- Forced colors: the mask and fill are dropped for a `CanvasText` 1px border on
+  `Canvas`, and the postmark and card dashed frame are hidden.
+
+## Paper background
+
+The page background is `--bg` plus a tiled grain image (`grain-light.svg` or
+`grain-dark.svg`, 200px tile) set on `html` only, with `data-theme="dark"`
+selecting the dark variant. Do not use `background-attachment: fixed`, because
+it forces repaints on scroll and is unreliable on mobile; the grain scrolls
+with the page. Do not repeat the grain on `body` or on components.
+
+## Header translucency
+
+The navbar and the Trip Cost mobile nav are translucent over the paper: 80%
+`--bg` for the navbar and 94% for the mobile nav. The tint and
+`backdrop-filter: blur(10px)` (with the `-webkit-` prefix) live on a `::before`
+pseudo-element, with `isolation: isolate` on the host.
+
+Never put `backdrop-filter` (or `filter`, `transform`) on an element that
+contains `position: fixed` children. It makes that element the containing block
+for them. The navbar holds the tools popover and its fixed full-screen
+backdrop, so blurring `.navbar` itself would shrink the backdrop to the
+header's box.
+
+Fallbacks: `@supports not (backdrop-filter...)` makes the `::before` solid
+`--bg`, and `prefers-reduced-transparency: reduce` does the same and removes
+the blur.
 
 ## Scrollbars
 

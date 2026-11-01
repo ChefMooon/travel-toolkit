@@ -48,19 +48,31 @@ Defined in [src/index.css](../src/index.css) under :root and theme selectors.
 
 | Token | Light | Dark | Usage |
 |---|---|---|---|
-| --bg | #FAFAF7 | #18171A | App background |
-| --bg-2 | #F3F2EE | #211F24 | Subtle raised surfaces |
-| --bg-3 | #EAEAE4 | #2A2830 | Active/hover fill |
-| --surface | #FFFFFF | #1E1C22 | Card and modal base |
-| --surface-2 | #F8F8F5 | #252330 | Header and nested surfaces |
-| --border | #E2E0D8 | #322F3A | Primary borders |
-| --border-2 | #D0CEC4 | #403D4C | Secondary borders |
+| --bg | #F7F3EA | #1A1918 | App background (warm paper in light) |
+| --bg-2 | #F0EBDF | #24211F | Subtle raised surfaces |
+| --bg-3 | #E7E1D3 | #2D2A27 | Active/hover fill |
+| --surface | #FFFFFF | #211F1D | Card and modal base |
+| --surface-2 | #F8F8F5 | #282522 | Header and nested surfaces |
+| --border | #E0DACB | #36322E | Primary borders |
+| --border-2 | #CEC7B6 | #46413C | Secondary borders |
 | --text | #2A2824 | #EEEAE6 | Primary text |
-| --text-2 | #6B6860 | #9E9B96 | Secondary text |
-| --text-3 | #A8A59E | #625F5A | Tertiary/label text |
+| --text-2 | #5E5A53 | #9E9B96 | Secondary text |
+| --text-3 | #68635B | #A39F9B | Tertiary/label text |
 | --accent | #C4737A | #C4737A | Primary action tone |
 | --danger | #B85C5C | #B85C5C | Destructive actions |
 | --focus | #7B87BE | #7B87BE | Keyboard focus ring |
+
+Postcard tokens:
+
+| Token | Light | Dark | Usage |
+|---|---|---|---|
+| --card-paper | #FFFDF8 | #221F1D | Postcard surface for tool cards, popovers, and settings/tools panels |
+| --rule | #E4DCCB | #36322F | Hairline rules and panel borders on paper surfaces |
+| --rule-2 | #D3CABA | #47423F | Stronger rule |
+| --btn | #FBF8F1 | #23201E | Neutral control fill (top-bar trigger, theme selector) |
+| --stamp-paper | #FFFDF8 | #E6DED0 | Paper color of the logo stamp |
+
+Per-tool color variables (`--card-edge`, `--card-icon`, `--card-icon-bg`) are set through the `[data-tool]` hook; see [STYLE-GUIDE.md](./STYLE-GUIDE.md).
 
 Icon tone tokens:
 
@@ -178,8 +190,9 @@ Top bar behavior:
 - >=768px: full single-row
 
 Top-bar shared controls:
-- Grid launcher trigger and theme selector use 44px minimum interactive targets, matching 12px outer corner radii, 1.5px neutral borders, and a neutral theme-aware surface
-- The grid launcher uses a dedicated four-cell Lucide grid glyph, separate from the tool icons; its stroke inherits theme-aware `currentColor`, with a restrained coral accent on hover and while open
+- The top bar is translucent over the paper background (80% `--bg` tint with a 10px blur applied on `::before`, never on the navbar itself, so the fixed popover backdrop is not clipped). It falls back to solid `--bg` without `backdrop-filter` support or under `prefers-reduced-transparency`
+- Grid launcher trigger and theme selector use 44px minimum interactive targets, matching 12px outer corner radii, 1.5px neutral borders, and the `--btn` surface
+- The grid launcher uses a dedicated four-cell Lucide grid glyph, separate from the tool icons; its stroke inherits theme-aware `currentColor`. While open it takes the current tool's colors (`--card-icon-bg` fill, `--card-edge` border, `--card-icon` glyph) via `data-tool` on the trigger, or the coral accent when no tool route is active. The settings trigger uses the coral accent while open
 - The theme selector uses a segmented thumb with the same restrained coral accent for selected and hovered options; keyboard focus remains visibly outlined
 - Both controls retain clear forced-colors styling; reduced-motion mode uses a discrete selected segment instead of the sliding thumb
 - The grid trigger tooltip and focus behavior remain available, and the controls remain visible in desktop and mobile top bar layouts
@@ -286,13 +299,15 @@ Behavior:
 - The panel does not include a dedicated Close button; dismissal is via trigger toggle, backdrop, Escape, or route selection
 
 Layout:
-- Four destination tiles are presented in a 2x2 grid on anchored/tablet/desktop panel layouts
-- Each tile stacks icon above label
-- Labels support up to two lines for long names with balanced line-height and clipping
-- Tool icons use the shared Lucide React mapping in `src/lib/tools.ts`; each decorative 22x22 glyph has a 1.75 stroke and uses `currentColor` inside a 34x34 theme-aware soft-tint badge
-- Tile hover and focus feedback applies to the whole link; focus uses the shared `--focus` outline and active state provides touch feedback
+- The popover is a single-column list (`ul`) of all tools on a `--card-paper` surface with a `--rule` border
+- Each row is a whole-link target: a 30px `ToolStamp` (row size) followed by the tool name
+- The row for the current route carries `aria-current="page"`, a tinted background, a visible postmark, and a "Here" marker; it keeps a Highlight outline in forced-colors mode
+- Tool icons use the shared Lucide React mapping in `src/lib/tools.ts`, rendered through `ToolStamp` (see [STYLE-GUIDE.md](./STYLE-GUIDE.md))
+- Row hover applies a `--surface-2` fill; focus uses a 2px outline in the tool's `--card-edge`
 
 Panel content:
+
+The list renders every entry in `src/lib/tools.ts`:
 
 | Lucide icon | Label | Route |
 |---|---|---|
@@ -301,26 +316,29 @@ Panel content:
 | Clock | Timezone Tracker | /timezone |
 | CloudSun | Destination Forecast | /forecast |
 
+The Unit Converter (/units) and Travel Countdown (/countdown) rows follow the same pattern.
+
 ### 8.3 Landing Page
 
 The landing page is the default entry route and acts as a tool launcher.
 
 Layout:
-- Tool launcher content is centered within a constrained content width
-- Tool cards use a responsive compact grid with centered card alignment
-- Card width is intentionally narrower than full-row list sizing to preserve scanability
+- A hero header sits above the grid: the "Travel Toolkit" title with a dotted flight path (SVG route curve, origin dot, and plane) and a faint dotted world map (`world-dots.svg`) behind it. The map is decorative, fades out toward the bottom, and is hidden below 600px
+- On load, the route draws once from the origin dot (about 0.9s, left-to-right clip reveal) and the plane then fades in with a small nudge along its heading. It plays once per visit, never loops, and is skipped entirely under `prefers-reduced-motion: reduce`, where the route and plane render fully drawn
+- The subtitle is "Everything you need to plan the trip, in one place."; there is no call-to-action button in the hero
+- Tool postcards use a responsive compact grid (220-244px columns) with centered alignment, followed by the latest blog post link
 
-Each card includes:
-- icon
+Each postcard includes:
+- a 42px `ToolStamp` (tool icon)
 - title
 - short description (typically one to two lines)
 - clear click target that navigates through the shared route system
 
-Launcher icon and interaction treatment:
-- Cards use the same decorative Lucide React icon mapping as the grid panel, with 22x22 glyphs at 1.75 stroke inside 38x38 theme-aware soft-tint badges
-- Icon glyphs inherit `currentColor`; badge color and surface use the shared theme palette
-- Hover lifts the whole card slightly and strengthens its border and shadow; keyboard focus outlines the whole link with the `--focus` token
-- Active state gives touch feedback; reduced-motion preferences suppress launcher transforms and transitions
+Postcard treatment:
+- `--card-paper` surface, 1.5px solid `--card-edge` border, 12px radius, and an inset dashed frame in a 30% tint of the edge color
+- Colors come from the per-tool `data-tool` variables; the stamp is perforated and carries a postmark on hover or keyboard focus (see [STYLE-GUIDE.md](./STYLE-GUIDE.md))
+- Hover deepens the shadow and lifts the card 2px; keyboard focus outlines the whole link in the tool's edge color
+- Reduced-motion preferences suppress lift, tilt, and postmark animation; forced-colors mode drops the frame and postmark and uses a 2px `CanvasText` border
 
 ### 8.4 Region Selector
 
@@ -491,17 +509,22 @@ No destructive action may execute without explicit confirmation.
 ## 11. Logo, Iconography, and Imagery
 
 Logo:
-- Shared app icon rendered directly in the top bar logo container
-- Logo presentation is controlled by the brand logo container styling rather than runtime SVG path injection
+- The top bar logo is an inline SVG postage stamp (perforated `--stamp-paper` edge, coral gradient field, white "TT" monogram), rendered by the `Logo` component with a per-instance gradient id
+- The former raster logo image is no longer used
+
+App icons and browser chrome:
+- `public/favicon.svg` and the 192/512 PNG app icons use the stamp mark; separate maskable 192/512 PNGs are declared with `purpose: "maskable"` in `manifest.json` (the standard icons use `purpose: "any"`)
+- `public/apple-touch-icon.png` is linked from `index.html`
+- `theme-color` is set per scheme: #F7F3EA (light) and #1A1918 (dark). The manifest `theme_color` and `background_color` are #F7F3EA
 
 Iconography:
 - Lucide React icons used for utility controls and navigation
-- The four tool-launcher icons share the typed mapping in `src/lib/tools.ts`; use decorative 22x22 glyphs with a 1.75 stroke and theme-aware `currentColor`
+- Tool icons share the typed mapping in `src/lib/tools.ts` and are always rendered inside the shared `ToolStamp` component (decorative, `aria-hidden`); the stamp is reserved for tools
 - Emoji icon set used for group identity selection
 
 Imagery:
 - No decorative photography system currently used
-- Visual atmosphere created through tokenized colors, subtle dotted background, and component styling
+- Visual atmosphere created through tokenized colors, a warm paper background with a faint tiled grain (set on `html` only, scrolling with the page, no fixed attachment), postcard and stamp components, and the landing hero's dotted world map
 
 ## 12. Voice and Tone for UI Copy
 
@@ -538,3 +561,4 @@ Definition of done for design-affecting changes:
 | 1.2 | 2026-09-29 | Documented the title hierarchy and color-only hover and focus treatment for blog post card links. |
 | 1.3 | 2026-09-30 | Documented shared Lucide tool-launcher icons and whole-link hover, focus, active, and reduced-motion behavior. |
 | 1.4 | 2026-09-30 | Replaced the top-bar launcher image with a dedicated Lucide grid glyph using theme-aware `currentColor`; retained the existing trigger geometry and interactions. |
+| 1.5 | Unreleased | Postcard theme restyle (next version): warm paper background with grain, new paper and rule tokens, perforated `ToolStamp` with postmark and per-tool `data-tool` colors, postcard landing cards and hero with flight path and world map (hero CTA removed), list-style tools popover marking the current tool, translucent header and mobile nav, stamp logo and app icons with maskable and apple-touch variants, and light/dark `theme-color`. |
