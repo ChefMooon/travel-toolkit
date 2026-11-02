@@ -83,13 +83,25 @@ function isImportRateMode(value: unknown): value is ImportRateMode {
 function isMeasurementSystem(value: unknown): value is MeasurementSystem { return value === 'metric' || value === 'imperial'; }
 function isClockFormat(value: unknown): value is ClockFormat { return value === '12h' || value === '24h'; }
 function isAppLanguage(value: unknown): value is AppLanguage { return APP_LANGUAGES.includes(value as AppLanguage); }
+// Spanish regions that use Mexican-style Latin American wording; every other Spanish tag maps to es-ES.
+const LATIN_AMERICAN_SPANISH_REGIONS = new Set(['419', 'MX', 'US', 'AR', 'BO', 'CL', 'CO', 'CR', 'CU', 'DO', 'EC', 'GT', 'HN', 'NI', 'PA', 'PE', 'PR', 'PY', 'SV', 'UY', 'VE']);
+
+/** Maps one BCP 47 browser language tag to a supported app language, or null when unsupported. */
+export function mapBrowserLanguage(tag: string | undefined): AppLanguage | null {
+  const [language, ...subtags] = (tag ?? '').trim().toLowerCase().split(/[-_]/);
+  const region = subtags.find((subtag) => /^([a-z]{2}|\d{3})$/.test(subtag))?.toUpperCase();
+  if (language === 'en') return 'en';
+  if (language === 'fr') return region === 'CA' ? 'fr-CA' : 'fr-FR';
+  if (language === 'es') return region && LATIN_AMERICAN_SPANISH_REGIONS.has(region) ? 'es-MX' : 'es-ES';
+  return null;
+}
+
 function browserLanguage(): AppLanguage {
   if (typeof navigator === 'undefined') return 'en';
   const languages = navigator.languages?.length ? navigator.languages : [navigator.language];
   for (const language of languages) {
-    const normalized = language?.toLowerCase();
-    if (normalized === 'fr-ca') return 'fr-CA';
-    if (normalized === 'en' || normalized?.startsWith('en-')) return 'en';
+    const mapped = mapBrowserLanguage(language);
+    if (mapped) return mapped;
   }
   return 'en';
 }

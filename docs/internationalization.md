@@ -2,11 +2,9 @@
 
 ## Current language status
 
-English is the default interface language. French (France) (`fr-FR`) is also available as a supported language, selected explicitly in Settings; it is not currently selected by browser-language detection. Spanish (Spain) (`es-ES`) and Spanish (Mexico) (`es-MX`) are supported in the same way.
+English is the default interface language. Supported translated locales are French (Canada) (`fr-CA`), French (France) (`fr-FR`), Spanish (Spain) (`es-ES`), and Spanish (Mexico) (`es-MX`). The French (Canada) translation has been reviewed for terminology, grammar, plurals, consent, and destructive-action wording. Users can also select any language explicitly in Settings.
 
- French (Canada) is available as a supported interface language, selected explicitly in Settings. Its translation has been reviewed for terminology, grammar, plurals, consent, and destructive-action wording.
-
-On a first visit with no saved language, the application picks the first browser language (`navigator.languages`) that matches a supported locale: `fr-CA` selects French (Canada), and `en` or `en-*` selects English; otherwise English is used. After that, the selected language is validated and saved in the existing site settings store. English resources are bundled as the fallback; the French resource module is loaded only after the user selects French. If loading fails, the application returns to English and updates the saved preference and document metadata together.
+On a first visit with no saved language, the application picks the first browser language (`navigator.languages`) that maps to a supported locale (`mapBrowserLanguage` in `src/store/settingsStore.ts`): `en` and `en-*` select English; `fr-CA` selects French (Canada) and any other `fr` tag selects French (France); Latin American Spanish tags (`es-MX`, `es-419`, `es-US`, `es-AR` and similar) select Spanish (Mexico) and any other `es` tag selects Spanish (Spain). Unsupported languages are skipped, and English is used if nothing matches. After that, the selected language is validated and saved in the existing site settings store. English resources are bundled as the fallback; the French resource module is loaded only after the user selects French. If loading fails, the application returns to English and updates the saved preference and document metadata together.
 
 ## Editing messages
 
@@ -22,7 +20,7 @@ On a first visit with no saved language, the application picks the first browser
 ## Adding a language
 
 1. Obtain an owner decision on locale/region and a named language reviewer.
-2. Add the locale to the validated settings type and explicit selector only after choosing its release status. Do not add a locale to browser-language detection until it is reviewed.
+2. Add the locale to the validated settings type and explicit selector only after choosing its release status. Add the locale to `mapBrowserLanguage` and its tests only once it is ready to be selected automatically.
 3. Add a separate lazily imported resource module and map it explicitly in `src/i18n.ts`. Keep English fallback available.
 4. Translate every application-owned interface message and preserve interpolation, plural, and rich-text boundaries. Run the catalog parity check and focused locale tests.
 5. Check currency/number/date/relative-time output, geocoding language mapping and query identity, source-language content boundaries, imports/exports, and responsive UI.

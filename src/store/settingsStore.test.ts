@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { useSettingsStore } from './settingsStore';
+import { mapBrowserLanguage, useSettingsStore } from './settingsStore';
 
 describe('global settings', () => {
   afterEach(() => vi.restoreAllMocks());
@@ -55,13 +55,33 @@ describe('global settings', () => {
     expect(useSettingsStore.getState().language).toBe('en');
   });
 
+  it('maps browser language tags to the closest supported locale', () => {
+    const expected: Record<string, string | null> = {
+      en: 'en', 'en-GB': 'en', 'EN-us': 'en',
+      fr: 'fr-FR', 'fr-FR': 'fr-FR', 'fr-BE': 'fr-FR', 'fr-CH': 'fr-FR', 'fr-CA': 'fr-CA', 'fr-ca': 'fr-CA', 'fr-Latn-CA': 'fr-CA',
+      es: 'es-ES', 'es-ES': 'es-ES', 'es-AD': 'es-ES', 'es-MX': 'es-MX', 'es-419': 'es-MX', 'es-US': 'es-MX', 'es-AR': 'es-MX', 'es-CO': 'es-MX', 'es-Latn-MX': 'es-MX',
+      de: null, 'de-DE': null, pt: null, '': null,
+    };
+    for (const [tag, language] of Object.entries(expected)) expect(mapBrowserLanguage(tag), tag).toBe(language);
+    expect(mapBrowserLanguage(undefined)).toBeNull();
+  });
+
+  it('detects French and Spanish variants from the browser when no language is saved', async () => {
+    for (const [languages, language] of [[['fr-BE'], 'fr-FR'], [['es-AR', 'en'], 'es-MX'], [['es'], 'es-ES'], [['de', 'es-CL'], 'es-MX']] as const) {
+      vi.spyOn(navigator, 'languages', 'get').mockReturnValue([...languages]);
+      localStorage.setItem('travel-toolkit-settings-data', JSON.stringify({ state: {}, version: 0 }));
+      await useSettingsStore.persist.rehydrate();
+      expect(useSettingsStore.getState().language, languages.join()).toBe(language);
+    }
+  });
+
   it('preserves a saved language and falls back to English for unsupported locales', async () => {
     vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['fr-CA']);
     localStorage.setItem('travel-toolkit-settings-data', JSON.stringify({ state: { language: 'en' }, version: 0 }));
     await useSettingsStore.persist.rehydrate();
     expect(useSettingsStore.getState().language).toBe('en');
 
-    vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['fr-FR', 'de-DE']);
+    vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['de-DE', 'pt-BR']);
     localStorage.setItem('travel-toolkit-settings-data', JSON.stringify({ state: {}, version: 0 }));
     await useSettingsStore.persist.rehydrate();
     expect(useSettingsStore.getState().language).toBe('en');
