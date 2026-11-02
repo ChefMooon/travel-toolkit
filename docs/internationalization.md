@@ -2,13 +2,15 @@
 
 ## Current language status
 
-English is the default interface language. French (Canada) is available as a supported interface language, selected explicitly in Settings. Its translation has been reviewed for terminology, grammar, plurals, consent, and destructive-action wording.
+English is the default interface language. French (France) (`fr-FR`) is also available as a supported language, selected explicitly in Settings; it is not currently selected by browser-language detection.
+
+ French (Canada) is available as a supported interface language, selected explicitly in Settings. Its translation has been reviewed for terminology, grammar, plurals, consent, and destructive-action wording.
 
 On a first visit with no saved language, the application picks the first browser language (`navigator.languages`) that matches a supported locale: `fr-CA` selects French (Canada), and `en` or `en-*` selects English; otherwise English is used. After that, the selected language is validated and saved in the existing site settings store. English resources are bundled as the fallback; the French resource module is loaded only after the user selects French. If loading fails, the application returns to English and updates the saved preference and document metadata together.
 
 ## Editing messages
 
-- English source messages live in `src/i18n.ts`; the French catalog lives in `src/i18n/locales/fr-CA.ts`.
+- English source messages live in `src/i18n.ts`; the French catalogs live in `src/i18n/locales/fr-CA.ts` and `src/i18n/locales/fr-FR.ts`.
 - Use semantic keys and complete sentences. Keep interpolation values as `{{name}}`; use i18next plural suffixes such as `_one` and `_other` with a `count` value.
 - Add each message to both catalogs. Keep wording and placeholders aligned. Run `npm run i18n:check` to verify catalog key and interpolation parity; `npm run i18n:check -- --self-test` also verifies that the checker catches an isolated missing-key fixture. Rich text should remain React content; do not build HTML strings.
 - Use `useTranslation()` in React components so language changes update visible text. Do not cache translated strings at module scope.

@@ -6,7 +6,7 @@ import { useSettingsStore } from '@/store/settingsStore';
 export const FORECAST_GEOCODE_MIN_QUERY_LENGTH = 3;
 
 export function useGeocode(query: string) {
-  const language = useSettingsStore((s) => s.language) === 'fr-CA' ? 'fr' : 'en';
+  const language = useSettingsStore((s) => s.language).startsWith('fr') ? 'fr' : 'en';
   return useQuery({
     queryKey: ['forecast', 'geocode', language, query],
     queryFn: ({ signal }) => fetchGeocodingResults(query, 5, signal, language),

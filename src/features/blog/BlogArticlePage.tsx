@@ -14,7 +14,7 @@ export default function BlogArticlePage() {
       <Link to="/blog" search={{ tag: undefined }} className="blog-back-link">
         <ArrowLeft aria-hidden="true" size={16} /> {t('backToBlog')}
       </Link>
-      {i18n.resolvedLanguage === 'fr-CA' ? <p lang="fr-CA" className="blog-source-notice">{t('articleSourceNotice')}</p> : null}
+      {i18n.resolvedLanguage?.startsWith('fr') ? <p lang={i18n.resolvedLanguage} className="blog-source-notice">{t('articleSourceNotice')}</p> : null}
       <article className="blog-article" lang="en">
         <header className="blog-article-header">
           <h1 id="blog-article-title">{post.title}</h1>

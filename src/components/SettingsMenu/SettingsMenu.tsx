@@ -3,7 +3,7 @@ import { Settings2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import '@/i18n';
 import { CURRENCIES, REGION_LIST } from '@/store/types';
-import { useSettingsStore } from '@/store/settingsStore';
+import { useSettingsStore, type AppLanguage } from '@/store/settingsStore';
 import Select from '@/components/Select/Select';
 import ThemeSelector from '@/components/ThemeSelector/ThemeSelector';
 import { isInsideOwnedPortal } from '@/components/Popover';
@@ -51,7 +51,7 @@ export default function SettingsMenu() {
       <label htmlFor="settings-currency">{t('preferredCurrency')}<Select id="settings-currency" className="shared-select-full" value={currency} options={CURRENCIES} onChange={setCurrency} /></label>
       <label htmlFor="settings-region">{t('preferredRegion')}<Select id="settings-region" className="shared-select-full" value={region ?? ''} options={['', ...REGION_LIST]} getOptionLabel={(value) => value ? t(`region${value.replace(/\s/g, '')}` as 'regionNorthAmerica') : t('noPreferredRegion')} onChange={(value) => setRegion((value || null) as typeof region)} /></label>
       <p className="global-settings-hint">{t('newTripCurrencyHint')}</p>
-      <label htmlFor="settings-language">{t('language')}<Select id="settings-language" className="shared-select-full" value={language} options={['en', 'fr-CA']} getOptionLabel={(value) => value === 'fr-CA' ? 'Français (Canada)' : 'English'} onChange={(value) => { void activateLanguage(value as 'en' | 'fr-CA'); }} /></label>
+      <label htmlFor="settings-language">{t('language')}<Select id="settings-language" className="shared-select-full" value={language} options={['en', 'fr-CA', 'fr-FR']} getOptionLabel={(value) => value === 'fr-CA' ? 'Français (Canada)' : value === 'fr-FR' ? 'Français (France)' : 'English'} onChange={(value) => { void activateLanguage(value as AppLanguage); }} /></label>
     </section>}
   </div>;
 }

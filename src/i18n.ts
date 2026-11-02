@@ -50,7 +50,7 @@ export const resources = {
 
 export type TranslationKey = keyof typeof resources.en.translation;
 
-export const localeDirections = { en: 'ltr', 'fr-CA': 'ltr' } as const;
+export const localeDirections = { en: 'ltr', 'fr-CA': 'ltr', 'fr-FR': 'ltr' } as const;
 export type TextDirection = 'ltr' | 'rtl';
 
 /** Keeps document metadata tied together; RTL use here is diagnostic only until an RTL locale is released. */
@@ -63,7 +63,7 @@ void i18n.use(initReactI18next).init({
   resources,
   lng: 'en',
   fallbackLng: 'en',
-  supportedLngs: ['en', 'fr-CA'],
+  supportedLngs: ['en', 'fr-CA', 'fr-FR'],
   load: 'currentOnly',
   interpolation: { escapeValue: false },
   returnNull: false,
@@ -85,10 +85,10 @@ function changeLanguageForRequest(language: AppLanguage, requestVersion: number)
   return change;
 }
 
-/** Activates the selected language, including French (Canada). */
+/** Activates the selected language, including French (Canada) and French (France). */
 export async function activateLanguage(
   language: AppLanguage,
-  loadFrench: () => Promise<{ default: Record<string, string> }> = () => import('./i18n/locales/fr-CA'),
+  loadFrench: () => Promise<{ default: Record<string, string> }> = () => (language === 'fr-FR' ? import('./i18n/locales/fr-FR') : import('./i18n/locales/fr-CA')),
 ): Promise<boolean> {
   if (activation?.language === language && activation.version === activationVersion) return activation.promise;
   const requestVersion = ++activationVersion;
@@ -102,10 +102,10 @@ export async function activateLanguage(
     try {
       const module = await loadFrench();
       if (requestVersion !== activationVersion) return false;
-      i18n.addResourceBundle('fr-CA', 'translation', module.default, true, true);
-      if (!await changeLanguageForRequest('fr-CA', requestVersion)) return false;
-      syncDocumentLocale('fr-CA', localeDirections['fr-CA']);
-      useSettingsStore.getState().setLanguage('fr-CA');
+      i18n.addResourceBundle(language, 'translation', module.default, true, true);
+      if (!await changeLanguageForRequest(language, requestVersion)) return false;
+      syncDocumentLocale(language, localeDirections[language]);
+      useSettingsStore.getState().setLanguage(language);
       return true;
     } catch (error) {
       if (requestVersion !== activationVersion) return false;

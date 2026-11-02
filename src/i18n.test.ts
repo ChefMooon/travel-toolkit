@@ -44,6 +44,18 @@ describe('site language activation', () => {
     expect(i18n.t('daysUntilTrip', { count: 2 })).toBe('jours avant votre voyage');
   });
 
+  it('loads French (France) as a separate preview locale with its own wording and typography', async () => {
+    await expect(activateLanguage('fr-FR')).resolves.toBe(true);
+    expect(i18n.resolvedLanguage).toBe('fr-FR');
+    expect(useSettingsStore.getState().language).toBe('fr-FR');
+    expect(document.documentElement.lang).toBe('fr-FR');
+    expect(i18n.t('blog')).toBe('Blog');
+    expect(i18n.t('stay')).toBe('Rester');
+    expect(i18n.t('leaveUnsavedTitle')).toBe('Quitter sans enregistrer les modifications ?');
+    await activateLanguage('fr-CA');
+    expect(i18n.t('blog')).toBe('Blogue');
+  });
+
   it('keeps the latest language selection when a French resource load is still pending', async () => {
     let finishLoad!: (value: { default: Record<string, string> }) => void;
     const frenchPending = activateLanguage('fr-CA', () => new Promise((resolve) => { finishLoad = resolve; }));

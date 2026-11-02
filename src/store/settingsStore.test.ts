@@ -35,6 +35,12 @@ describe('global settings', () => {
     expect(useSettingsStore.getState().language).toBe('en');
   });
 
+  it('accepts a persisted French (France) selection', async () => {
+    localStorage.setItem('travel-toolkit-settings-data', JSON.stringify({ state: { language: 'fr-FR' }, version: 0 }));
+    await useSettingsStore.persist.rehydrate();
+    expect(useSettingsStore.getState().language).toBe('fr-FR');
+  });
+
   it('detects the first supported browser language when no language is saved', async () => {
     vi.spyOn(navigator, 'languages', 'get').mockReturnValue(['de-DE', 'fr-ca', 'en-US']);
     localStorage.setItem('travel-toolkit-settings-data', JSON.stringify({ state: {}, version: 0 }));
