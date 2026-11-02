@@ -28,6 +28,7 @@ import { useSettingsStore } from '@/store/settingsStore';
 import { climateDisplay } from './climateUnits';
 import { formatDate, formatNumber } from '@/i18n/format';
 import { useTranslation } from 'react-i18next';
+import ToolPageHeading from '@/components/ToolPageHeading';
 import type { TranslationKey } from '@/i18n';
 
 const FORECAST_GEOCODE_DEBOUNCE_MS = 500;
@@ -620,7 +621,7 @@ export default function ForecastTool() {
 
   return (
     <main className="tool-page" data-page-entrance aria-label={t('toolForecast')}>
-      <h1>{t('toolForecast')}</h1>
+      <ToolPageHeading route="/forecast">{t('toolForecast')}</ToolPageHeading>
 
       <div className="card forecast-search-card">
         <div className="card-header">

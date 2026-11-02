@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { formatNumber } from '@/i18n/format';
 import { dateDraftErrorKey } from '@/i18n/dateDraft';
 import type { TFunction } from 'i18next';
+import ToolPageHeading from '@/components/ToolPageHeading';
 
 function message(result: ReturnType<typeof calculateCountdown>, t: TFunction) {
   switch (result.kind) {
@@ -32,7 +33,7 @@ export default function CountdownPage({ fromTrip = false }: { fromTrip?: boolean
   const today = useLocalDate();
   const result = error ? { kind: 'invalid' as const } : calculateCountdown(dates.start, dates.end, today);
   return <main className="tool-page countdown-page" data-page-entrance aria-label={t('toolCountdown')}>
-    <h1>{t('toolCountdown')}</h1>
+    <ToolPageHeading route="/countdown">{t('toolCountdown')}</ToolPageHeading>
     <p className="unit-intro">{t('countdownIntro')}</p>
     <section className="card" aria-labelledby="countdown-dates-title">
       <div className="card-header"><h2 id="countdown-dates-title" className="card-title">{t('tripDates')}</h2></div>

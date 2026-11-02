@@ -12,6 +12,7 @@ import { ArrowLeftRight, ArrowRight, ChevronDown, ChevronRight, ExternalLink } f
 import { useSettingsStore } from '@/store/settingsStore';
 import { useTranslation } from 'react-i18next';
 import { activeLocale } from '@/i18n/format';
+import ToolPageHeading from '@/components/ToolPageHeading';
 
 function formatRateDate(dateStr: string) {
   // API date is YYYY-MM-DD (UTC); parse as UTC to avoid day-offset in negative-offset timezones
@@ -120,7 +121,7 @@ export default function CurrencyTool() {
 
     return (
     <main className="tool-page" data-page-entrance aria-label={t('toolCurrency')}>
-      <h1>{t('toolCurrency')}</h1>
+      <ToolPageHeading route="/currency">{t('toolCurrency')}</ToolPageHeading>
 
       <CurrencyRegionSelector />
 

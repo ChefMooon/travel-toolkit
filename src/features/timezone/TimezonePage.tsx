@@ -3,6 +3,7 @@ import ClockGrid from './ClockGrid';
 import TimezoneNavbar from './TimezoneNavbar';
 import { useClockTick } from './useClockTick';
 import { useTranslation } from 'react-i18next';
+import ToolPageHeading from '@/components/ToolPageHeading';
 
 export default function TimezonePage() {
   const { t } = useTranslation();
@@ -11,7 +12,7 @@ export default function TimezonePage() {
 
   return (
     <main className="tool-page" data-page-entrance aria-label={t('toolTimezone')}>
-      <h1>{t('toolTimezone')}</h1>
+      <ToolPageHeading route="/timezone">{t('toolTimezone')}</ToolPageHeading>
       <TimezoneNavbar manageRef={openConfig} />
       <ClockGrid now={now} onAddTimezone={() => openConfig.current?.()} />
     </main>

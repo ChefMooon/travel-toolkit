@@ -6,6 +6,7 @@ import NumericInput from '@/components/NumericInput/NumericInput';
 import { categories, convert } from './conversions';
 import { formatNumber } from '@/i18n/format';
 import type { TranslationKey } from '@/i18n';
+import ToolPageHeading from '@/components/ToolPageHeading';
 
 const measurements = [
   { label: 'Temperature', icon: Thermometer },
@@ -53,7 +54,7 @@ export default function UnitConverter() {
 
   return (
     <main className="tool-page" data-page-entrance aria-label={t('toolUnits')}>
-      <h1>{t('toolUnits')}</h1>
+      <ToolPageHeading route="/units">{t('toolUnits')}</ToolPageHeading>
       <p className="unit-intro">{t('unitIntro')}</p>
       <div className="card">
         <div className="card-header"><h2 className="card-title">{t('conversionInputs')}</h2></div>

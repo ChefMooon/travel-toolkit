@@ -1271,6 +1271,11 @@ html.theme-switching *::after {
   height: 55%;
 }
 
+/* Give every shared stamp more definition against light surfaces. */
+:where(html:not([data-theme="dark"])) .stamp {
+  background: color-mix(in srgb, var(--card-edge) 24%, var(--card-icon-bg));
+}
+
 .postmark {
   position: absolute;
   left: 50%;
@@ -1355,6 +1360,18 @@ html.theme-switching *::after {
 .tool-page h1 {
   font-size: 28px;
   line-height: 1.2;
+}
+
+.tool-page .tool-page-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.tool-page-heading-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .blog-page,
