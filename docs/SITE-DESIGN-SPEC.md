@@ -51,8 +51,8 @@ Defined in [src/index.css](../src/index.css) under :root and theme selectors.
 | --bg | #F7F3EA | #1A1918 | App background (warm paper in light) |
 | --bg-2 | #F0EBDF | #24211F | Subtle raised surfaces |
 | --bg-3 | #E7E1D3 | #2D2A27 | Active/hover fill |
-| --surface | #FFFFFF | #211F1D | Card and modal base |
-| --surface-2 | #F8F8F5 | #282522 | Header and nested surfaces |
+| --surface | #FFFFFF | #211F1D | Modal and input base (cards use `--card-paper`) |
+| --surface-2 | #F8F8F5 | #282522 | Nested surfaces and option-row hover |
 | --border | #E0DACB | #36322E | Primary borders |
 | --border-2 | #CEC7B6 | #46413C | Secondary borders |
 | --text | #2A2824 | #EEEAE6 | Primary text |
@@ -60,7 +60,7 @@ Defined in [src/index.css](../src/index.css) under :root and theme selectors.
 | --text-3 | #68635B | #A39F9B | Tertiary/label text |
 | --accent | #C4737A | #C4737A | Primary action tone |
 | --danger | #B85C5C | #B85C5C | Destructive actions |
-| --focus | #7B87BE | #7B87BE | Keyboard focus ring |
+| --focus | #A14B53 | #D8979D | Keyboard focus ring (coral, 2px outline) |
 
 Postcard tokens:
 
@@ -562,4 +562,4 @@ Definition of done for design-affecting changes:
 | 1.2 | 2026-09-29 | Documented the title hierarchy and color-only hover and focus treatment for blog post card links. |
 | 1.3 | 2026-09-30 | Documented shared Lucide tool-launcher icons and whole-link hover, focus, active, and reduced-motion behavior. |
 | 1.4 | 2026-09-30 | Replaced the top-bar launcher image with a dedicated Lucide grid glyph using theme-aware `currentColor`; retained the existing trigger geometry and interactions. |
-| 1.5 | Unreleased | Postcard theme restyle (next version): warm paper background with grain, new paper and rule tokens, perforated `ToolStamp` with postmark and per-tool `data-tool` colors, postcard landing cards and hero with flight path and world map (hero CTA removed), list-style tools popover marking the current tool, translucent header and mobile nav, stamp logo and app icons with maskable and apple-touch variants, and light/dark `theme-color`. |
+| 1.5 | Unreleased | Postcard theme restyle (next version): warm paper background with grain, new paper and rule tokens, perforated `ToolStamp` with postmark and per-tool `data-tool` colors, postcard landing cards and hero with flight path and world map (hero CTA removed), list-style tools popover marking the current tool, translucent header and mobile nav, stamp logo and app icons with maskable and apple-touch variants, and light/dark `theme-color`. Tool pages and the shared controls follow the same language: generic `.card` on `--card-paper` with a `--rule` border, a coral `--focus` ring, neutral `--text-3` border hover for buttons, inputs and dropdown triggers, `--surface-2` option-row hover, and `--accent-soft` with `--topbar-accent` text for selected states. |

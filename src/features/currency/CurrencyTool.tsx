@@ -155,7 +155,7 @@ export default function CurrencyTool() {
           <div className="tool-field">
             <span className="tool-label">{t('currencyFrom')}</span>
             <Select
-              className="tool-input currency-select"
+              className="tool-input"
               aria-label={t('currencyFromLabel')}
               value={baseCurrency}
               options={availableCurrencies}
@@ -183,7 +183,7 @@ export default function CurrencyTool() {
           <div className="tool-field">
             <span className="tool-label">{t('currencyTo')}</span>
             <Select
-              className="tool-input currency-select"
+              className="tool-input"
               aria-label={t('currencyToLabel')}
               value={targetCurrency}
               options={availableCurrencies.filter((c) => c !== baseCurrency)}
