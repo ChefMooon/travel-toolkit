@@ -47,6 +47,7 @@ function useHeroMapLoaded() {
 
 export default function LandingPage() {
   const { t } = useTranslation();
+  const subtitle = t('travelToolkitSubtitle');
   const latestPost = blogPosts[0];
   const heroMapReady = useHeroMapLoaded();
 
@@ -62,6 +63,10 @@ export default function LandingPage() {
           <Plane className="hero-route-plane" aria-hidden="true" focusable="false" size={22} strokeWidth={2} />
           <h1>{t('travelToolkit')}</h1>
         </div>
+        {/* Always rendered so the line's space is reserved and the page doesn't shift when a translation loads. */}
+        <p className="hero-subtitle" aria-hidden={subtitle ? undefined : true}>
+          {subtitle && <span key={subtitle} className="hero-subtitle-text">{subtitle}</span>}
+        </p>
         <p>{t('homeIntro')}</p>
       </header>
 

@@ -11,7 +11,7 @@ const frCA = {
   pageNotFound: 'Page introuvable', pageNotFoundDocumentTitle: 'Page introuvable', pageNotFoundHelp: 'La page demandée n’existe pas. Utilisez le menu quadrillé pour accéder à un outil.',
   routeError: 'Une erreur est survenue', routeErrorHelp: 'Impossible de charger cette page. Réessayez ou choisissez un autre outil.',
   leaveUnsavedTitle: 'Quitter sans enregistrer les modifications?', leaveUnsavedBody: 'Votre voyage contient des modifications non enregistrées. Voulez-vous quitter cette page et les abandonner?', stay: 'Rester', leave: 'Quitter',
-  home: 'Accueil', blog: 'Blogue', travelToolkit: 'Travel Toolkit',
+  home: 'Accueil', blog: 'Blogue', travelToolkit: 'Travel Toolkit', travelToolkitSubtitle: 'Trousse de voyage',
   toolTripCost: 'Coûts du voyage', toolCurrency: 'Convertisseur de devises', toolTimezone: 'Suivi des fuseaux horaires', toolUnits: 'Convertisseur d’unités', toolForecast: 'Prévisions à destination', toolCountdown: 'Compte à rebours du voyage', currentToolHere: 'Ici',
   toolNavigation: 'Navigation des outils', sourceCode: 'Code source', privacyPreferences: 'Préférences de confidentialité', siteFooter: 'Pied de page du site', footerLinks: 'Liens de pied de page', hostedOn: 'Hébergé sur',
   cookieConsent: 'Consentement aux témoins', cookiesAnalytics: 'Témoins et analytique', analyticsConsentCopy: 'Nous utilisons des témoins analytiques pour comprendre l’utilisation du site. L’analytique reste désactivée jusqu’à votre consentement.', reject: 'Refuser', accept: 'Accepter',

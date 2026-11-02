@@ -12,7 +12,7 @@ export const resources = {
     pageNotFound: 'Page not found', pageNotFoundDocumentTitle: 'Page Not Found', pageNotFoundHelp: 'The page you requested does not exist. Use the grid menu to jump to a tool.',
     routeError: 'Something went wrong', routeErrorHelp: 'We could not load this route. Try again or switch to another tool.',
     leaveUnsavedTitle: 'Leave with unsaved changes?', leaveUnsavedBody: 'Your trip has unsaved changes. Leave this page and discard them?', stay: 'Stay', leave: 'Leave',
-    home: 'Home', blog: 'Blog', travelToolkit: 'Travel Toolkit', toolTripCost: 'Trip Cost', toolCurrency: 'Currency Converter', toolTimezone: 'Timezone Tracker', toolUnits: 'Unit Converter', toolForecast: 'Destination Forecast', toolCountdown: 'Travel Countdown', currentToolHere: 'Here',
+    home: 'Home', blog: 'Blog', travelToolkit: 'Travel Toolkit', travelToolkitSubtitle: '', toolTripCost: 'Trip Cost', toolCurrency: 'Currency Converter', toolTimezone: 'Timezone Tracker', toolUnits: 'Unit Converter', toolForecast: 'Destination Forecast', toolCountdown: 'Travel Countdown', currentToolHere: 'Here',
     toolNavigation: 'Tool navigation', sourceCode: 'Source code', privacyPreferences: 'Privacy Preferences', siteFooter: 'Site footer', footerLinks: 'Footer links', hostedOn: 'Hosted on',
     cookieConsent: 'Cookie consent', cookiesAnalytics: 'Cookies and analytics', analyticsConsentCopy: 'We use analytics cookies to understand site usage. Analytics stays off until you choose to accept.', reject: 'Reject', accept: 'Accept',
     themePreference: 'Theme preference', useTheme: 'Use {{theme}} theme', system: 'System', light: 'Light', dark: 'Dark', themeSystem: 'System theme', themeLight: 'Light theme', themeDark: 'Dark theme',
@@ -68,6 +68,8 @@ void i18n.use(initReactI18next).init({
   load: 'currentOnly',
   interpolation: { escapeValue: false },
   returnNull: false,
+  // Empty strings are intentional, e.g. English has no hero subtitle.
+  returnEmptyString: true,
 });
 
 let activationVersion = 0;

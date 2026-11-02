@@ -1048,6 +1048,35 @@ html.theme-switching *::after {
   margin-inline: auto;
 }
 
+.tool-landing-header p.hero-subtitle {
+  margin-top: 6px;
+  margin-bottom: 4px;
+  color: var(--text-2);
+  font-size: 15px;
+  line-height: 1.4;
+  min-height: 1.4em;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.hero-subtitle-text {
+  display: inline-block;
+}
+
+/* Keyed by text, so the fade replays whenever a translation arrives or changes. */
+@media (prefers-reduced-motion: no-preference) {
+  .hero-subtitle-text {
+    animation: hero-subtitle-in 320ms ease-out both;
+  }
+}
+
+@keyframes hero-subtitle-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: none; }
+}
+
 .tool-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 244px));

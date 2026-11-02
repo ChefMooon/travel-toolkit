@@ -1,10 +1,11 @@
 /// <reference types="vitest" />
 /// <reference types="@testing-library/jest-dom" />
 
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import LandingPage from './index';
 import { blogPosts, getBlogPostDisplayDate } from '@/lib/blogPosts';
+import { activateLanguage } from '@/i18n';
 
 const initialBlogPosts = [...blogPosts];
 
@@ -83,6 +84,46 @@ describe('landing route', () => {
     expect(container.querySelector('.hero-route')).toHaveAttribute('aria-hidden', 'true');
     expect(container.querySelector('.hero-route-plane')).toHaveAttribute('aria-hidden', 'true');
     expect(container.querySelector('.tool-grid')).toHaveAttribute('data-page-entrance');
+  });
+
+  it('reserves an empty, hidden hero subtitle line in English', () => {
+    const { container } = render(<LandingPage />);
+    const subtitle = container.querySelector('.hero-subtitle');
+
+    expect(subtitle).toBeEmptyDOMElement();
+    expect(subtitle).toHaveAttribute('aria-hidden', 'true');
+    expect(screen.getByRole('heading', { level: 1, name: 'Travel Toolkit' })).toBeInTheDocument();
+  });
+
+  it('renders a localized hero subtitle outside the hero title in fr-CA', async () => {
+    await activateLanguage('fr-CA');
+    try {
+      const { container } = render(<LandingPage />);
+      const subtitle = screen.getByText('Trousse de voyage').closest('.hero-subtitle');
+
+      expect(subtitle).toHaveTextContent('Trousse de voyage');
+      expect(subtitle).not.toHaveAttribute('aria-hidden');
+      expect(subtitle?.closest('.hero-title')).toBeNull();
+      expect(container.querySelector('.hero-title + .hero-subtitle')).toBe(subtitle);
+      expect(screen.getByRole('heading', { level: 1, name: 'Travel Toolkit' })).toBeInTheDocument();
+    } finally {
+      await activateLanguage('en');
+    }
+  });
+
+  it('fills and clears the hero subtitle when the language changes at runtime', async () => {
+    const { container } = render(<LandingPage />);
+    const subtitle = container.querySelector('.hero-subtitle');
+    expect(subtitle).toBeEmptyDOMElement();
+
+    try {
+      await act(async () => { await activateLanguage('fr-CA'); });
+      expect(container.querySelector('.hero-subtitle')).toBe(subtitle);
+      expect(subtitle).toHaveTextContent('Trousse de voyage');
+    } finally {
+      await act(async () => { await activateLanguage('en'); });
+    }
+    expect(subtitle).toBeEmptyDOMElement();
   });
 
   it('shows the latest published post and a link to the unfiltered archive', () => {

@@ -324,6 +324,7 @@ The landing page is the default entry route and acts as a tool launcher.
 
 Layout:
 - A hero header sits above the grid: the "Travel Toolkit" title with a dotted flight path (SVG route curve, origin dot, and plane) and a faint dotted world map (`world-dots.svg`) behind it. The map is decorative, fades out toward the bottom, and is hidden below 600px
+- When the active locale provides a `travelToolkitSubtitle` translation (fr-CA: "Trousse de voyage"), a small uppercase subtitle sits directly below the title, outside the route box so the route geometry stays framed around the title alone. The subtitle line's height is always reserved (empty and `aria-hidden` in English) so the page doesn't shift when a translation loads or the language changes
 - On load, the route draws once from the origin dot (about 0.9s, left-to-right clip reveal) and the plane then fades in with a small nudge along its heading. It plays once per visit, never loops, and is skipped entirely under `prefers-reduced-motion: reduce`, where the route and plane render fully drawn
 - The subtitle is "Everything you need to plan the trip, in one place."; there is no call-to-action button in the hero
 - Tool postcards use a responsive compact grid (220-244px columns) with centered alignment, followed by the latest blog post link
