@@ -7,6 +7,8 @@ const englishPath = resolve(root, 'src/i18n.ts');
 const locales = [
   { code: 'fr-CA', path: resolve(root, 'src/i18n/locales/fr-CA.ts'), variable: 'frCA' },
   { code: 'fr-FR', path: resolve(root, 'src/i18n/locales/fr-FR.ts'), variable: 'frFR' },
+  { code: 'es-ES', path: resolve(root, 'src/i18n/locales/es-ES.ts'), variable: 'esES' },
+  { code: 'es-MX', path: resolve(root, 'src/i18n/locales/es-MX.ts'), variable: 'esMX' },
 ];
 
 function findVariableObject(source, variableName) {

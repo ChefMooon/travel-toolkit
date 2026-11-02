@@ -56,6 +56,21 @@ describe('site language activation', () => {
     expect(i18n.t('blog')).toBe('Blogue');
   });
 
+  it('loads Spanish (Spain) and Spanish (Mexico) with regional wording', async () => {
+    await expect(activateLanguage('es-ES')).resolves.toBe(true);
+    expect(i18n.resolvedLanguage).toBe('es-ES');
+    expect(document.documentElement.lang).toBe('es-ES');
+    expect(i18n.t('settings')).toBe('Ajustes');
+    expect(i18n.t('tabCosts')).toBe('Costes');
+    expect(i18n.t('leaveUnsavedTitle')).toBe('¿Salir sin guardar los cambios?');
+    await expect(activateLanguage('es-MX')).resolves.toBe(true);
+    expect(i18n.resolvedLanguage).toBe('es-MX');
+    expect(useSettingsStore.getState().language).toBe('es-MX');
+    expect(document.documentElement.lang).toBe('es-MX');
+    expect(i18n.t('settings')).toBe('Configuración');
+    expect(i18n.t('tabCosts')).toBe('Costos');
+  });
+
   it('keeps the latest language selection when a French resource load is still pending', async () => {
     let finishLoad!: (value: { default: Record<string, string> }) => void;
     const frenchPending = activateLanguage('fr-CA', () => new Promise((resolve) => { finishLoad = resolve; }));

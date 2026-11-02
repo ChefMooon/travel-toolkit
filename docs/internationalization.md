@@ -2,7 +2,7 @@
 
 ## Current language status
 
-English is the default interface language. French (France) (`fr-FR`) is also available as a supported language, selected explicitly in Settings; it is not currently selected by browser-language detection.
+English is the default interface language. French (France) (`fr-FR`) is also available as a supported language, selected explicitly in Settings; it is not currently selected by browser-language detection. Spanish (Spain) (`es-ES`) and Spanish (Mexico) (`es-MX`) are supported in the same way.
 
  French (Canada) is available as a supported interface language, selected explicitly in Settings. Its translation has been reviewed for terminology, grammar, plurals, consent, and destructive-action wording.
 
@@ -10,7 +10,7 @@ On a first visit with no saved language, the application picks the first browser
 
 ## Editing messages
 
-- English source messages live in `src/i18n.ts`; the French catalogs live in `src/i18n/locales/fr-CA.ts` and `src/i18n/locales/fr-FR.ts`.
+- English source messages live in `src/i18n.ts`; the translated catalogs live in `src/i18n/locales/` (`fr-CA`, `fr-FR`, `es-ES`, `es-MX`). Register new locales in `APP_LANGUAGES` (`src/store/settingsStore.ts`), the loader map in `src/i18n.ts`, the Settings label list, and `scripts/check-i18n-catalogs.mjs`.
 - Use semantic keys and complete sentences. Keep interpolation values as `{{name}}`; use i18next plural suffixes such as `_one` and `_other` with a `count` value.
 - Add each message to both catalogs. Keep wording and placeholders aligned. Run `npm run i18n:check` to verify catalog key and interpolation parity; `npm run i18n:check -- --self-test` also verifies that the checker catches an isolated missing-key fixture. Rich text should remain React content; do not build HTML strings.
 - Use `useTranslation()` in React components so language changes update visible text. Do not cache translated strings at module scope.

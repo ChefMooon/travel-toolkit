@@ -50,7 +50,7 @@ export const resources = {
 
 export type TranslationKey = keyof typeof resources.en.translation;
 
-export const localeDirections = { en: 'ltr', 'fr-CA': 'ltr', 'fr-FR': 'ltr' } as const;
+export const localeDirections = { en: 'ltr', 'fr-CA': 'ltr', 'fr-FR': 'ltr', 'es-ES': 'ltr', 'es-MX': 'ltr' } as const;
 export type TextDirection = 'ltr' | 'rtl';
 
 /** Keeps document metadata tied together; RTL use here is diagnostic only until an RTL locale is released. */
@@ -63,7 +63,7 @@ void i18n.use(initReactI18next).init({
   resources,
   lng: 'en',
   fallbackLng: 'en',
-  supportedLngs: ['en', 'fr-CA', 'fr-FR'],
+  supportedLngs: ['en', 'fr-CA', 'fr-FR', 'es-ES', 'es-MX'],
   load: 'currentOnly',
   interpolation: { escapeValue: false },
   returnNull: false,
@@ -85,10 +85,17 @@ function changeLanguageForRequest(language: AppLanguage, requestVersion: number)
   return change;
 }
 
-/** Activates the selected language, including French (Canada) and French (France). */
+const localeLoaders: Record<Exclude<AppLanguage, 'en'>, () => Promise<{ default: Record<string, string> }>> = {
+  'fr-CA': () => import('./i18n/locales/fr-CA'),
+  'fr-FR': () => import('./i18n/locales/fr-FR'),
+  'es-ES': () => import('./i18n/locales/es-ES'),
+  'es-MX': () => import('./i18n/locales/es-MX'),
+};
+
+/** Activates the selected language, including the lazily loaded translated locales. */
 export async function activateLanguage(
   language: AppLanguage,
-  loadFrench: () => Promise<{ default: Record<string, string> }> = () => (language === 'fr-FR' ? import('./i18n/locales/fr-FR') : import('./i18n/locales/fr-CA')),
+  loadLocale: () => Promise<{ default: Record<string, string> }> = localeLoaders[language as Exclude<AppLanguage, 'en'>],
 ): Promise<boolean> {
   if (activation?.language === language && activation.version === activationVersion) return activation.promise;
   const requestVersion = ++activationVersion;
@@ -100,7 +107,7 @@ export async function activateLanguage(
   }
   const promise = (async () => {
     try {
-      const module = await loadFrench();
+      const module = await loadLocale();
       if (requestVersion !== activationVersion) return false;
       i18n.addResourceBundle(language, 'translation', module.default, true, true);
       if (!await changeLanguageForRequest(language, requestVersion)) return false;
@@ -109,7 +116,7 @@ export async function activateLanguage(
       return true;
     } catch (error) {
       if (requestVersion !== activationVersion) return false;
-      console.error('Unable to load the French translation; continuing in English.', error);
+      console.error('Unable to load the translation; continuing in English.', error);
       if (!await changeLanguageForRequest('en', requestVersion)) return false;
       syncDocumentLocale('en', localeDirections.en);
       useSettingsStore.getState().setLanguage('en');

@@ -1,7 +1,7 @@
 import i18n from '@/i18n';
 
 export function activeLocale(): string {
-  return i18n.resolvedLanguage === 'fr-CA' || i18n.resolvedLanguage === 'fr-FR' ? i18n.resolvedLanguage : 'en-US';
+  return i18n.resolvedLanguage && i18n.resolvedLanguage !== 'en' ? i18n.resolvedLanguage : 'en-US';
 }
 
 export function formatNumber(value: number, options?: Intl.NumberFormatOptions): string {

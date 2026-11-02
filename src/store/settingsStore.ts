@@ -8,7 +8,8 @@ import { REGION_LIST } from './types';
 export type ImportRateMode = 'hybrid' | 'keep-imported' | 'refresh-live';
 export type MeasurementSystem = 'metric' | 'imperial';
 export type ClockFormat = '12h' | '24h';
-export type AppLanguage = 'en' | 'fr-CA' | 'fr-FR';
+export const APP_LANGUAGES = ['en', 'fr-CA', 'fr-FR', 'es-ES', 'es-MX'] as const;
+export type AppLanguage = (typeof APP_LANGUAGES)[number];
 
 const SETTINGS_STORAGE_KEY = 'travel-toolkit-settings-data';
 const TRIP_STORAGE_KEY = 'travel-toolkit-trip-data';
@@ -81,7 +82,7 @@ function isImportRateMode(value: unknown): value is ImportRateMode {
 }
 function isMeasurementSystem(value: unknown): value is MeasurementSystem { return value === 'metric' || value === 'imperial'; }
 function isClockFormat(value: unknown): value is ClockFormat { return value === '12h' || value === '24h'; }
-function isAppLanguage(value: unknown): value is AppLanguage { return value === 'en' || value === 'fr-CA' || value === 'fr-FR'; }
+function isAppLanguage(value: unknown): value is AppLanguage { return APP_LANGUAGES.includes(value as AppLanguage); }
 function browserLanguage(): AppLanguage {
   if (typeof navigator === 'undefined') return 'en';
   const languages = navigator.languages?.length ? navigator.languages : [navigator.language];
