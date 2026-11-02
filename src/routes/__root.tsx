@@ -15,6 +15,7 @@ import Navbar from '@/components/Navbar';
 import ToastViewport from '@/components/ToastViewport';
 import ConsentBanner from '@/components/ConsentBanner';
 import Modal from '@/components/Modal';
+import { AlertTriangle } from 'lucide-react';
 import { useTripStore } from '@/store/tripStore';
 import { useDraftStore } from '@/store/draftStore';
 import { useSettingsStore } from '@/store/settingsStore';
@@ -28,7 +29,7 @@ function UnsavedChangesGuard() {
   const shouldWarn = isDirty || dirtyDrafts > 0;
   const isTripRoute = pathname === '/trip';
   const blocker = useBlocker({ shouldBlockFn: ({ current, next }) => current.pathname === '/trip' && next.pathname !== '/trip' && shouldWarn, enableBeforeUnload: () => isTripRoute && shouldWarn, withResolver: true });
-  return blocker.status === 'blocked' ? <Modal icon="⚠️" title={t('leaveUnsavedTitle')} body={t('leaveUnsavedBody')} cancelLabel={t('stay')} confirmLabel={t('leave')} onConfirm={blocker.proceed} onCancel={blocker.reset} /> : null;
+  return blocker.status === 'blocked' ? <Modal icon={AlertTriangle} title={t('leaveUnsavedTitle')} body={t('leaveUnsavedBody')} cancelLabel={t('stay')} confirmLabel={t('leave')} onConfirm={blocker.proceed} onCancel={blocker.reset} /> : null;
 }
 
 function ThemeSync() {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { ArrowLeftRight, ChevronDown, Edit2, RotateCcw, X } from 'lucide-react';
+import { ArrowLeftRight, ChevronDown, Edit2, RotateCcw, X, AlertTriangle } from 'lucide-react';
 import Modal from '@/components/Modal';
 import { useSaveSlotStore } from '@/store/saveSlotStore';
 import { useToastStore } from '@/store/toastStore';
@@ -984,7 +984,7 @@ export default function SaveDataPanel({
 
       {confirmIntent ? (
         <Modal
-          icon="⚠️"
+          icon={AlertTriangle}
           title={
             confirmIntent.type === 'load'
               ? t('loadSavedTripTitle')

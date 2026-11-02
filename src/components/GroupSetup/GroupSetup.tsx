@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useTripStore } from '@/store/tripStore';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, UserRoundMinus } from 'lucide-react';
 import { COUPLE_ICONS, getColorThemeValue, MAX_GROUPS, MAX_KIDS_PER_GROUP, MAX_GROUP_NAME_LENGTH } from '@/store/types';
 import {
   DndContext,
@@ -354,7 +354,7 @@ export default function GroupSetup() {
 
       {removingCouple && coupleToRemove && (
         <Modal
-          icon="👋"
+          icon={UserRoundMinus}
           title={t('removeGroupTitle', { name: coupleToRemove.name })}
           body={t('removeGroupBody', { name: coupleToRemove.name })}
           confirmLabel={t('remove')}

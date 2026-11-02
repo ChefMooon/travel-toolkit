@@ -19,7 +19,7 @@ import CostRow from '../CostRow';
 import EditRow from '../EditRow';
 import BulkActionBar from '../BulkActionBar';
 import Modal from '../Modal';
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { getAvailableCurrencies, getDefaultCurrency, type SplitType, MAX_COST_ENTRIES } from '@/store/types';
 import { getSaveFailureCopy, useToastStore } from '@/store/toastStore';
 import Select from '@/components/Select/Select';
@@ -312,7 +312,7 @@ export default function CostLedger() {
 
       {deletingId && costToDelete && (
         <Modal
-          icon="🗑️"
+          icon={Trash2}
           title={t('deleteCostTitle')}
           body={t('deleteCostBody', { name: costToDelete.name })}
           confirmLabel={t('delete')}
@@ -335,7 +335,7 @@ export default function CostLedger() {
 
       {isBulkDeleteOpen && selectedIds.size > 0 && (
         <Modal
-          icon="🗑️"
+          icon={Trash2}
           title={t('deleteSelectedCostsTitle', { count: selectedIds.size })}
           body={t('deleteSelectedCostsBody', { count: selectedIds.size })}
           confirmLabel={t('deleteSelected')}

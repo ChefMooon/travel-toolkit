@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useTripStore } from '@/store/tripStore';
 import { findRelatedOlderSlotIndex, useSaveSlotStore } from '@/store/saveSlotStore';
 import { useToastStore } from '@/store/toastStore';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Trash2 } from 'lucide-react';
 import Modal from '../Modal';
 import Logo from '../Logo';
 import SaveDataPanel from '@/components/SaveDataPanel';
@@ -140,7 +140,7 @@ export default function Topbar() {
 
       {showReset && (
         <Modal
-          icon="🗑️"
+          icon={Trash2}
           title="Start a new trip?"
           body="This will permanently delete all current trip data including couples, costs, and exchange rates. This action cannot be undone."
           secondaryActionLabel={relatedSlotIndex >= 0 ? 'Update Save & Start Fresh' : undefined}

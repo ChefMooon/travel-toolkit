@@ -4,10 +4,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Modal from '@/components/Modal';
+import { AlertTriangle } from 'lucide-react';
 import { activateLanguage } from '@/i18n';
 
 const baseProps = {
-  icon: '⚠️',
+  icon: AlertTriangle,
   title: 'Confirm Action',
   body: 'Do you want to continue?',
   confirmLabel: 'Confirm',
@@ -37,7 +38,7 @@ describe('Modal', () => {
   it('FE-MOD-001 renders icon, title, body, and action buttons', () => {
     render(<Modal {...baseProps} />);
 
-    expect(screen.getByText('⚠️')).toBeInTheDocument();
+    expect(document.querySelector('.modal-ico svg')).toBeInTheDocument();
     expect(screen.getByText('Confirm Action')).toBeInTheDocument();
     expect(screen.getByText('Do you want to continue?')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();

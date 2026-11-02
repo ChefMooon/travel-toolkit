@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
+import type { LucideIcon } from 'lucide-react';
 
 interface ModalProps {
-  icon: string;
+  icon: LucideIcon;
   title: string;
   body: string;
   confirmLabel: string;
@@ -25,6 +26,7 @@ export default function Modal({
   onSecondaryAction,
   onCancel,
 }: ModalProps) {
+  const Icon = icon;
   const { t } = useTranslation();
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const titleId = useId();
@@ -104,7 +106,7 @@ export default function Modal({
             tabIndex={-1}
             onKeyDown={handleDialogKeyDown}
           >
-            <div className="modal-ico">{icon}</div>
+            <div className="modal-ico"><Icon size={36} aria-hidden="true" focusable="false" /></div>
             <div className="modal-title" id={titleId}>{title}</div>
             <div className="modal-body" id={bodyId}>{body}</div>
             <div className="modal-acts">

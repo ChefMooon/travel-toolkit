@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Calculator, RotateCcw, Undo2, Redo2 } from 'lucide-react';
+import { Calculator, RotateCcw, Undo2, Redo2, Trash2 } from 'lucide-react';
 import ToolStamp from '@/components/ToolStamp';
 import NumericInput from '@/components/NumericInput/NumericInput';
 import { useTripStore } from '@/store/tripStore';
@@ -312,7 +312,7 @@ export default function TripToolbar() {
 
       {showReset ? (
         <Modal
-          icon="🗑️"
+          icon={Trash2}
           title={t('startNewTripTitle')}
           body={guardedNewTripDialogBody}
           secondaryActionLabel={currentTripIsSaved ? undefined : t('saveAndStartNewTrip')}
