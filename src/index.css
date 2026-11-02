@@ -1276,6 +1276,10 @@ html.theme-switching *::after {
   background: color-mix(in srgb, var(--card-edge) 24%, var(--card-icon-bg));
 }
 
+:where([data-theme="dark"] .grid-panel-item[aria-current="page"]) .stamp {
+  background: color-mix(in srgb, var(--card-edge) 25%, var(--card-icon-bg));
+}
+
 .postmark {
   position: absolute;
   left: 50%;
