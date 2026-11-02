@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [1.5.0] - 2026-11-01
+
+### Changed
+
+- Refreshed the app with a postcard-inspired design, including a new homepage, tool cards, and travel-themed icons.
+- Updated tool navigation and the Trip Cost toolbar for a more consistent experience across desktop and mobile.
+- Improved text contrast in light and dark themes for easier reading.
+- Updated the app icon and browser appearance to match the new design.
+
 ## [1.4.1] - 2026-10-29
 
 ### Changed
