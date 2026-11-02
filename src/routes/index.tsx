@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { ArrowRight, Plane } from 'lucide-react';
 import { TOOLS } from '@/lib/tools';
@@ -12,13 +13,46 @@ const toolKeys: Record<string, [TranslationKey, TranslationKey]> = {
   'Destination Forecast': ['toolForecast', 'descriptionForecast'], 'Travel Countdown': ['toolCountdown', 'descriptionCountdown'],
 };
 
+const HERO_MAP_SRC = '/world-dots.svg';
+let heroMapLoaded = false;
+
+// Chromium/WebKit paint the mask's solid background until the SVG arrives, so the map stays hidden until it decodes.
+function useHeroMapLoaded() {
+  const [loaded, setLoaded] = useState(heroMapLoaded);
+
+  useEffect(() => {
+    if (loaded || typeof Image === 'undefined') return;
+    let cancelled = false;
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    const markLoaded = () => {
+      heroMapLoaded = true;
+      if (!cancelled) setLoaded(true);
+    };
+    image.onload = () => {
+      if (typeof image.decode === 'function') {
+        image.decode().then(markLoaded, markLoaded);
+      } else {
+        markLoaded();
+      }
+    };
+    image.src = HERO_MAP_SRC;
+    return () => {
+      cancelled = true;
+    };
+  }, [loaded]);
+
+  return loaded;
+}
+
 export default function LandingPage() {
   const { t } = useTranslation();
   const latestPost = blogPosts[0];
+  const heroMapReady = useHeroMapLoaded();
 
   return (
     <main className="tool-landing" aria-label={t('toolLauncher')}>
-      <span className="hero-map" aria-hidden="true" />
+      <span className="hero-map" data-ready={heroMapReady || undefined} aria-hidden="true" />
       <header className="tool-landing-header">
         <div className="hero-title">
           <svg className="hero-route" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true" focusable="false">

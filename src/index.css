@@ -932,7 +932,8 @@ html.theme-switching *::after {
   aspect-ratio: 720 / 270;
   transform: translateX(-50%);
   background: var(--text-3);
-  opacity: 0.2;
+  opacity: 0;
+  transition: opacity 400ms ease-out;
   pointer-events: none;
   -webkit-mask:
     url('/world-dots.svg') center / 100% 100% no-repeat,
@@ -944,8 +945,17 @@ html.theme-switching *::after {
   mask-composite: intersect;
 }
 
-[data-theme="dark"] .hero-map {
+/* Hidden until the mask SVG decodes; see useHeroMapLoaded. */
+.hero-map[data-ready] {
+  opacity: 0.2;
+}
+
+[data-theme="dark"] .hero-map[data-ready] {
   opacity: 0.12;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-map { transition: none; }
 }
 
 @media (max-width: 599px) {
