@@ -510,7 +510,7 @@ html.theme-switching *::after {
   min-width: 0;
 }
 @media (hover: hover) {
-.trip-pill:hover { border-color: var(--c3); } }
+.trip-pill:hover { border-color: var(--text-3); } }
 .trip-pill-text {
   font-size: 13px; font-weight: 700; color: var(--text);
   border: none; background: transparent; outline: none;
@@ -595,7 +595,7 @@ html.theme-switching *::after {
   font-family: 'Nunito', sans-serif;
 }
 @media (hover: hover) {
-.markup-pill:hover { border-color: var(--c3); } }
+.markup-pill:hover { border-color: var(--text-3); } }
 
 .markup-num {
   font-family: 'JetBrains Mono', monospace;
@@ -776,8 +776,8 @@ html.theme-switching *::after {
 }
 @media (hover: hover) {
 .btn-save-panel:hover {
-  background: var(--bg-2);
-  border-color: var(--c3);
+  background: var(--surface-2);
+  border-color: var(--text-3);
 } }
 .btn-save-panel img {
   width: 16px;
@@ -2004,7 +2004,6 @@ html.theme-switching *::after {
   .currency-swap-button:hover { border-color: var(--c3); }
   .currency-reset-button:hover { border-color: var(--c3); color: var(--text); }
   .currency-provider-card:hover { border-color: var(--border-2); background: var(--surface-2); }
-  .currency-controls .shared-select.tool-input:hover,
   .currency-controls .numeric-input-field:hover { border-color: var(--border-2); }
 }
 
@@ -2233,7 +2232,7 @@ html.theme-switching *::after {
 @media (hover: hover) and (pointer: fine) {
   .timezone-search-option:hover { background: var(--surface-2); }
   .timezone-search-option[aria-disabled="true"]:hover { background: transparent; }
-  .btn-add:hover { border-color: var(--c3); color: var(--c3); background: var(--c3-soft); }
+  .btn-add:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
   .btn-add:disabled:hover { border-color: var(--border); color: var(--text-3); background: transparent; }
 }
 
@@ -3998,7 +3997,7 @@ table.ledger .ledger-inline-field > .inline-edit-input {
 }
 .cur-select:focus { outline: none; border-color: var(--focus); box-shadow: 0 0 0 2px rgba(123,135,190,0.15); }
 @media (hover: hover) {
-.cur-select:hover { border-color: var(--border-2); background-color: var(--bg-3); } }
+.cur-select:hover { border-color: var(--text-3); } }
 
 .ef-select {
   appearance: none; -webkit-appearance: none;
@@ -4262,7 +4261,7 @@ table.ledger .ledger-inline-field > .inline-edit-input {
   padding: 3px 8px;
 }
 @media (hover: hover) {
-.type-trigger-btn.is-empty:hover { background: var(--c3-soft); filter: brightness(1.05); } }
+.type-trigger-btn.is-empty:hover { background: var(--accent-soft); } }
 @container cost-ledger (min-width: 700px) {
   .type-trigger-btn { width: 150px; }
 }
@@ -4303,7 +4302,7 @@ table.ledger .ledger-inline-field > .inline-edit-input {
 .popover-item:last-child { border-radius: 0 0 7px 7px; }
 @media (hover: hover) {
 .popover-item:hover {
-  background: var(--bg-2);
+  background: var(--surface-2);
   color: var(--text);
 } }
 .popover-item.selected {
@@ -4455,7 +4454,7 @@ tr.edit-row td {
   justify-content: center;
 }
 @media (hover: hover) {
-.seg-btn:hover { border-color: var(--c3); color: var(--c3); } }
+.seg-btn:hover { border-color: var(--text-3); color: var(--text); } }
 .seg-btn.on { background: var(--c3); border-color: var(--c3); color: white; }
 
 .subset-picks {
@@ -4796,7 +4795,7 @@ table.ledger .ledger-inline-field > .numeric-input {
 .numeric-input:has(.ex-inp) .numeric-input-controls { flex-basis: 18px; }
 
 @media (hover: hover) and (pointer: fine) {
-  .numeric-input-controls button:hover:not(:disabled) { background: var(--c3-soft); color: var(--c3); }
+  .numeric-input-controls button:hover:not(:disabled) { background: var(--surface-2); color: var(--text); }
 }
 
 .usd-eq {
@@ -5300,7 +5299,7 @@ table.ledger .ledger-inline-field > .numeric-input {
   color: var(--text); font-family: 'Nunito', sans-serif;
 }
 @media (hover: hover) {
-.child-picker-item:hover { background: var(--bg-2); } }
+.child-picker-item:hover { background: var(--surface-2); } }
 
 /* Drag overlay */
 .drag-overlay {
@@ -6409,7 +6408,7 @@ table.ledger .ledger-inline-field > .numeric-input {
 @media (hover: hover) {
 
 .ie-settings-option:hover {
-  background: var(--surface);
+  background: var(--bg-3);
 } }
 
 .ie-settings-option.is-active {
@@ -6667,7 +6666,11 @@ table.ledger .ledger-inline-field > .numeric-input {
 .global-settings-hint { margin: -5px 0 0; color: var(--text-3); font-size: 11px; line-height: 1.4; }
 
 @media (hover: hover) and (pointer: fine) {
+  .shared-select:hover:not(:disabled) { border-color: var(--text-3); }
   .shared-select-option:hover { background: var(--surface-2); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .shared-select { transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -6734,7 +6737,7 @@ table.ledger .ledger-inline-field > .numeric-input {
 .trip-date-error { grid-column: 1 / -1; margin: 0; color: var(--danger); font-size: 12px; }
 @container (max-width: 760px) { .trip-information-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); } .trip-region-field { grid-column: 1 / -1; } }
 @container (max-width: 480px) { .trip-information-fields { grid-template-columns: minmax(0, 1fr); gap: 10px; } .trip-region-field { grid-column: auto; } }
-@media (hover: hover) and (pointer: fine) { .date-picker-clear:hover, .date-picker-trigger:hover, .date-picker-header > button:hover { background: var(--bg-3); color: var(--text); } .date-picker-grid button:hover { background: var(--bg-2); } }
+@media (hover: hover) and (pointer: fine) { .date-picker-clear:hover, .date-picker-trigger:hover, .date-picker-header > button:hover { background: var(--bg-3); color: var(--text); } .date-picker-grid button:hover { background: var(--surface-2); } }
 @media (hover: none) { .date-picker-trigger { min-width: 44px; min-height: 44px; } }
 @media (prefers-reduced-motion: reduce) { .date-picker-popover { animation: none; transition: none; } }
 @media (forced-colors: active) { .date-picker-control input, .date-picker-clear, .date-picker-trigger, .date-picker-popover, .date-picker-header button, .date-picker-today, .date-picker-grid button { border: 1px solid ButtonText; } .date-picker-grid [aria-selected="true"] button { outline: 2px solid Highlight; } }
