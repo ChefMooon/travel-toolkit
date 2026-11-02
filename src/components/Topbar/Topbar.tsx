@@ -75,7 +75,7 @@ export default function Topbar() {
         </a>
 
         <div className="topbar-center">
-          <div className="trip-pill">
+          <div className="rule-btn trip-pill">
             <input
               className="trip-pill-text"
               value={tripName}
@@ -98,7 +98,7 @@ export default function Topbar() {
         </div>
 
         <div className="topbar-right">
-          <div className="markup-pill" onClick={() => setEditingMarkup(true)}>
+          <div className="rule-btn markup-pill" onClick={() => setEditingMarkup(true)}>
             <span>Markup</span>
             {editingMarkup ? (
               <input
@@ -118,14 +118,14 @@ export default function Topbar() {
             )}
           </div>
 
-          <button className="btn-new-trip" onClick={() => setShowReset(true)}>
+          <button className="rule-btn btn-new-trip" onClick={() => setShowReset(true)}>
             <RotateCcw size={12} /> <span>New Trip</span>
           </button>
 
           <Tooltip content="Save slots">
             <button
               type="button"
-              className="btn-save-panel"
+              className="rule-btn btn-save-panel"
               data-dirty={isDirty ? 'true' : 'false'}
               onClick={() => setShowSavePanel(true)}
               aria-label="Open save slots"

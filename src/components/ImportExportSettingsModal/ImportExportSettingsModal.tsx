@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useId, useRef } from 'react';
-import { createPortal } from 'react-dom';
+import { useId } from 'react';
 import { X } from 'lucide-react';
 import { useSettingsStore } from '@/store/settingsStore';
+import { ModalShell } from '@/components/Modal';
 import CogIcon from './CogIcon';
 import { useTranslation } from 'react-i18next';
 
@@ -21,44 +21,14 @@ export default function ImportExportSettingsModal({ onClose }: ImportExportSetti
   const setImportExchangeRateMode = useSettingsStore((s) => s.setImportExchangeRateMode);
 
   const titleId = useId();
-  const dialogRef = useRef<HTMLDivElement>(null);
-  const closeRef = useRef(onClose);
-  closeRef.current = onClose;
 
-  const handleBackdropClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget) onClose();
-    },
-    [onClose],
-  );
-
-  useEffect(() => {
-    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    dialogRef.current?.querySelector<HTMLElement>('button')?.focus();
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') closeRef.current();
-      if (e.key !== 'Tab' || !dialogRef.current) return;
-      const focusable = Array.from(dialogRef.current.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])'));
-      if (focusable.length === 0) return;
-      const first = focusable[0]!;
-      const last = focusable[focusable.length - 1]!;
-      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => { document.removeEventListener('keydown', handleKeyDown); previousFocus?.focus(); };
-  }, []);
-
-  return createPortal(
-    <div className="ie-settings-overlay" onClick={handleBackdropClick}>
-      <div
-        ref={dialogRef}
-        className="ie-settings-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={titleId}
-        onClick={(e) => e.stopPropagation()}
-      >
+  return (
+    <ModalShell
+      onClose={onClose}
+      labelledBy={titleId}
+      overlayClassName="ie-settings-overlay"
+      className="ie-settings-modal"
+    >
         <div className="ie-settings-header">
           <div className="ie-settings-title-row">
             <CogIcon />
@@ -169,8 +139,6 @@ export default function ImportExportSettingsModal({ onClose }: ImportExportSetti
             </div>
           </div>
         </section>
-      </div>
-    </div>,
-    document.body,
+    </ModalShell>
   );
 }

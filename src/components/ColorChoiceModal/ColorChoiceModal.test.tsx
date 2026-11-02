@@ -183,7 +183,7 @@ describe('ColorChoiceModal', () => {
       />
     );
 
-    fireEvent.keyDown(document, { key: 'Escape' });
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' });
 
     expect(mockOnCancel).toHaveBeenCalled();
   });

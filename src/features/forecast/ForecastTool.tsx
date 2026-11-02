@@ -19,6 +19,8 @@ import {
   Wind,
   UsersRound,
 } from 'lucide-react';
+import SegmentedControl from '@/components/SegmentedControl';
+import { nextActiveIndex } from '@/components/Popover';
 import { getLocalTimeAtDestination } from './forecastData';
 import { getEventsForRange } from './forecastEvents';
 import type { DailyClimate, ForecastEvent, GeoLocation } from './forecastTypes';
@@ -28,7 +30,8 @@ import { useSettingsStore } from '@/store/settingsStore';
 import { climateDisplay } from './climateUnits';
 import { formatDate, formatNumber } from '@/i18n/format';
 import { useTranslation } from 'react-i18next';
-import ToolPageHeading from '@/components/ToolPageHeading';
+import ToolPage from '@/components/ToolPage';
+import ToolStatus from '@/components/ToolStatus';
 import type { TranslationKey } from '@/i18n';
 
 const FORECAST_GEOCODE_DEBOUNCE_MS = 500;
@@ -206,30 +209,28 @@ function DailyBreakdownToggle() {
   const { dailyBreakdownView, setDailyBreakdownView } = useForecastStore();
 
   return (
-    <div className="forecast-view-toggle" role="radiogroup" aria-label={t('forecastBreakdownView')}>
-      <button
-        type="button"
-        className={`forecast-view-toggle-btn${dailyBreakdownView === 'table' ? ' is-active' : ''}`}
-        onClick={() => setDailyBreakdownView('table')}
-        role="radio"
-        aria-checked={dailyBreakdownView === 'table'}
-        aria-label={t('forecastTableView')}
-      >
-        <Table2 size={14} strokeWidth={2} />
-        <span className="forecast-view-toggle-label">{t('forecastTable')}</span>
-      </button>
-      <button
-        type="button"
-        className={`forecast-view-toggle-btn${dailyBreakdownView === 'single-day' ? ' is-active' : ''}`}
-        onClick={() => setDailyBreakdownView('single-day')}
-        role="radio"
-        aria-checked={dailyBreakdownView === 'single-day'}
-        aria-label={t('forecastDayView')}
-      >
-        <PanelTop size={14} strokeWidth={2} />
-        <span className="forecast-view-toggle-label">{t('forecastDayView')}</span>
-      </button>
-    </div>
+    <SegmentedControl
+      semantics="radio"
+      size="sm"
+      className="forecast-view-toggle"
+      aria-label={t('forecastBreakdownView')}
+      value={dailyBreakdownView}
+      onChange={setDailyBreakdownView}
+      options={[
+        {
+          value: 'table',
+          ariaLabel: t('forecastTableView'),
+          icon: <Table2 size={14} strokeWidth={2} />,
+          label: t('forecastTable'),
+        },
+        {
+          value: 'single-day',
+          ariaLabel: t('forecastDayView'),
+          icon: <PanelTop size={14} strokeWidth={2} />,
+          label: t('forecastDayView'),
+        },
+      ]}
+    />
   );
 }
 
@@ -336,7 +337,7 @@ function DailySingleDayView({ days }: { days: DailyClimate[] }) {
       <div className="forecast-day-strip-wrap">
         <button
           type="button"
-          className="forecast-day-strip-arrow"
+          className="rule-btn forecast-day-strip-arrow"
           onClick={goToPrev}
           disabled={selectedIndex === 0}
           aria-label={t('forecastPreviousDay')}
@@ -348,7 +349,7 @@ function DailySingleDayView({ days }: { days: DailyClimate[] }) {
             <button
               key={day.date}
               type="button"
-              className={`forecast-day-chip${index === selectedIndex ? ' is-active' : ''}`}
+              className={`rule-btn forecast-day-chip${index === selectedIndex ? ' is-active' : ''}`}
               onClick={() => setSelectedIndex(index)}
               role="tab"
               aria-selected={index === selectedIndex}
@@ -359,7 +360,7 @@ function DailySingleDayView({ days }: { days: DailyClimate[] }) {
         </div>
         <button
           type="button"
-          className="forecast-day-strip-arrow"
+          className="rule-btn forecast-day-strip-arrow"
           onClick={goToNext}
           disabled={selectedIndex === days.length - 1}
           aria-label={t('forecastNextDay')}
@@ -562,27 +563,11 @@ export default function ForecastTool() {
   };
 
   const handleDestinationKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'ArrowDown') {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
       event.preventDefault();
       setShowSuggestions(true);
-      setActiveIndex((previousIndex) => {
-        if (geocodeSuggestions.length === 0) {
-          return -1;
-        }
-        return Math.min(previousIndex + 1, geocodeSuggestions.length - 1);
-      });
-      return;
-    }
-
-    if (event.key === 'ArrowUp') {
-      event.preventDefault();
-      setShowSuggestions(true);
-      setActiveIndex((previousIndex) => {
-        if (geocodeSuggestions.length === 0) {
-          return -1;
-        }
-        return Math.max(previousIndex - 1, -1);
-      });
+      const { key } = event;
+      setActiveIndex((previousIndex) => nextActiveIndex(key, { current: previousIndex, count: geocodeSuggestions.length, allowNone: true }) ?? -1);
       return;
     }
 
@@ -620,8 +605,7 @@ export default function ForecastTool() {
   };
 
   return (
-    <main className="tool-page" data-page-entrance aria-label={t('toolForecast')}>
-      <ToolPageHeading route="/forecast">{t('toolForecast')}</ToolPageHeading>
+    <ToolPage route="/forecast" title={t('toolForecast')}>
 
       <div className="card forecast-search-card">
         <div className="card-header">
@@ -709,13 +693,13 @@ export default function ForecastTool() {
             </label>
           </div>
           {!selectedLocation && searchInput.trim().length >= FORECAST_GEOCODE_MIN_QUERY_LENGTH && (!currentGeocodeQuery || (!geocodeQuery.isError && (geocodeQuery.isFetching || geocodeQuery.isPending || geocodeQuery.isPlaceholderData))) ? (
-            <p className="tool-status">{t('forecastSearchingDestinations')}</p>
+            <ToolStatus>{t('forecastSearchingDestinations')}</ToolStatus>
           ) : null}
           {!selectedLocation && searchInput.trim().length >= FORECAST_GEOCODE_MIN_QUERY_LENGTH && geocodeReady && geocodeSuggestions.length === 0 ? (
-            <p className="tool-status">{t('forecastNoMatchingDestinations')}</p>
+            <ToolStatus>{t('forecastNoMatchingDestinations')}</ToolStatus>
           ) : null}
           {!selectedLocation && searchInput.trim().length >= FORECAST_GEOCODE_MIN_QUERY_LENGTH && currentGeocodeQuery && geocodeQuery.isError ? (
-            <p className="tool-status tool-status-error">{t('forecastResolveDestinationError')}</p>
+            <ToolStatus tone="error">{t('forecastResolveDestinationError')}</ToolStatus>
           ) : null}
         </div>
       </div>
@@ -748,13 +732,13 @@ export default function ForecastTool() {
         </div>
       ) : null}
 
-      {!selectedLocation ? <p className="tool-status">{t('forecastSelectDestination')}</p> : null}
-      {selectedLocation && (climateQuery.isPending || (climateQuery.isFetching && !currentClimateData)) ? <p className="tool-status">{t('forecastLoadingClimate')}</p> : null}
+      {!selectedLocation ? <ToolStatus>{t('forecastSelectDestination')}</ToolStatus> : null}
+      {selectedLocation && (climateQuery.isPending || (climateQuery.isFetching && !currentClimateData)) ? <ToolStatus>{t('forecastLoadingClimate')}</ToolStatus> : null}
 
       {selectedLocation && climateQuery.isError ? (
         <div className="card">
           <div className="card-body tool-controls">
-            <p className="tool-status tool-status-error">{t('forecastLoadClimateError')}</p>
+            <ToolStatus tone="error">{t('forecastLoadClimateError')}</ToolStatus>
             <button type="button" className="tool-button" onClick={() => climateQuery.refetch()}>
               {t('retry')}
             </button>
@@ -841,6 +825,6 @@ export default function ForecastTool() {
           </div>
         </>
       ) : null}
-    </main>
+    </ToolPage>
   );
 }

@@ -1,13 +1,12 @@
 import {
   cloneElement,
-  useCallback,
   useEffect,
   useId,
-  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { usePopoverPosition } from '@/components/Popover';
 
 export type TooltipPlacement = 'top' | 'bottom' | 'auto';
 
@@ -51,12 +50,11 @@ export default function Tooltip({
   const [focused, setFocused] = useState(false);
   const [touchOpened, setTouchOpened] = useState(false);
   const [clicked, setClicked] = useState(false);
-  const [position, setPosition] = useState<TooltipPosition | null>(null);
   const visible = (hovered || focused || touchOpened || clicked) && content.length > 0;
 
-  const updatePosition = useCallback(() => {
+  const computePosition = (): TooltipPosition | null => {
     const trigger = triggerRef.current;
-    if (!trigger) return;
+    if (!trigger) return null;
 
     const rect = trigger.getBoundingClientRect();
     const tooltipRect = tooltipRef.current?.getBoundingClientRect();
@@ -89,27 +87,21 @@ export default function Tooltip({
       Math.max(center, VIEWPORT_GUTTER + halfWidth),
       Math.max(VIEWPORT_GUTTER + halfWidth, viewportWidth - VIEWPORT_GUTTER - halfWidth),
     );
-    setPosition({
+    return {
       top: side === 'top' ? rect.top : rect.bottom,
       left,
       side,
-    });
-  }, [placement]);
-
-  useLayoutEffect(() => {
-    if (!visible) {
-      setPosition(null);
-      return;
-    }
-
-    updatePosition();
-    window.addEventListener('resize', updatePosition);
-    document.addEventListener('scroll', updatePosition, true);
-    return () => {
-      window.removeEventListener('resize', updatePosition);
-      document.removeEventListener('scroll', updatePosition, true);
     };
-  }, [content, visible, updatePosition]);
+  };
+
+  const position = usePopoverPosition<TooltipPosition | null>({
+    open: visible,
+    compute: computePosition,
+    initial: null,
+    resetOnClose: true,
+    deps: [content, placement],
+    scrollTarget: 'document',
+  });
 
   useEffect(() => {
     if (!visible) return;

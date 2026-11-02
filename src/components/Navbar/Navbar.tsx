@@ -30,7 +30,7 @@ export default function Navbar() {
           <button
             ref={triggerRef}
             type="button"
-            className="grid-nav-trigger"
+            className="rule-btn grid-nav-trigger"
             data-tool={currentTool ? currentTool.route.slice(1) : ''}
             aria-label={gridOpen ? t('closeToolNavigation') : t('openToolNavigation')}
             aria-expanded={gridOpen}

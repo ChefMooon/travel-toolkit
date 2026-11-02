@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { COST_ENTRY_TYPES } from '@/store/types';
 import Tooltip from '@/components/Tooltip';
+import { costTypePlacement, getViewport, usePopoverPosition } from '@/components/Popover';
 import { useTranslation } from 'react-i18next';
 import '@/i18n';
 
@@ -18,42 +19,27 @@ interface CostTypePickerProps {
 export default function CostTypePicker({ value, onChange, optionsId, groupLabel, id, label, form = false }: CostTypePickerProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const [position, setPosition] = useState<CSSProperties>({});
   const triggerRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const selected = COST_ENTRY_TYPES.find((entry) => entry.id === value);
+  const position = usePopoverPosition<CSSProperties>({ open, initial: {}, deps: [form],
+    compute: () => { const rect = triggerRef.current?.getBoundingClientRect(); return rect && costTypePlacement(rect, getViewport(), form); } });
 
   useLayoutEffect(() => {
     if (!open) return;
-    const place = () => {
-      const rect = triggerRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      const width = Math.min(Math.max(150, form ? rect.width : 150), window.innerWidth - 16);
-      const below = window.innerHeight - rect.bottom - 12;
-      const above = rect.top - 12;
-      const flip = below < 270 && above > below;
-      setPosition({ position: 'fixed', left: Math.max(8, Math.min(rect.left, window.innerWidth - width - 8)),
-        width, maxHeight: Math.max(0, flip ? above : below), overflowY: 'auto',
-        ...(flip ? { top: 'auto', bottom: window.innerHeight - rect.top + 4 } : { top: rect.bottom + 4, bottom: 'auto' }) });
-    };
     const dismiss = (event: MouseEvent) => {
       if (!triggerRef.current?.contains(event.target as Node) && !menuRef.current?.contains(event.target as Node)) setOpen(false);
     };
     const keydown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') { setOpen(false); triggerRef.current?.focus(); }
     };
-    place();
-    window.addEventListener('resize', place);
-    window.addEventListener('scroll', place, true);
     document.addEventListener('mousedown', dismiss);
     document.addEventListener('keydown', keydown);
     return () => {
-      window.removeEventListener('resize', place);
-      window.removeEventListener('scroll', place, true);
       document.removeEventListener('mousedown', dismiss);
       document.removeEventListener('keydown', keydown);
     };
-  }, [open, form]);
+  }, [open]);
 
   const choose = (next: string | null) => {
     onChange(next);

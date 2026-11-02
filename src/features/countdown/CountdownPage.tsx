@@ -8,7 +8,8 @@ import { useTranslation } from 'react-i18next';
 import { formatNumber } from '@/i18n/format';
 import { dateDraftErrorKey } from '@/i18n/dateDraft';
 import type { TFunction } from 'i18next';
-import ToolPageHeading from '@/components/ToolPageHeading';
+import ToolPage from '@/components/ToolPage';
+import ToolStatus from '@/components/ToolStatus';
 
 function message(result: ReturnType<typeof calculateCountdown>, t: TFunction) {
   switch (result.kind) {
@@ -32,15 +33,14 @@ export default function CountdownPage({ fromTrip = false }: { fromTrip?: boolean
   const error = getDateDraftError(dates.start, dates.end);
   const today = useLocalDate();
   const result = error ? { kind: 'invalid' as const } : calculateCountdown(dates.start, dates.end, today);
-  return <main className="tool-page countdown-page" data-page-entrance aria-label={t('toolCountdown')}>
-    <ToolPageHeading route="/countdown">{t('toolCountdown')}</ToolPageHeading>
+  return <ToolPage route="/countdown" title={t('toolCountdown')} className="countdown-page">
     <p className="unit-intro">{t('countdownIntro')}</p>
     <section className="card" aria-labelledby="countdown-dates-title">
       <div className="card-header"><h2 id="countdown-dates-title" className="card-title">{t('tripDates')}</h2></div>
       <div className="card-body countdown-date-fields">
         <DatePicker showToday id="countdown-start" label={t('startDate')} value={dates.start} invalid={!!error} describedBy={error ? 'countdown-date-error' : undefined} onChange={(start) => setDates((current) => ({ ...current, start }))} />
         <DatePicker id="countdown-end" label={t('endDateOptional')} value={dates.end} invalid={!!error} describedBy={error ? 'countdown-date-error' : undefined} onChange={(end) => setDates((current) => ({ ...current, end }))} />
-        {error && <p className="trip-date-error" id="countdown-date-error" role="alert">{t(dateDraftErrorKey(error) ?? 'dateStartInvalid')}</p>}
+        {error && <ToolStatus tone="error" id="countdown-date-error" className="trip-date-error">{t(dateDraftErrorKey(error) ?? 'dateStartInvalid')}</ToolStatus>}
       </div>
     </section>
     <section className="card" aria-labelledby="countdown-result-title">
@@ -51,5 +51,5 @@ export default function CountdownPage({ fromTrip = false }: { fromTrip?: boolean
         ) : <p className="countdown-result-message">{message(result, t)}</p>}
       </div>
     </section>
-  </main>;
+  </ToolPage>;
 }

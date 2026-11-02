@@ -12,7 +12,8 @@ import { ArrowLeftRight, ArrowRight, ChevronDown, ChevronRight, ExternalLink } f
 import { useSettingsStore } from '@/store/settingsStore';
 import { useTranslation } from 'react-i18next';
 import { activeLocale } from '@/i18n/format';
-import ToolPageHeading from '@/components/ToolPageHeading';
+import ToolPage from '@/components/ToolPage';
+import ToolStatus from '@/components/ToolStatus';
 
 function formatRateDate(dateStr: string) {
   // API date is YYYY-MM-DD (UTC); parse as UTC to avoid day-offset in negative-offset timezones
@@ -120,8 +121,7 @@ export default function CurrencyTool() {
   }
 
     return (
-    <main className="tool-page" data-page-entrance aria-label={t('toolCurrency')}>
-      <ToolPageHeading route="/currency">{t('toolCurrency')}</ToolPageHeading>
+    <ToolPage route="/currency" title={t('toolCurrency')}>
 
       <CurrencyRegionSelector />
 
@@ -131,7 +131,7 @@ export default function CurrencyTool() {
           <Tooltip content={t('currencyResetDefaults')}>
             <button
               type="button"
-              className="currency-reset-button"
+              className="rule-btn currency-reset-button"
               onClick={handleReset}
               aria-label={t('currencyResetInputs')}
             >
@@ -172,7 +172,7 @@ export default function CurrencyTool() {
           <Tooltip content={t('currencySwap')}>
             <button
               type="button"
-              className="currency-swap-button"
+              className="rule-btn currency-swap-button"
               onClick={handleSwapCurrencies}
               aria-label={t('currencySwapFromTo')}
             >
@@ -194,11 +194,11 @@ export default function CurrencyTool() {
         </div>
       </div>
 
-      {snapshotQuery.isPending ? <p className="tool-status">{t('currencyLoadingRates')}</p> : null}
+      {snapshotQuery.isPending ? <ToolStatus>{t('currencyLoadingRates')}</ToolStatus> : null}
       {snapshotQuery.isError ? (
         <div className="card">
           <div className="card-body">
-            <p className="tool-status tool-status-error">{t('currencyLoadRatesError')}</p>
+            <ToolStatus tone="error">{t('currencyLoadRatesError')}</ToolStatus>
             <button type="button" className="tool-button" onClick={() => snapshotQuery.refetch()}>
               {t('retry')}
             </button>
@@ -302,6 +302,6 @@ export default function CurrencyTool() {
           </div>
         </div>
       ) : null}
-    </main>
+    </ToolPage>
   );
 }

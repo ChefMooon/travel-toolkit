@@ -200,7 +200,7 @@ export default function TripToolbar() {
     <>
       <header className="trip-toolbar">
         <div className="trip-toolbar-center">
-          <div className="trip-pill">
+          <div className="rule-btn trip-pill">
             <span className="trip-pill-stamp" data-tool="trip">
               <ToolStamp icon={Calculator} size="mini" />
             </span>
@@ -255,14 +255,14 @@ export default function TripToolbar() {
         <div className="trip-toolbar-right">
           <div className="trip-history-controls" role="group" aria-label={t('tripHistory')}>
             <Tooltip content={t('undoTip')}>
-              <button type="button" aria-label={t('undo')} disabled={!canUndo} onClick={undo}><Undo2 size={16} /></button>
+              <button type="button" className="rule-btn" aria-label={t('undo')} disabled={!canUndo} onClick={undo}><Undo2 size={16} /></button>
             </Tooltip>
             <Tooltip content={t('redoTip')}>
-              <button type="button" aria-label={t('redo')} disabled={!canRedo} onClick={redo}><Redo2 size={16} /></button>
+              <button type="button" className="rule-btn" aria-label={t('redo')} disabled={!canRedo} onClick={redo}><Redo2 size={16} /></button>
             </Tooltip>
           </div>
           {editingMarkup ? (
-            <div className="markup-pill markup-pill--editing" role="group" aria-label={t('markupEditor')}>
+            <div className="rule-btn markup-pill markup-pill--editing" role="group" aria-label={t('markupEditor')}>
               <span>{t('markup')}</span>
               <NumericInput
                 className="markup-num"
@@ -279,7 +279,7 @@ export default function TripToolbar() {
               />
             </div>
           ) : (
-            <button type="button" className="markup-pill" onClick={() => setEditingMarkup(true)}>
+            <button type="button" className="rule-btn markup-pill" onClick={() => setEditingMarkup(true)}>
               <span>{t('markup')}</span>
               <span className="markup-num">{globalMarkup}%</span>
             </button>
@@ -288,7 +288,7 @@ export default function TripToolbar() {
           <Tooltip content={t('newTrip')}>
             <button
               type="button"
-              className="btn-new-trip"
+              className="rule-btn btn-new-trip"
               onClick={handleOpenNewTripDecision}
               aria-label={t('startNewTrip')}
             >
@@ -299,7 +299,7 @@ export default function TripToolbar() {
           <Tooltip content={t('saveSlots')}>
             <button
               type="button"
-              className="btn-save-panel"
+              className="rule-btn btn-save-panel"
               data-dirty={isDirty ? 'true' : 'false'}
               onClick={handleOpenSavePanel}
               aria-label={t('openSaveSlots')}

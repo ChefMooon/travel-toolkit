@@ -1,12 +1,11 @@
-import { useEffect, useCallback, useId } from 'react';
-import { createPortal } from 'react-dom';
+import { useCallback, useId } from 'react';
 import { X } from 'lucide-react';
 import { COUPLE_COLORS, getColorThemeValue } from '@/store/types';
 import Tooltip from '@/components/Tooltip';
 import { useResolvedTheme } from '@/store/theme';
 import { useTranslation } from 'react-i18next';
 import '@/i18n';
-import { useChoiceDialogFocus } from '@/components/Modal/useChoiceDialogFocus';
+import { ModalShell } from '@/components/Modal';
 
 interface ColorChoiceModalProps {
   colorIndex: number;
@@ -20,17 +19,7 @@ export default function ColorChoiceModal({
   onCancel,
 }: ColorChoiceModalProps) {
   const { t } = useTranslation();
-  const dialogRef = useChoiceDialogFocus();
   const titleId = useId();
-  const handleBackdropClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget) {
-        onCancel();
-      }
-    },
-    [onCancel]
-  );
-
   const handleColorClick = useCallback(
     (index: number) => {
       onConfirm(index);
@@ -40,24 +29,13 @@ export default function ColorChoiceModal({
 
   const currentTheme = useResolvedTheme();
 
-  // Handle Escape key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onCancel();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onCancel]);
-
-  return createPortal(
-    <div
-      className="color-choice-overlay modal-overlay"
-      onClick={handleBackdropClick}
+  return (
+    <ModalShell
+      onClose={onCancel}
+      labelledBy={titleId}
+      overlayClassName="color-choice-overlay modal-overlay"
+      className="color-choice-modal"
     >
-      <div ref={dialogRef} className="color-choice-modal" role="dialog" aria-modal="true" aria-labelledby={titleId} onClick={(e) => e.stopPropagation()}>
         <div className="color-modal-header">
           <h2 id={titleId} className="color-modal-title">{t('chooseAColor')}</h2>
           <button
@@ -92,8 +70,6 @@ export default function ColorChoiceModal({
             );
           })}
         </div>
-      </div>
-    </div>,
-    document.body
+    </ModalShell>
   );
 }

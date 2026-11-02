@@ -1,6 +1,7 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Check, ChevronDown } from 'lucide-react';
+import { getViewport, nextActiveIndex, selectPlacement, usePopoverPosition } from '@/components/Popover';
 
 interface SelectProps {
   id?: string;
@@ -22,38 +23,22 @@ export default function Select({ id, value, options, onChange, getOptionLabel = 
   const [active, setActive] = useState(value);
   // Keep the portal out of document flow before its first measurement so it
   // cannot introduce a page scrollbar and change the trigger's width.
-  const [placement, setPlacement] = useState<CSSProperties>({ position: 'fixed', visibility: 'hidden' });
   const triggerRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const typeahead = useRef('');
   const typeaheadTimer = useRef<number | undefined>(undefined);
   const activeId = `${controlId}-option-${options.indexOf(active)}`;
+  const placement = usePopoverPosition<CSSProperties>({ open, initial: { position: 'fixed', visibility: 'hidden' }, deps: [options.length],
+    compute: () => { const rect = triggerRef.current?.getBoundingClientRect(); return rect && selectPlacement(rect, getViewport(), options.length); } });
 
   useLayoutEffect(() => {
     if (!open) return;
-    const update = () => {
-      const rect = triggerRef.current?.getBoundingClientRect();
-      if (!rect) return;
-      const margin = 8;
-      const below = Math.max(0, window.innerHeight - rect.bottom - margin - 4);
-      const above = Math.max(0, rect.top - margin - 4);
-      const desired = Math.min(240, options.length * 36 + 8);
-      const flip = below < desired && above > below;
-      const available = flip ? above : below;
-      const width = Math.min(Math.max(rect.width, 100), window.innerWidth - margin * 2);
-      const left = Math.max(margin, Math.min(rect.left, window.innerWidth - margin - width));
-      setPlacement({ position: 'fixed', left, width, zIndex: 1500, maxHeight: Math.max(0, Math.min(desired, available)),
-        ...(flip ? { bottom: window.innerHeight - rect.top + 4 } : { top: rect.bottom + 4 }) });
-    };
-    update();
-    window.addEventListener('resize', update);
-    window.addEventListener('scroll', update, true);
     const dismiss = (event: PointerEvent) => {
       if (!triggerRef.current?.contains(event.target as Node) && !listRef.current?.contains(event.target as Node)) setOpen(false);
     };
     document.addEventListener('pointerdown', dismiss);
-    return () => { window.removeEventListener('resize', update); window.removeEventListener('scroll', update, true); document.removeEventListener('pointerdown', dismiss); };
-  }, [open, options.length]);
+    return () => document.removeEventListener('pointerdown', dismiss);
+  }, [open]);
 
   useEffect(() => () => window.clearTimeout(typeaheadTimer.current), []);
   useEffect(() => { if (disabled) setOpen(false); }, [disabled]);
@@ -81,7 +66,7 @@ export default function Select({ id, value, options, onChange, getOptionLabel = 
     if (event.key === 'ArrowDown' || event.key === 'ArrowUp' || event.key === 'Home' || event.key === 'End') {
       event.preventDefault();
       if (!open) openAt();
-      const nextIndex = event.key === 'Home' ? 0 : event.key === 'End' ? options.length - 1 : (index + (event.key === 'ArrowDown' ? 1 : options.length - 1)) % options.length;
+      const nextIndex = nextActiveIndex(event.key, { current: index, count: options.length, wrap: true, homeEnd: true }) ?? -1;
       setActive(options[nextIndex] ?? ''); return;
     }
     if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey) {

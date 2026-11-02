@@ -35,7 +35,7 @@ export default function TimezoneNavbar({ manageRef }: { manageRef?: RefObject<((
 
             <Tooltip content={t('zoneUseBrowserTimezone')}>
               <button
-                className="btn-add"
+                className="rule-btn btn-add"
                 onClick={handleDetect}
                 aria-label={t('zoneDetectTimezone')}
                 style={{ paddingInline: 14, minWidth: 44 }}
@@ -46,7 +46,7 @@ export default function TimezoneNavbar({ manageRef }: { manageRef?: RefObject<((
 
             <Tooltip content={t('zoneManageTrackedTimezones')}>
               <button
-                className="btn-add tz-settings-btn"
+                className="rule-btn btn-add tz-settings-btn"
                 onClick={openConfig}
                 aria-label={t('zoneManageTrackedTimezones')}
               >

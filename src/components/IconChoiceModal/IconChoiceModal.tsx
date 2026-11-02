@@ -1,11 +1,10 @@
-import { useEffect, useCallback, useId } from 'react';
-import { createPortal } from 'react-dom';
+import { useCallback, useId } from 'react';
 import { X } from 'lucide-react';
 import { COUPLE_ICONS } from '@/store/types';
 import Tooltip from '@/components/Tooltip';
 import { useTranslation } from 'react-i18next';
 import '@/i18n';
-import { useChoiceDialogFocus } from '@/components/Modal/useChoiceDialogFocus';
+import { ModalShell } from '@/components/Modal';
 
 interface IconChoiceModalProps {
   iconIndex: number;
@@ -19,17 +18,7 @@ export default function IconChoiceModal({
   onCancel,
 }: IconChoiceModalProps) {
   const { t } = useTranslation();
-  const dialogRef = useChoiceDialogFocus();
   const titleId = useId();
-  const handleBackdropClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (e.target === e.currentTarget) {
-        onCancel();
-      }
-    },
-    [onCancel]
-  );
-
   const handleIconClick = useCallback(
     (index: number) => {
       onConfirm(index);
@@ -37,24 +26,13 @@ export default function IconChoiceModal({
     [onConfirm]
   );
 
-  // Handle Escape key
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onCancel();
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [onCancel]);
-
-  return createPortal(
-    <div
-      className="icon-choice-overlay modal-overlay"
-      onClick={handleBackdropClick}
+  return (
+    <ModalShell
+      onClose={onCancel}
+      labelledBy={titleId}
+      overlayClassName="icon-choice-overlay modal-overlay"
+      className="icon-choice-modal"
     >
-      <div ref={dialogRef} className="icon-choice-modal" role="dialog" aria-modal="true" aria-labelledby={titleId} onClick={(e) => e.stopPropagation()}>
         <div className="icon-modal-header">
           <h2 id={titleId} className="icon-modal-title">{t('chooseAnIcon')}</h2>
           <button
@@ -81,8 +59,6 @@ export default function IconChoiceModal({
             </Tooltip>;
           })}
         </div>
-      </div>
-    </div>,
-    document.body
+    </ModalShell>
   );
 }

@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import ToolStatus from '@/components/ToolStatus';
 import {
   DndContext,
   closestCenter,
@@ -47,7 +48,7 @@ export default function ZoneList() {
   };
 
   if (orderedZones.length === 0) {
-    return <p className="tool-status">{t('zoneNoZonesAdded')}</p>;
+    return <ToolStatus live={false}>{t('zoneNoZonesAdded')}</ToolStatus>;
   }
 
   return (

@@ -3,6 +3,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ChevronUp, GripVertical, Settings2, X } from 'lucide-react';
 import { useTimezoneStore, type DetailLevel, type DisplayMode, type TrackedZone } from '@/store/timezoneStore';
+import SegmentedControl from '@/components/SegmentedControl';
 import Tooltip from '@/components/Tooltip';
 import { useTranslation } from 'react-i18next';
 
@@ -95,47 +96,37 @@ export default function ZoneConfigRow({ zone }: ZoneConfigRowProps) {
 
           <div className="timezone-config-choice-row">
             <span className="timezone-config-field-label">{t('zoneDisplayMode')}</span>
-            <div className="seg" role="group" aria-label={t('zoneDisplayModeFor', { tz: zone.tz })}>
-              <button
-                type="button"
-                className={`seg-btn${zone.displayMode === 'analog' ? ' on' : ''}`}
-                aria-pressed={zone.displayMode === 'analog'}
-                onClick={() => setDisplayMode('analog')}
-              >
-                {t('zoneAnalog')}
-              </button>
-              <button
-                type="button"
-                className={`seg-btn${zone.displayMode === 'digital' ? ' on' : ''}`}
-                aria-pressed={zone.displayMode === 'digital'}
-                onClick={() => setDisplayMode('digital')}
-              >
-                {t('zoneDigital')}
-              </button>
-            </div>
+            <SegmentedControl
+              semantics="pressed"
+              size="sm"
+              indicator={false}
+              className="segmented-field"
+              aria-label={t('zoneDisplayModeFor', { tz: zone.tz })}
+              value={zone.displayMode}
+              onChange={setDisplayMode}
+              options={[
+                { value: 'analog', label: t('zoneAnalog') },
+                { value: 'digital', label: t('zoneDigital') },
+              ]}
+            />
           </div>
 
           {zone.displayMode === 'digital' && (
             <div className="timezone-config-choice-row">
               <span className="timezone-config-field-label">{t('zoneDetailLevel')}</span>
-              <div className="seg" role="group" aria-label={t('zoneDetailLevelFor', { tz: zone.tz })}>
-                <button
-                  type="button"
-                  className={`seg-btn${zone.detailLevel === 'compact' ? ' on' : ''}`}
-                  aria-pressed={zone.detailLevel === 'compact'}
-                  onClick={() => setDetailLevel('compact')}
-                >
-                  {t('zoneCompact')}
-                </button>
-                <button
-                  type="button"
-                  className={`seg-btn${zone.detailLevel === 'detailed' ? ' on' : ''}`}
-                  aria-pressed={zone.detailLevel === 'detailed'}
-                  onClick={() => setDetailLevel('detailed')}
-                >
-                  {t('zoneDetailed')}
-                </button>
-              </div>
+              <SegmentedControl
+                semantics="pressed"
+                size="sm"
+                indicator={false}
+                className="segmented-field"
+                aria-label={t('zoneDetailLevelFor', { tz: zone.tz })}
+                value={zone.detailLevel}
+                onChange={setDetailLevel}
+                options={[
+                  { value: 'compact', label: t('zoneCompact') },
+                  { value: 'detailed', label: t('zoneDetailed') },
+                ]}
+              />
             </div>
           )}
 

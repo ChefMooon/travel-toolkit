@@ -1,15 +1,17 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { CalendarDays, ChevronLeft, ChevronRight, Info, X } from 'lucide-react';
 import Tooltip from '@/components/Tooltip';
 import Select from '@/components/Select/Select';
 import NumericInput from '@/components/NumericInput/NumericInput';
+import { isInsideOwnedPortal, usePopoverPosition } from '@/components/Popover';
 import { isValidDateOnly } from './dateUtils';
 import { useTranslation } from 'react-i18next';
 import { activeLocale } from '@/i18n/format';
 
 type Props = { id: string; label: string; value: string; onChange: (value: string) => void; invalid?: boolean; describedBy?: string; showToday?: boolean };
 type View = { year: number; month: number };
+const hiddenPopupStyle: React.CSSProperties = { position: 'fixed', visibility: 'hidden' };
 const pad = (n: number) => String(n).padStart(2, '0');
 const fromParts = (y: number, m: number, d: number) => `${String(y).padStart(4, '0')}-${pad(m)}-${pad(d)}`;
 const dateAt = (year: number, month: number, day: number) => {
@@ -30,7 +32,6 @@ export default function DatePicker({ id, label, value, onChange, invalid, descri
   const [view, setView] = useState<View>(() => ({ year: isValidDateOnly(value) ? initialDate.getUTCFullYear() : initialDate.getFullYear(), month: isValidDateOnly(value) ? initialDate.getUTCMonth() : initialDate.getMonth() }));
   const [yearDraft, setYearDraft] = useState(() => String(isValidDateOnly(value) ? initialDate.getUTCFullYear() : initialDate.getFullYear()));
   const [focusDay, setFocusDay] = useState(() => isValidDateOnly(value) ? Number(value.slice(-2)) : new Date().getDate());
-  const [popupStyle, setPopupStyle] = useState<React.CSSProperties>({ position: 'fixed', visibility: 'hidden' });
   const root = useRef<HTMLDivElement>(null);
   const input = useRef<HTMLInputElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -51,10 +52,10 @@ export default function DatePicker({ id, label, value, onChange, invalid, descri
     const maxDay = dateAt(next.year, next.month + 1, 0).getUTCDate();
     setFocusDay(Math.min(day, maxDay));
   };
-  const measurePopup = useCallback(() => {
+  const measurePopup = (): React.CSSProperties | undefined => {
     const anchor = trigger.current?.getBoundingClientRect();
     const panel = popup.current;
-    if (!anchor || !panel) return;
+    if (!anchor || !panel) return undefined;
     const margin = 12;
     const visualViewport = window.visualViewport;
     const viewportTop = visualViewport?.offsetTop ?? 0;
@@ -71,17 +72,14 @@ export default function DatePicker({ id, label, value, onChange, invalid, descri
     const below = usableBottom - anchor.bottom - 6;
     const above = anchor.top - viewportTop - 6;
     const top = below >= height || below >= above ? Math.min(anchor.bottom + 6, usableBottom - height - margin) : Math.max(viewportTop + margin, anchor.top - height - 6);
-    setPopupStyle({ position: 'fixed', left, top, width, maxHeight: usableHeight, overflowY: 'auto' });
-  }, []);
-  useLayoutEffect(() => {
-    if (open) measurePopup();
-  }, [open, measurePopup]);
+    return { position: 'fixed', left, top, width, maxHeight: usableHeight, overflowY: 'auto' };
+  };
+  const popupStyle = usePopoverPosition({ open, compute: measurePopup, initial: hiddenPopupStyle, visualViewport: true, remeasureOnFrame: true });
   useEffect(() => {
     if (!open) return;
     const dismiss = (event: PointerEvent) => {
       const target = event.target as Node;
-      const listbox = target instanceof Element ? target.closest('[role="listbox"]') : null;
-      if (listbox?.id === `${id}-month-listbox`) return;
+      if (isInsideOwnedPortal(target, popup.current)) return;
       if (!root.current?.contains(target) && !popup.current?.contains(target)) setOpen(false);
     };
     const keys = (event: KeyboardEvent) => {
@@ -89,13 +87,8 @@ export default function DatePicker({ id, label, value, onChange, invalid, descri
     };
     document.addEventListener('pointerdown', dismiss);
     document.addEventListener('keydown', keys);
-    window.addEventListener('resize', measurePopup);
-    window.addEventListener('scroll', measurePopup, true);
-    window.visualViewport?.addEventListener('resize', measurePopup);
-    window.visualViewport?.addEventListener('scroll', measurePopup);
-    const frame = requestAnimationFrame(measurePopup);
-    return () => { cancelAnimationFrame(frame); document.removeEventListener('pointerdown', dismiss); document.removeEventListener('keydown', keys); window.removeEventListener('resize', measurePopup); window.removeEventListener('scroll', measurePopup, true); window.visualViewport?.removeEventListener('resize', measurePopup); window.visualViewport?.removeEventListener('scroll', measurePopup); };
-  }, [open, measurePopup, id]);
+    return () => { document.removeEventListener('pointerdown', dismiss); document.removeEventListener('keydown', keys); };
+  }, [open]);
   useEffect(() => {
     if (!open || !grid.current) return;
     if (keepHeaderFocus.current) { keepHeaderFocus.current = false; return; }

@@ -6,7 +6,8 @@ import NumericInput from '@/components/NumericInput/NumericInput';
 import { categories, convert } from './conversions';
 import { formatNumber } from '@/i18n/format';
 import type { TranslationKey } from '@/i18n';
-import ToolPageHeading from '@/components/ToolPageHeading';
+import ToolPage from '@/components/ToolPage';
+import SegmentedControl from '@/components/SegmentedControl';
 
 const measurements = [
   { label: 'Temperature', icon: Thermometer },
@@ -53,22 +54,21 @@ export default function UnitConverter() {
   }
 
   return (
-    <main className="tool-page" data-page-entrance aria-label={t('toolUnits')}>
-      <ToolPageHeading route="/units">{t('toolUnits')}</ToolPageHeading>
+    <ToolPage route="/units" title={t('toolUnits')}>
       <p className="unit-intro">{t('unitIntro')}</p>
       <div className="card">
         <div className="card-header"><h2 className="card-title">{t('conversionInputs')}</h2></div>
         <div className="card-body unit-controls">
           <fieldset className="unit-measurement">
             <legend className="tool-label">{t('measurement')}</legend>
-            <div className="unit-measurement-options" data-category={category}>
-              {measurements.map(({ label, icon: Icon }) => (
-                <label className="unit-measurement-option" key={label}>
-                  <input type="radio" name="measurement" value={label} checked={category === label} onChange={() => changeCategory(label)} />
-                  <span><Icon size={18} aria-hidden="true" />{categoryLabel(label)}</span>
-                </label>
-              ))}
-            </div>
+            <SegmentedControl
+              semantics="native-radio"
+              name="measurement"
+              narrowColumns={2}
+              value={category}
+              onChange={changeCategory}
+              options={measurements.map(({ label, icon: Icon }) => ({ value: label, label: categoryLabel(label), icon: <Icon size={18} aria-hidden="true" /> }))}
+            />
           </fieldset>
           <div className="tool-field"><span className="tool-label">{t('amount')}</span>
             <NumericInput className="tool-input mono" aria-label={t('amount')} step="0.01" value={amount} onChange={(event) => setAmount(event.target.value)} />
@@ -76,7 +76,7 @@ export default function UnitConverter() {
           <div className="tool-field"><span className="tool-label">{t('fromUnit')}</span>
             <Select className="tool-input" aria-label={t('fromUnitAccessible')} value={from} options={units.map((unit) => unit.label)} getOptionLabel={unitLabel} onChange={setFrom} />
           </div>
-          <button type="button" className="currency-swap-button unit-swap" aria-label={t('swapUnits')} onClick={() => { setFrom(to); setTo(from); }}><ArrowLeftRight size={18} aria-hidden="true" /></button>
+          <button type="button" className="rule-btn currency-swap-button unit-swap" aria-label={t('swapUnits')} onClick={() => { setFrom(to); setTo(from); }}><ArrowLeftRight size={18} aria-hidden="true" /></button>
           <div className="tool-field"><span className="tool-label">{t('toUnit')}</span>
             <Select className="tool-input" aria-label={t('toUnitAccessible')} value={to} options={units.map((unit) => unit.label)} getOptionLabel={unitLabel} onChange={setTo} />
           </div>
@@ -88,6 +88,6 @@ export default function UnitConverter() {
           {formatted === null ? t('invalidAmount') : <><span>{amount} {unitLabel(from)}</span><strong>= {formatted} {unitLabel(to)}</strong></>}
         </div>
       </div>
-    </main>
+    </ToolPage>
   );
 }

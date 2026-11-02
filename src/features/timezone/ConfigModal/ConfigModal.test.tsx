@@ -110,10 +110,24 @@ describe('ConfigModal', () => {
     trigger.remove();
   });
 
+  it('clears a non-empty search with Escape before closing the modal', () => {
+    const onClose = vi.fn();
+    render(<ConfigModal onClose={onClose} />);
+    const search = screen.getByLabelText('Search timezones');
+
+    fireEvent.change(search, { target: { value: 'Tokyo' } });
+    fireEvent.keyDown(search, { key: 'Escape' });
+    expect(search).toHaveValue('');
+    expect(onClose).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(search, { key: 'Escape' });
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
   it('closes only when the backdrop itself is clicked', () => {
     const onClose = vi.fn();
-    const { container } = render(<ConfigModal onClose={onClose} />);
-    const backdrop = container.querySelector('.modal-bd');
+    render(<ConfigModal onClose={onClose} />);
+    const backdrop = document.querySelector('.modal-bd');
     const dialog = screen.getByRole('dialog');
 
     fireEvent.click(dialog);

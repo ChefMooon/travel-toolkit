@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [Unreleased]
+
+### Changed
+
+- Danger text and borders now meet accessibility contrast in light and dark themes.
+- Option and row hover fills are stronger across dropdowns, popovers, the tools panel, and Forecast rows and suggestions.
+- Keyboard focus rings now use a single coral colour, including the couple button, except the tools panel and tool cards, which keep their per-tool colour.
+- Dialogs have a refreshed surface: the confirmation dialog uses a 16px radius and 24px padding.
+- Refreshed the theme selector and other segmented controls.
+- Dropdowns, popovers, and the settings panel share one floating-panel look.
+- Shared tool page, status, dialog, segmented-control, and popover components now back the tools, with a few behaviour changes: the timezone settings dialog now renders in a portal, dialogs lock page scroll, Escape closes only the top dialog and requires focus inside it, and the Forecast view toggle gains arrow-key navigation.
+
+### Fixed
+
+- Dialogs now lock background scrolling, and Escape closes only the top dialog when focus is inside it.
+
+### Accessibility
+
+- The Forecast daily-breakdown toggle now supports keyboard arrow navigation.
+- Forecast and Currency status messages are now announced to screen readers.
+
 ## [1.5.0] - 2026-11-01
 
 ### Changed

@@ -13,6 +13,7 @@ vi.mock('@/features/forecast/useForecast', () => ({
 }));
 
 import { useGeocode, useClimateData } from '@/features/forecast/useForecast';
+import { useForecastStore } from '@/store/forecastStore';
 import { useSettingsStore } from '@/store/settingsStore';
 import { activateLanguage } from '@/i18n';
 
@@ -222,5 +223,26 @@ describe('ForecastTool', () => {
 
     expect(screen.getByText('Searching destinations...')).toBeInTheDocument();
     expect(screen.queryByText(/Unable to resolve destination/i)).not.toBeInTheDocument();
+  });
+
+  it('renders the daily breakdown view toggle as a radiogroup with roving focus and arrow selection', () => {
+    useForecastStore.setState({ dailyBreakdownView: 'table' });
+    (useClimateData as ReturnType<typeof vi.fn>).mockReturnValue(readyClimateQuery);
+    (useGeocode as ReturnType<typeof vi.fn>).mockReturnValue(readyGeoQuery);
+    render(<ForecastTool />);
+    selectFirstSuggestion();
+
+    const group = screen.getByRole('radiogroup', { name: 'Daily breakdown view mode' });
+    const table = within(group).getByRole('radio', { name: 'Table view' });
+    const day = within(group).getByRole('radio', { name: 'Day view' });
+    expect(table).toHaveAttribute('aria-checked', 'true');
+    expect(day).toHaveAttribute('aria-checked', 'false');
+    expect([table.tabIndex, day.tabIndex]).toEqual([0, -1]);
+
+    fireEvent.keyDown(table, { key: 'ArrowRight' });
+    expect(useForecastStore.getState().dailyBreakdownView).toBe('single-day');
+    expect(day).toHaveAttribute('aria-checked', 'true');
+    expect(day).toHaveFocus();
+    expect([table.tabIndex, day.tabIndex]).toEqual([-1, 0]);
   });
 });

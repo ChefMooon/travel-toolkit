@@ -52,15 +52,17 @@ Defined in [src/index.css](../src/index.css) under :root and theme selectors.
 | --bg-2 | #F0EBDF | #24211F | Subtle raised surfaces |
 | --bg-3 | #E7E1D3 | #2D2A27 | Active/hover fill |
 | --surface | #FFFFFF | #211F1D | Modal and input base (cards use `--card-paper`) |
-| --surface-2 | #F8F8F5 | #282522 | Nested surfaces and option-row hover |
+| --surface-2 | #F8F8F5 | #282522 | Nested surfaces (option-row hover uses `--hover-bg`) |
 | --border | #E0DACB | #36322E | Primary borders |
 | --border-2 | #CEC7B6 | #46413C | Secondary borders |
 | --text | #2A2824 | #EEEAE6 | Primary text |
 | --text-2 | #5E5A53 | #9E9B96 | Secondary text |
 | --text-3 | #68635B | #A39F9B | Tertiary/label text |
 | --accent | #C4737A | #C4737A | Primary action tone |
-| --danger | #B85C5C | #B85C5C | Destructive actions |
-| --focus | #A14B53 | #D8979D | Keyboard focus ring (coral, 2px outline) |
+| --danger | #A34848 | #D98A8A | Destructive text and borders (meets AA contrast on both themes) |
+| --danger-fill | #A34848 | #A34848 | Destructive fills carrying white text |
+| --hover-bg | `--bg-2` | `--bg-3` | Option-row hover and active fills |
+| --focus | #A14B53 | #D8979D | Keyboard focus ring (coral). One global `:where(...):focus-visible` rule draws a 2px solid outline with a 2px offset; individual elements override the offset and, in a few cases, the radius, colour, or box-shadow (`.grid-panel-item` and `.tool-card` keep a `--card-edge` ring; `.trip-id-pill` uses a border and box-shadow instead) |
 
 Postcard tokens:
 
@@ -71,6 +73,19 @@ Postcard tokens:
 | --rule-2 | #D3CABA | #47423F | Stronger rule |
 | --btn | #FBF8F1 | #23201E | Neutral control fill (top-bar trigger, theme selector) |
 | --stamp-paper | #FFFDF8 | #E6DED0 | Paper color of the logo stamp |
+
+Control tokens (shared by buttons, inputs, dropdown triggers, and pills):
+
+| Token | Value | Usage |
+|---|---|---|
+| --control-border-width | 1.5px | Control border width |
+| --control-border | `--rule-2` | Control border color |
+| --control-bg | `--btn` | Control background |
+| --control-radius | 12px | Standard control radius |
+| --control-radius-pill | 999px | Pill control radius |
+| --control-hover-border | `--text-3` | Neutral border on hover |
+
+The shared `.rule-btn` class applies the control border, background, and radius, with the `--control-hover-border` hover on non-disabled buttons.
 
 Per-tool color variables (`--card-edge`, `--card-icon`, `--card-icon-bg`) are set through the `[data-tool]` hook; see [STYLE-GUIDE.md](./STYLE-GUIDE.md).
 
@@ -124,19 +139,21 @@ Type roles:
 
 Spacing rhythm is compact and dense for data-entry speed:
 - Primary interior padding: 12, 16, 20, 24
-- Pill and chip controls: rounded 22px
-- Card radius: 12-16px, modal radius: 16-20px
+- Pill and chip controls: `--control-radius-pill` (999px; renders identically to the former 22px radius for pills up to 44px tall)
+- Card radius: 12-16px, modal radius: 16px (24px padding; `.split-modal` uses 20px)
 
 Elevation tokens:
 - --shadow-sm: low elevation for sticky top bar and subtle hovers
 - --shadow: default card depth
 - --shadow-lg: modal/overlay depth
 
+Floating panels (select listbox, popovers, child picker, save-data dropdown, settings panel) share one surface: `--card-paper` background, 1px `--rule` border, 12px radius, and `--shadow-lg`.
+
 ### 4.5 Motion
 
 Motion is minimal and purposeful:
 - Section load stagger: fadeUp animation with small delays
-- Modal open: pop scale animation
+- Modal open: pop scale animation (.22s)
 - Toast entry: slide-down fade
 - Hover transforms limited to tiny scale/translate shifts for affordance clarity
 
@@ -160,6 +177,8 @@ The shared top bar includes a three-option segmented radio selector:
 - System follows the operating system color preference
 - Light and Dark set an explicit color preference
 - The selected thumb tracks the chosen option; keyboard arrows and Home/End move among all three options
+- The thumb uses `--accent-soft` with a `--topbar-accent` border
+- Implemented with the shared `SegmentedControl` (see 8.9.1)
 
 The toggle must always be visible in desktop and mobile top bar layouts on every route.
 
@@ -303,7 +322,7 @@ Layout:
 - Each row is a whole-link target: a 30px `ToolStamp` (row size) followed by the tool name
 - The row for the current route carries `aria-current="page"`, a tinted background, a visible postmark, and a "Here" marker; it keeps a Highlight outline in forced-colors mode
 - Tool icons use the shared Lucide React mapping in `src/lib/tools.ts`, rendered through `ToolStamp` (see [STYLE-GUIDE.md](./STYLE-GUIDE.md))
-- Row hover applies a `--surface-2` fill; focus uses a 2px outline in the tool's `--card-edge`
+- Row hover applies a `--hover-bg` fill; focus uses a 2px outline in the tool's `--card-edge`
 
 Panel content:
 
@@ -411,6 +430,17 @@ Accessibility behavior:
 - Focus trapped within dialog
 - Escape closes modal
 - Backdrop click cancels
+- Escape is handled at the dialog level: it closes only the topmost dialog and requires focus inside it
+- Focus trap skips disabled controls
+- Background page scroll is locked while a modal is open
+
+Implementation: `ModalShell` (`src/components/Modal`) provides the portal, backdrop, focus trap, scroll lock, and Escape handling for `Modal`, the timezone `ConfigModal`, `SplitAssignmentModal`, `IconChoiceModal`, `ColorChoiceModal`, and `ImportExportSettingsModal`. Its surface is `--card-paper` with a 16px radius, 24px padding (`.split-modal` uses 20px), and the .22s pop animation.
+
+### 8.9.1 Shared Controls and Helpers
+
+- `SegmentedControl` (`src/components/SegmentedControl`) replaces the former `.seg`/`.seg-btn`, `.forecast-view-toggle`, `.unit-measurement-options`, and `.theme-selector` markup. Semantics are `radio`, `native-radio`, or `pressed`. The Forecast daily-breakdown toggle is a 12px-radius container with a sliding pill, roving tabindex, and arrow-key navigation. Selected options use `--accent-soft`; unselected hover uses `--hover-bg`.
+- `ToolPage` and `ToolStatus` (`src/components`) provide the shared tool page wrapper and status messages (`role="status"` or `role="alert"`, element ids preserved). Forecast and Currency status messages are announced to screen readers.
+- `src/components/Popover` holds the positioning and list helpers (`placement.ts`, `usePopoverPosition`, `isInsideOwnedPortal`, `nextActiveIndex`) shared by Select, TimezoneSelect, CostTypePicker, DatePicker, Tooltip, SettingsMenu, and the Forecast search.
 
 ### 8.10 Toast Notifications
 
@@ -453,7 +483,7 @@ Target baseline: WCAG 2.1 AA for color contrast, keyboard access, and focus visi
 Current required behaviors:
 - All interactive controls are keyboard reachable
 - Visible focus ring via --focus token and focus-visible selectors
-- Modal focus trap and Escape support
+- Modal focus trap, Escape support, and background scroll lock
 - Notification region with aria-live announcements
 - Minimum touch target sizing in non-hover environments
 - No information conveyed by color alone for critical actions (labels/icons accompany color-coded chips)
@@ -562,4 +592,4 @@ Definition of done for design-affecting changes:
 | 1.2 | 2026-09-29 | Documented the title hierarchy and color-only hover and focus treatment for blog post card links. |
 | 1.3 | 2026-09-30 | Documented shared Lucide tool-launcher icons and whole-link hover, focus, active, and reduced-motion behavior. |
 | 1.4 | 2026-09-30 | Replaced the top-bar launcher image with a dedicated Lucide grid glyph using theme-aware `currentColor`; retained the existing trigger geometry and interactions. |
-| 1.5 | Unreleased | Postcard theme restyle (next version): warm paper background with grain, new paper and rule tokens, perforated `ToolStamp` with postmark and per-tool `data-tool` colors, postcard landing cards and hero with flight path and world map (hero CTA removed), list-style tools popover marking the current tool, translucent header and mobile nav, stamp logo and app icons with maskable and apple-touch variants, and light/dark `theme-color`. Tool pages and the shared controls follow the same language: generic `.card` on `--card-paper` with a `--rule` border, a coral `--focus` ring, neutral `--text-3` border hover for buttons, inputs and dropdown triggers, `--surface-2` option-row hover, and `--accent-soft` with `--topbar-accent` text for selected states. |
+| 1.5 | Unreleased | Postcard theme restyle (next version): warm paper background with grain, new paper and rule tokens, perforated `ToolStamp` with postmark and per-tool `data-tool` colors, postcard landing cards and hero with flight path and world map (hero CTA removed), list-style tools popover marking the current tool, translucent header and mobile nav, stamp logo and app icons with maskable and apple-touch variants, and light/dark `theme-color`. Tool pages and the shared controls follow the same language: generic `.card` on `--card-paper` with a `--rule` border, a coral `--focus` ring, neutral `--text-3` border hover for buttons, inputs and dropdown triggers, `--hover-bg` option-row hover (initially `--surface-2`), and `--accent-soft` with `--topbar-accent` text for selected states. Follow-up: `--danger` darkened (light) / lightened (dark) for AA contrast with a new `--danger-fill`, new `--hover-bg` and `--control-*` tokens, a single global focus ring, a shared floating-panel surface, `ModalShell`, `SegmentedControl`, `ToolPage`/`ToolStatus`, and shared `Popover` helpers. |

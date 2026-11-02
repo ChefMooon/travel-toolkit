@@ -8,6 +8,7 @@ import DatePicker from '@/components/DatePicker/DatePicker';
 import { getDateDraftError } from '@/components/DatePicker/dateUtils';
 import { useTranslation } from 'react-i18next';
 import { dateDraftErrorKey } from '@/i18n/dateDraft';
+import ToolStatus from '@/components/ToolStatus';
 
 export default function RegionSelector() {
   const { t } = useTranslation();
@@ -59,7 +60,7 @@ export default function RegionSelector() {
             <DatePicker showToday id="trip-start-date" label={t('startDate')} value={draft.start} invalid={!!error} describedBy={error ? 'trip-date-error' : undefined} onChange={(value) => editDate('start', value)} />
             <DatePicker id="trip-end-date" label={t('endDate')} value={draft.end} invalid={!!error} describedBy={error ? 'trip-date-error' : undefined} onChange={(value) => editDate('end', value)} />
           </div>
-          {error && <p id="trip-date-error" className="trip-date-error" role="alert">{translatedError}</p>}
+          {error && <ToolStatus tone="error" id="trip-date-error" className="trip-date-error">{translatedError}</ToolStatus>}
         </div>
       </div>
     </div>

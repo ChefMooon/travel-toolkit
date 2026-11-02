@@ -3,6 +3,7 @@ import { useTripStore } from '@/store/tripStore';
 import { useToastStore } from '@/store/toastStore';
 import { getAvailableCurrencies, getDefaultCurrency, getColorThemeValue, MAX_COST_NAME_LENGTH } from '@/store/types';
 import Select from '@/components/Select/Select';
+import SegmentedControl from '@/components/SegmentedControl';
 import CostTypePicker from '@/components/CostTypePicker/CostTypePicker';
 import type { SplitType } from '@/store/types';
 import { useResolvedTheme } from '@/store/theme';
@@ -295,32 +296,20 @@ export default function EditRow({ initial, defaultCurrency, onSave, onCancel }: 
           </div>
           <div className="ef">
             <span className="ef-lbl" id={`${fieldPrefix}-split-label`}>{t('split')}</span>
-            <div role="group" aria-labelledby={`${fieldPrefix}-split-label`} className="seg">
-              <button
-                className={`seg-btn${splitType === 'shared' ? ' on' : ''}`}
-                onClick={() => openSplitModalFor('shared')}
-                type="button"
-                aria-pressed={splitType === 'shared'}
-              >
-                {t('allGroups')}
-              </button>
-              <button
-                className={`seg-btn${splitType === 'subset' ? ' on' : ''}`}
-                onClick={() => openSplitModalFor('subset')}
-                type="button"
-                aria-pressed={splitType === 'subset'}
-              >
-                {t('subset')}
-              </button>
-              <button
-                className={`seg-btn${splitType === 'individual' ? ' on' : ''}`}
-                onClick={() => openSplitModalFor('individual')}
-                type="button"
-                aria-pressed={splitType === 'individual'}
-              >
-                {t('solo')}
-              </button>
-            </div>
+            <SegmentedControl
+              semantics="pressed"
+              size="sm"
+              indicator={false}
+              className="segmented-field"
+              aria-labelledby={`${fieldPrefix}-split-label`}
+              value={splitType}
+              onChange={openSplitModalFor}
+              options={[
+                { value: 'shared', label: t('allGroups') },
+                { value: 'subset', label: t('subset') },
+                { value: 'individual', label: t('solo') },
+              ]}
+            />
           </div>
           <div className="ef">
             <label className="ef-lbl" htmlFor={`${fieldPrefix}-type`}>{t('type')}</label>

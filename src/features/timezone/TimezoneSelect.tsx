@@ -1,7 +1,8 @@
-import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { buildTimezoneOptions, type TimezoneOption } from './timezones';
 import Select from '@/components/Select/Select';
+import { getViewport, nextActiveIndex, timezonePlacement, usePopoverPosition, type TimezonePlacement } from '@/components/Popover';
 import { useTranslation } from 'react-i18next';
 import { activeLocale } from '@/i18n/format';
 
@@ -24,13 +25,6 @@ interface TimezoneSelectProps {
   addedTimezones?: string[];
 }
 
-interface PopoverPosition {
-  top: number;
-  left: number;
-  width: number;
-  maxHeight: number;
-}
-
 export default function TimezoneSelect({
   value,
   onChange,
@@ -45,7 +39,6 @@ export default function TimezoneSelect({
   const [options, setOptions] = useState(() => getAllOptions(Date.now(), locale));
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
-  const [popoverPosition, setPopoverPosition] = useState<PopoverPosition | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const resultsRef = useRef<HTMLUListElement>(null);
   const pointerDownOnResultsRef = useRef(false);
@@ -119,40 +112,15 @@ export default function TimezoneSelect({
     return () => document.removeEventListener('pointerdown', closeOnOutsidePointer, true);
   }, [showResults]);
 
-  useLayoutEffect(() => {
-    if (!showResults) return;
-
-    const updatePosition = () => {
+  const popoverPosition = usePopoverPosition<TimezonePlacement | null>({
+    open: showResults,
+    initial: null,
+    compute: () => {
       const input = inputRef.current;
-      if (!input) return;
-
-      const rect = input.getBoundingClientRect();
-      const edge = 12;
-      const gap = 6;
-      const availableBelow = Math.max(0, window.innerHeight - rect.bottom - gap - edge);
-      const availableAbove = Math.max(0, rect.top - gap - edge);
-      const opensAbove = availableBelow < 96 && availableAbove > availableBelow;
-      const availableHeight = opensAbove ? availableAbove : availableBelow;
-      const maxHeight = Math.max(44, Math.min(280, availableHeight));
-      const width = Math.min(rect.width, window.innerWidth - edge * 2);
-
-      setPopoverPosition({
-        top: opensAbove ? Math.max(edge, rect.top - gap - maxHeight) : rect.bottom + gap,
-        left: Math.max(edge, Math.min(rect.left, window.innerWidth - edge - width)),
-        width,
-        maxHeight,
-      });
-    };
-
-    updatePosition();
-    window.addEventListener('resize', updatePosition);
-    window.addEventListener('scroll', updatePosition, true);
-
-    return () => {
-      window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition, true);
-    };
-  }, [showResults]);
+      if (!input) return null;
+      return timezonePlacement(input.getBoundingClientRect(), getViewport());
+    },
+  });
 
   const popoverStyle: CSSProperties = {
     position: 'fixed',
@@ -163,13 +131,9 @@ export default function TimezoneSelect({
     zIndex: 1001,
   };
 
-  const findEnabledIndex = (start: number, direction: 1 | -1) => {
-    for (let index = start; index >= 0 && index < filtered.length; index += direction) {
-      const option = filtered[index];
-      if (option && !addedTimezones.includes(option.tz)) return index;
-    }
-
-    return -1;
+  const isOptionDisabled = (index: number) => {
+    const option = filtered[index];
+    return !option || addedTimezones.includes(option.tz);
   };
 
   const selectOption = (option: TimezoneOption) => {
@@ -182,22 +146,10 @@ export default function TimezoneSelect({
   };
 
   const handleSearchKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'ArrowDown' && filtered.length > 0) {
+    if ((event.key === 'ArrowDown' || event.key === 'ArrowUp') && filtered.length > 0) {
       event.preventDefault();
-      setActiveIndex((index) => {
-        const next = findEnabledIndex(index + 1, 1);
-        return next < 0 ? index : next;
-      });
-      return;
-    }
-
-    if (event.key === 'ArrowUp' && filtered.length > 0) {
-      event.preventDefault();
-      setActiveIndex((index) => {
-        const start = index < 0 ? filtered.length - 1 : index - 1;
-        const next = findEnabledIndex(start, -1);
-        return next < 0 ? index : next;
-      });
+      const { key } = event;
+      setActiveIndex((index) => nextActiveIndex(key, { current: index, count: filtered.length, isDisabled: isOptionDisabled }) ?? index);
       return;
     }
 

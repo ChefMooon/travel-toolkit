@@ -6,6 +6,7 @@ import { CURRENCIES, REGION_LIST } from '@/store/types';
 import { useSettingsStore } from '@/store/settingsStore';
 import Select from '@/components/Select/Select';
 import ThemeSelector from '@/components/ThemeSelector/ThemeSelector';
+import { isInsideOwnedPortal } from '@/components/Popover';
 import { activateLanguage } from '@/i18n';
 
 export default function SettingsMenu() {
@@ -22,8 +23,7 @@ export default function SettingsMenu() {
       }
     };
     const onPointerDown = (event: PointerEvent) => {
-      const listbox = (event.target as Element).closest?.('[role="listbox"]');
-      if (listbox?.id && containerRef.current?.querySelector(`[aria-controls="${CSS.escape(listbox.id)}"]`)) return;
+      if (isInsideOwnedPortal(event.target, containerRef.current)) return;
       if (!containerRef.current?.contains(event.target as Node)) setOpen(false);
     };
     document.addEventListener('keydown', onKeyDown);
@@ -43,7 +43,7 @@ export default function SettingsMenu() {
   const setRegion = useSettingsStore((s) => s.setPreferredRegion);
   const language = useSettingsStore((s) => s.language);
   return <div className="settings-menu" ref={containerRef}>
-    <button ref={triggerRef} type="button" className="grid-nav-trigger" aria-label={t('settings')} aria-expanded={open} aria-controls="global-settings-panel" onClick={() => setOpen((value) => !value)}><Settings2 aria-hidden="true" /></button>
+    <button ref={triggerRef} type="button" className="rule-btn grid-nav-trigger" aria-label={t('settings')} aria-expanded={open} aria-controls="global-settings-panel" onClick={() => setOpen((value) => !value)}><Settings2 aria-hidden="true" /></button>
     {open && <section id="global-settings-panel" className="global-settings-panel" aria-label={t('settings')}>
       <div className="global-settings-theme"><span>{t('theme')}</span><ThemeSelector /></div>
       <label htmlFor="settings-measurement">{t('measurement')}<Select id="settings-measurement" className="shared-select-full" value={measurement} options={['metric', 'imperial']} getOptionLabel={(value) => value === 'imperial' ? t('imperial') : t('metric')} onChange={(value) => setMeasurement(value as 'metric' | 'imperial')} /></label>
