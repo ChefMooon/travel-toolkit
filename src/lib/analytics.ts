@@ -51,8 +51,10 @@ export async function initializeAnalytics(): Promise<boolean> {
   await loadAnalyticsScript();
 
   window.dataLayer = window.dataLayer ?? [];
-  const gtag: GtagCommand = (...args: unknown[]) => {
-    window.dataLayer!.push(args);
+  const gtag: GtagCommand = function gtag() {
+    // gtag.js requires the Arguments object, not an array.
+    // eslint-disable-next-line prefer-rest-params
+    window.dataLayer!.push(arguments);
   };
 
   window.gtag = gtag;

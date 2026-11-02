@@ -45,6 +45,39 @@ describe('analytics helpers', () => {
     expect(window.__travelToolkitGaInitialized).toBeUndefined();
   });
 
+  it('pushes Arguments objects (not arrays) onto dataLayer so gtag.js processes them', async () => {
+    vi.resetModules();
+    vi.stubEnv('PROD', true);
+    vi.stubEnv('VITE_GA_MEASUREMENT_ID', 'G-TEST1234');
+    window.dataLayer = [];
+
+    const appendSpy = vi.spyOn(document.head, 'appendChild').mockImplementation((node) => {
+      const appended = Element.prototype.appendChild.call(document.head, node);
+      const element = node as HTMLScriptElement;
+      element.onload?.(new Event('load'));
+      return appended;
+    });
+
+    const analytics = await import('@/lib/analytics');
+    await expect(analytics.initializeAnalytics()).resolves.toBe(true);
+
+    const layer = window.dataLayer ?? [];
+    expect(layer.length).toBeGreaterThanOrEqual(2);
+    for (const entry of layer) {
+      expect(Array.isArray(entry)).toBe(false);
+      expect(Object.prototype.toString.call(entry)).toBe('[object Arguments]');
+    }
+
+    const configEntry = layer.find((entry) => (entry as ArrayLike<unknown>)[0] === 'config') as
+      | ArrayLike<unknown>
+      | undefined;
+    expect(configEntry).toBeDefined();
+    expect(configEntry?.[1]).toBe('G-TEST1234');
+
+    appendSpy.mockRestore();
+    delete window.dataLayer;
+  });
+
   it('dispatches page_view when initialized', () => {
     const gtagSpy = vi.fn();
     window.gtag = gtagSpy;
