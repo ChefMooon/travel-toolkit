@@ -33,7 +33,7 @@ describe('site language activation', () => {
     expect(resources).not.toHaveProperty('ar');
   });
 
-  it('loads the French review preview on explicit selection and synchronizes persisted and document state', async () => {
+  it('loads French on explicit selection and synchronizes persisted and document state', async () => {
     const activated = await activateLanguage('fr-CA');
     expect(activated).toBe(true);
     expect(i18n.resolvedLanguage).toBe('fr-CA');
@@ -103,7 +103,7 @@ describe('site language activation', () => {
     }
   });
 
-  it('falls back to English and persists matching metadata when the preview resource fails to load', async () => {
+  it('falls back to English and persists matching metadata when the French resource fails to load', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
     const activated = await activateLanguage('fr-CA', () => Promise.reject(new Error('resource unavailable')));
     expect(activated).toBe(false);

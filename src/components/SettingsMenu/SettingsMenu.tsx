@@ -51,8 +51,7 @@ export default function SettingsMenu() {
       <label htmlFor="settings-currency">{t('preferredCurrency')}<Select id="settings-currency" className="shared-select-full" value={currency} options={CURRENCIES} onChange={setCurrency} /></label>
       <label htmlFor="settings-region">{t('preferredRegion')}<Select id="settings-region" className="shared-select-full" value={region ?? ''} options={['', ...REGION_LIST]} getOptionLabel={(value) => value ? t(`region${value.replace(/\s/g, '')}` as 'regionNorthAmerica') : t('noPreferredRegion')} onChange={(value) => setRegion((value || null) as typeof region)} /></label>
       <p className="global-settings-hint">{t('newTripCurrencyHint')}</p>
-      <label htmlFor="settings-language">{t('language')}<Select id="settings-language" className="shared-select-full" value={language} options={['en', 'fr-CA']} getOptionLabel={(value) => value === 'fr-CA' ? 'Français (Canada) — aperçu' : 'English'} onChange={(value) => { void activateLanguage(value as 'en' | 'fr-CA'); }} /></label>
-      {language === 'fr-CA' ? <p className="global-settings-hint" role="status">{t('frenchPreviewNotice')}</p> : null}
+      <label htmlFor="settings-language">{t('language')}<Select id="settings-language" className="shared-select-full" value={language} options={['en', 'fr-CA']} getOptionLabel={(value) => value === 'fr-CA' ? 'Français (Canada)' : 'English'} onChange={(value) => { void activateLanguage(value as 'en' | 'fr-CA'); }} /></label>
     </section>}
   </div>;
 }

@@ -10,7 +10,7 @@ describe('SettingsMenu', () => {
     useSettingsStore.setState({ measurementSystem: 'metric', clockFormat: '12h', preferredCurrency: 'USD', preferredRegion: null, language: 'en' });
   });
 
-  it('exposes global settings and offers French as a review preview', () => {
+  it('exposes global settings and offers French (Canada) as a language option', () => {
     useCurrencyStore.setState({ region: 'Europe', amount: '12', baseCurrency: 'EUR', targetCurrency: 'GBP' });
     useTripStore.setState({ region: 'Europe', targetCurrency: 'EUR' });
     render(<SettingsMenu />);

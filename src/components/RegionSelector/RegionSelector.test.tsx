@@ -93,7 +93,7 @@ describe('RegionSelector', () => {
     expect(mockStoreState.setTripDates).not.toHaveBeenCalled();
   });
 
-  it('updates an active invalid draft message when the review language changes without changing trip dates', async () => {
+  it('updates an active invalid draft message when the language changes without changing trip dates', async () => {
     mockStoreState.dateDraftError = 'Enter a valid trip start date in YYYY-MM-DD format.';
     const { container } = render(<RegionSelector />);
     expect(screen.getByRole('alert')).toHaveTextContent(mockStoreState.dateDraftError);

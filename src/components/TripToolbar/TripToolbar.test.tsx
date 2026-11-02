@@ -193,7 +193,7 @@ describe('TripToolbar', () => {
     vi.mocked(importWorkbook).mockResolvedValue({ snapshot: importedSnapshot, warnings: [] });
   });
 
-  it('shows translated trip controls in the French review preview', async () => {
+  it('shows translated trip controls in French', async () => {
     await act(async () => { await activateLanguage('fr-CA'); });
     try {
       render(<TripToolbar />);

@@ -7,7 +7,6 @@ export const resources = {
     settings: 'Settings', measurement: 'Measurements', metric: 'Metric', imperial: 'Imperial', clock: 'Clock format', preferredCurrency: 'Preferred currency', language: 'Language', english: 'English',
     theme: 'Theme', hour12: '12 hour', hour24: '24 hour', preferredRegion: 'Preferred region', noPreferredRegion: 'No preferred region',
     newTripCurrencyHint: 'New trips use your preferred currency when it is available in the selected region; otherwise they use that region’s default.',
-    frenchPreviewNotice: 'French (Canada) is a translation review preview. Some text may be incomplete or need correction. It is not an approved supported language yet.',
     goHome: 'Go to home page', openToolNavigation: 'Open tool navigation', closeToolNavigation: 'Close tool navigation',
     pageNotFound: 'Page not found', pageNotFoundDocumentTitle: 'Page Not Found', pageNotFoundHelp: 'The page you requested does not exist. Use the grid menu to jump to a tool.',
     routeError: 'Something went wrong', routeErrorHelp: 'We could not load this route. Try again or switch to another tool.',
@@ -86,7 +85,7 @@ function changeLanguageForRequest(language: AppLanguage, requestVersion: number)
   return change;
 }
 
-/** Activates the selected language, including the French translation review preview. */
+/** Activates the selected language, including French (Canada). */
 export async function activateLanguage(
   language: AppLanguage,
   loadFrench: () => Promise<{ default: Record<string, string> }> = () => import('./i18n/locales/fr-CA'),
@@ -110,7 +109,7 @@ export async function activateLanguage(
       return true;
     } catch (error) {
       if (requestVersion !== activationVersion) return false;
-      console.error('Unable to load the French review preview; continuing in English.', error);
+      console.error('Unable to load the French translation; continuing in English.', error);
       if (!await changeLanguageForRequest('en', requestVersion)) return false;
       syncDocumentLocale('en', localeDirections.en);
       useSettingsStore.getState().setLanguage('en');

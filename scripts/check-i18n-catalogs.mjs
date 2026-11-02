@@ -80,5 +80,5 @@ if (problems.length) {
   console.error(problems.join('\n'));
   process.exitCode = 1;
 } else {
-  console.log(`French review-preview catalog parity passed (${english.size} messages).`);
+  console.log(`French (Canada) catalog parity passed (${english.size} messages).`);
 }
