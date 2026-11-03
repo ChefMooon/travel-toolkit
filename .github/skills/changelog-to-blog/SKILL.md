@@ -36,6 +36,7 @@ a release announcement, release notes, or a changelog blog post.
    documentation for factual context when needed, but do not invent behavior,
    benefits, or release claims that the available evidence does not support.
    Briefly group minor refinements or omit them when they add little for readers.
+   Follow the Writing Style rules below.
 4. Create a Markdown file in `src/content/blog/` named
    `YYYY-MM-DD-travel-toolkit-MAJOR-MINOR-PATCH-release-notes.md`, using the
    release date from the changelog and replacing the version dots with hyphens
@@ -81,6 +82,36 @@ a release announcement, release notes, or a changelog blog post.
    The test imports all blog Markdown files and checks the repository's
    frontmatter parsing. If it fails, fix the post's metadata or filename and
    rerun the test.
+
+## Writing Style
+
+Posts should read like a person describing what shipped, not marketing copy.
+Apply these rules when drafting and again when reviewing before saving:
+
+- Open with one or two sentences stating what shipped. Do not open with filler
+  such as "more ways to use the app" or "easier to recognize at a glance".
+- State behavior plainly and concretely. Prefer "the app picks the matching
+  variant automatically" over vague phrasing like "can now select the
+  corresponding supported variant". If a sentence could describe almost any
+  release, rewrite it.
+- When a fix changes how something was reported or behaved, say what it did
+  before and what it does now.
+- Do not use stock phrases or padding: "We hope you enjoy", "exciting",
+  "seamless", "elevate", "refresh" or "polish" as empty descriptors, "a fresh
+  look", "dive in", "journey" used figuratively, or a closing line that only
+  restates the post. Avoid em-dash-heavy sentences, rule-of-three lists added
+  for rhythm, and "not just X, but Y" constructions.
+- Do not claim more than the changelog supports. Keep the tone modest; avoid
+  superlatives and exclamation marks.
+- Cover every user-visible changelog item at least briefly, usually in a
+  "Smaller changes" section. Leave out items that are purely internal or too
+  minor to matter to readers (for example, a niche detection edge case), and do
+  not pad a short release to make it look bigger.
+- Keep the frontmatter `summary` specific: name the actual changes rather than
+  describing the release in general terms.
+- Link to earlier posts' themes only when it helps (for example, tying a
+  styling change back to the previous release), and keep section headings
+  short and descriptive of what changed.
 
 ## Blog Content Contract
 
