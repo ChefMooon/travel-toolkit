@@ -16,3 +16,10 @@ them:
 
 Run neither follow-up if the changelog entry was not saved. Do not skip either
 follow-up after a successful save.
+
+## Interface languages
+
+Interface languages are registered in one place: `src/i18n/languages.ts`. To
+add or change a language (including how browser languages are detected), follow
+"Adding a language" in `docs/internationalization.md`, and run
+`npm run i18n:check` before finishing.

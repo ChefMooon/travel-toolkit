@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import i18n, { activateLanguage, resources, syncDocumentLocale } from './i18n';
 import { useSettingsStore } from '@/store/settingsStore';
+import { APP_LANGUAGES, LANGUAGES } from './i18n/languages';
 import { createEnglishTestI18n } from './i18n/testing';
 import { useTripStore } from '@/store/tripStore';
 import { useSaveSlotStore } from '@/store/saveSlotStore';
@@ -54,6 +55,17 @@ describe('site language activation', () => {
     expect(i18n.t('leaveUnsavedTitle')).toBe('Quitter sans enregistrer les modifications ?');
     await activateLanguage('fr-CA');
     expect(i18n.t('blog')).toBe('Blogue');
+  });
+
+  it('activates every registered language with its own catalog and direction', async () => {
+    for (const code of APP_LANGUAGES) {
+      await expect(activateLanguage(code), code).resolves.toBe(true);
+      expect(i18n.resolvedLanguage).toBe(code);
+      expect(document.documentElement.lang).toBe(code);
+      expect(document.documentElement.dir).toBe(LANGUAGES[code].direction);
+      if (code !== 'en') expect(i18n.t('settings'), code).not.toBe(resources.en.translation.settings);
+    }
+    expect(i18n.hasResourceBundle('es-MX', 'translation')).toBe(true);
   });
 
   it('loads Spanish (Spain) and Spanish (Mexico) with regional wording', async () => {

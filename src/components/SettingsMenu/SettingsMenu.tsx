@@ -3,13 +3,12 @@ import { Settings2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import '@/i18n';
 import { CURRENCIES, REGION_LIST } from '@/store/types';
-import { APP_LANGUAGES, useSettingsStore, type AppLanguage } from '@/store/settingsStore';
+import { APP_LANGUAGES, LANGUAGES, type AppLanguage } from '@/i18n/languages';
+import { useSettingsStore } from '@/store/settingsStore';
 import Select from '@/components/Select/Select';
 import ThemeSelector from '@/components/ThemeSelector/ThemeSelector';
 import { isInsideOwnedPortal } from '@/components/Popover';
 import { activateLanguage } from '@/i18n';
-
-const LANGUAGE_LABELS: Record<AppLanguage, string> = { en: 'English', 'fr-CA': 'Français (Canada)', 'fr-FR': 'Français (France)', 'es-ES': 'Español (España)', 'es-MX': 'Español (México)' };
 
 export default function SettingsMenu() {
   const { t } = useTranslation();
@@ -53,7 +52,7 @@ export default function SettingsMenu() {
       <label htmlFor="settings-currency">{t('preferredCurrency')}<Select id="settings-currency" className="shared-select-full" value={currency} options={CURRENCIES} onChange={setCurrency} /></label>
       <label htmlFor="settings-region">{t('preferredRegion')}<Select id="settings-region" className="shared-select-full" value={region ?? ''} options={['', ...REGION_LIST]} getOptionLabel={(value) => value ? t(`region${value.replace(/\s/g, '')}` as 'regionNorthAmerica') : t('noPreferredRegion')} onChange={(value) => setRegion((value || null) as typeof region)} /></label>
       <p className="global-settings-hint">{t('newTripCurrencyHint')}</p>
-      <label htmlFor="settings-language">{t('language')}<Select id="settings-language" className="shared-select-full" value={language} options={APP_LANGUAGES} getOptionLabel={(value) => LANGUAGE_LABELS[value as AppLanguage]} onChange={(value) => { void activateLanguage(value as AppLanguage); }} /></label>
+      <label htmlFor="settings-language">{t('language')}<Select id="settings-language" className="shared-select-full" value={language} options={APP_LANGUAGES} getOptionLabel={(value) => LANGUAGES[value as AppLanguage].label} onChange={(value) => { void activateLanguage(value as AppLanguage); }} /></label>
     </section>}
   </div>;
 }

@@ -1,6 +1,7 @@
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import { useSettingsStore, type AppLanguage } from '@/store/settingsStore';
+import { useSettingsStore } from '@/store/settingsStore';
+import { APP_LANGUAGES, LANGUAGES, type AppLanguage } from '@/i18n/languages';
 
 export const resources = {
   en: { translation: {
@@ -50,7 +51,7 @@ export const resources = {
 
 export type TranslationKey = keyof typeof resources.en.translation;
 
-export const localeDirections = { en: 'ltr', 'fr-CA': 'ltr', 'fr-FR': 'ltr', 'es-ES': 'ltr', 'es-MX': 'ltr' } as const;
+export const localeDirections = Object.fromEntries(APP_LANGUAGES.map((code) => [code, LANGUAGES[code].direction])) as Record<AppLanguage, TextDirection>;
 export type TextDirection = 'ltr' | 'rtl';
 
 /** Keeps document metadata tied together; RTL use here is diagnostic only until an RTL locale is released. */
@@ -63,7 +64,7 @@ void i18n.use(initReactI18next).init({
   resources,
   lng: 'en',
   fallbackLng: 'en',
-  supportedLngs: ['en', 'fr-CA', 'fr-FR', 'es-ES', 'es-MX'],
+  supportedLngs: [...APP_LANGUAGES],
   load: 'currentOnly',
   interpolation: { escapeValue: false },
   returnNull: false,

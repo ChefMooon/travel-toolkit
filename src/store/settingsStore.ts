@@ -2,14 +2,14 @@ import { create } from 'zustand';
 import { createJSONStorage, persist, type StateStorage } from 'zustand/middleware';
 import type { ExportSchema, FileNamePreset } from '@/lib/xlsx/types';
 import { isThemePreference, type ThemePreference } from './themePreference';
+import { APP_LANGUAGES, mapBrowserLanguage, type AppLanguage } from '@/i18n/languages';
 import type { Region } from './types';
 import { REGION_LIST } from './types';
 
 export type ImportRateMode = 'hybrid' | 'keep-imported' | 'refresh-live';
 export type MeasurementSystem = 'metric' | 'imperial';
 export type ClockFormat = '12h' | '24h';
-export const APP_LANGUAGES = ['en', 'fr-CA', 'fr-FR', 'es-ES', 'es-MX'] as const;
-export type AppLanguage = (typeof APP_LANGUAGES)[number];
+export { APP_LANGUAGES, mapBrowserLanguage, type AppLanguage };
 
 const SETTINGS_STORAGE_KEY = 'travel-toolkit-settings-data';
 const TRIP_STORAGE_KEY = 'travel-toolkit-trip-data';
@@ -83,19 +83,6 @@ function isImportRateMode(value: unknown): value is ImportRateMode {
 function isMeasurementSystem(value: unknown): value is MeasurementSystem { return value === 'metric' || value === 'imperial'; }
 function isClockFormat(value: unknown): value is ClockFormat { return value === '12h' || value === '24h'; }
 function isAppLanguage(value: unknown): value is AppLanguage { return APP_LANGUAGES.includes(value as AppLanguage); }
-// Spanish regions that use Mexican-style Latin American wording; every other Spanish tag maps to es-ES.
-const LATIN_AMERICAN_SPANISH_REGIONS = new Set(['419', 'MX', 'US', 'AR', 'BO', 'CL', 'CO', 'CR', 'CU', 'DO', 'EC', 'GT', 'HN', 'NI', 'PA', 'PE', 'PR', 'PY', 'SV', 'UY', 'VE']);
-
-/** Maps one BCP 47 browser language tag to a supported app language, or null when unsupported. */
-export function mapBrowserLanguage(tag: string | undefined): AppLanguage | null {
-  const [language, ...subtags] = (tag ?? '').trim().toLowerCase().split(/[-_]/);
-  const region = subtags.find((subtag) => /^([a-z]{2}|\d{3})$/.test(subtag))?.toUpperCase();
-  if (language === 'en') return 'en';
-  if (language === 'fr') return region === 'CA' ? 'fr-CA' : 'fr-FR';
-  if (language === 'es') return region && LATIN_AMERICAN_SPANISH_REGIONS.has(region) ? 'es-MX' : 'es-ES';
-  return null;
-}
-
 function browserLanguage(): AppLanguage {
   if (typeof navigator === 'undefined') return 'en';
   const languages = navigator.languages?.length ? navigator.languages : [navigator.language];

@@ -8,7 +8,7 @@ On a first visit with no saved language, the application picks the first browser
 
 ## Editing messages
 
-- English source messages live in `src/i18n.ts`; the translated catalogs live in `src/i18n/locales/` (`fr-CA`, `fr-FR`, `es-ES`, `es-MX`). Register new locales in `APP_LANGUAGES` (`src/store/settingsStore.ts`), the loader map in `src/i18n.ts`, the Settings label list, and `scripts/check-i18n-catalogs.mjs`.
+- English source messages live in `src/i18n.ts`; the translated catalogs live in `src/i18n/locales/` (`fr-CA`, `fr-FR`, `es-ES`, `es-MX`). See “Adding a language” for the registration steps.
 - Use semantic keys and complete sentences. Keep interpolation values as `{{name}}`; use i18next plural suffixes such as `_one` and `_other` with a `count` value.
 - Add each message to both catalogs. Keep wording and placeholders aligned. Run `npm run i18n:check` to verify catalog key and interpolation parity; `npm run i18n:check -- --self-test` also verifies that the checker catches an isolated missing-key fixture. Rich text should remain React content; do not build HTML strings.
 - Use `useTranslation()` in React components so language changes update visible text. Do not cache translated strings at module scope.
@@ -19,12 +19,14 @@ On a first visit with no saved language, the application picks the first browser
 
 ## Adding a language
 
-1. Obtain an owner decision on locale/region and a named language reviewer.
-2. Add the locale to the validated settings type and explicit selector only after choosing its release status. Add the locale to `mapBrowserLanguage` and its tests only once it is ready to be selected automatically.
-3. Add a separate lazily imported resource module and map it explicitly in `src/i18n.ts`. Keep English fallback available.
-4. Translate every application-owned interface message and preserve interpolation, plural, and rich-text boundaries. Run the catalog parity check and focused locale tests.
-5. Check currency/number/date/relative-time output, geocoding language mapping and query identity, source-language content boundaries, imports/exports, and responsive UI.
-6. Label a locale as a preview, and advertise it as supported only after the designated reviewer approves the translation and release evidence is recorded in the implementation plan.
+`src/i18n/languages.ts` is the single registry of interface languages. It drives the saved-language validation, the Settings selector label, document direction, i18next `supportedLngs`, and browser-language detection (`mapBrowserLanguage`). To add a language:
+
+1. Add an entry to `LANGUAGES` in `src/i18n/languages.ts` with its `label` (written in that language), `direction`, and `browser` detection rule. Use `regions` to claim specific region subtags and `fallback: true` on the entry that should receive the language's other tags, including a bare `fr` or `es`. An entry without either never matches a browser.
+2. Create `src/i18n/locales/<code>.ts` with a full catalog ending in `export default <catalog>;`. Every key and `{{placeholder}}` in the English catalog must be present. The catalog check discovers the file from the registry; it fails if a registered language has no catalog file or a catalog file is not registered.
+3. Add the lazy `import()` to `localeLoaders` in `src/i18n.ts`. TypeScript reports an error until every non-English registry entry has a loader.
+4. Run `npm run i18n:check`, then add tests: wording checks in `src/i18n.test.ts` and detection cases in `src/store/settingsStore.test.ts`. The "activates every registered language" test exercises the new locale automatically.
+5. Check currency/number/date/relative-time output, the geocoding language (the primary subtag is sent to Open-Meteo), source-language content boundaries, imports/exports, and responsive UI.
+6. Obtain an owner decision on locale/region and a named reviewer before listing a language as supported. Label an unreviewed language as a preview in its `label` and a visible notice until it is approved.
 
 ## Direction and deferred RTL work
 
