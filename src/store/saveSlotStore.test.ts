@@ -1,12 +1,13 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   findRelatedOlderSlotIndex,
+  findSlotIndexByTripId,
   getTripSaveStatus,
   normalizePersistedSaveSlotState,
   useSaveSlotStore,
 } from './saveSlotStore';
 import { useToastStore } from './toastStore';
-import { SAVE_SLOT_SCHEMA_VERSION, type SaveSlot, type TripSnapshot } from './types';
+import { MAX_TRIP_NAME_LENGTH, SAVE_SLOT_SCHEMA_VERSION, type SaveSlot, type TripSnapshot } from './types';
 
 const baseSnapshot: TripSnapshot = {
   tripId: '111111',
@@ -225,5 +226,147 @@ describe('saveSlotStore', () => {
 
     expect(normalized.slots[0]).toBeNull();
     expect(normalized.labels).toEqual(['A', 'B', 'C']);
+  });
+});
+
+describe('saveSlotStore — copies, trip rename and duplicate lookup', () => {
+  const richSnapshot: TripSnapshot = {
+    ...baseSnapshot,
+    couples: [{ id: 'couple-a', name: 'Group A', colorIndex: 1, iconIndex: 1, sortOrder: 0 }],
+    costs: [{ id: 'cost-a', name: 'Hotel', currency: 'USD', value: 100, markupOverride: null, splitType: 'subset', assignedCoupleIds: ['couple-a'], sortOrder: 0 }],
+  };
+
+  beforeEach(() => {
+    useSaveSlotStore.setState({ slots: [null, null, null], labels: ['Slot 1', 'Slot 2', 'Slot 3'] });
+    useToastStore.getState().clearToasts();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('finds a slot by trip ID, optionally excluding one index', () => {
+    useSaveSlotStore.getState().saveToSlot(1, baseSnapshot);
+    const { slots } = useSaveSlotStore.getState();
+
+    expect(findSlotIndexByTripId(slots, '111111')).toBe(1);
+    expect(findSlotIndexByTripId(slots, '111111', 1)).toBe(-1);
+    expect(findSlotIndexByTripId(slots, '999999')).toBe(-1);
+  });
+
+  it('saves a copy with a new unique 6-digit ID and a copy name', () => {
+    useSaveSlotStore.getState().saveToSlot(0, richSnapshot);
+    const sourceBefore = useSaveSlotStore.getState().slots[0];
+    const liveId = '222222';
+
+    const result = useSaveSlotStore.getState().saveCopyToSlot(1, richSnapshot, [liveId]);
+    const { slots } = useSaveSlotStore.getState();
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.tripId).toMatch(/^\d{6}$/);
+    expect(result.tripId).not.toBe(richSnapshot.tripId);
+    expect(result.tripId).not.toBe(liveId);
+    expect(slots[1]?.tripId).toBe(result.tripId);
+    expect(slots[1]?.data.tripId).toBe(result.tripId);
+    expect(slots[1]?.tripName).toBe('Trip One (copy)');
+    expect(slots[1]?.data.tripName).toBe('Trip One (copy)');
+    expect(slots[1]?.data.costs[0]?.assignedCoupleIds).toEqual(['couple-a']);
+    expect(slots[1]?.data.couples).not.toBe(richSnapshot.couples);
+    expect(slots[0]).toBe(sourceBefore);
+    expect(richSnapshot.tripId).toBe('111111');
+    expect(richSnapshot.tripName).toBe('Trip One');
+    expect(useToastStore.getState().toasts).toHaveLength(0);
+  });
+
+  it('truncates a long base name so the copy name fits the max length', () => {
+    const longName = 'x'.repeat(MAX_TRIP_NAME_LENGTH);
+    const result = useSaveSlotStore.getState().saveCopyToSlot(0, { ...baseSnapshot, tripName: longName }, []);
+    const name = useSaveSlotStore.getState().slots[0]?.tripName ?? '';
+
+    expect(result.ok).toBe(true);
+    expect(name).toHaveLength(MAX_TRIP_NAME_LENGTH);
+    expect(name.endsWith(' (copy)')).toBe(true);
+  });
+
+  it('names a copy of an unnamed trip without a leading space', () => {
+    useSaveSlotStore.getState().saveCopyToSlot(0, { ...baseSnapshot, tripName: '  ' }, []);
+
+    expect(useSaveSlotStore.getState().slots[0]?.tripName).toBe('Untitled Trip (copy)');
+  });
+
+  it('does not split a surrogate pair when cutting a long name for the copy', () => {
+    // 92 ASCII characters then emoji: the 93-unit cut (100 minus " (copy)") lands inside the first emoji.
+    const longName = `${'x'.repeat(92)}${'😀'.repeat(5)}`;
+    useSaveSlotStore.getState().saveCopyToSlot(0, { ...baseSnapshot, tripName: longName }, []);
+    const name = useSaveSlotStore.getState().slots[0]?.tripName ?? '';
+
+    expect(name).toBe(`${'x'.repeat(92)} (copy)`);
+    expect(name).not.toMatch(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/);
+  });
+
+  it('fails without writing when the source cannot be cloned', () => {
+    const uncloneable = { ...baseSnapshot, couples: [() => {}] } as unknown as TripSnapshot;
+
+    expect(useSaveSlotStore.getState().saveCopyToSlot(0, uncloneable, [])).toEqual({ ok: false });
+    expect(useSaveSlotStore.getState().slots[0]).toBeNull();
+  });
+
+  it('retries the generated ID when it collides with a taken one', () => {
+    useSaveSlotStore.getState().saveToSlot(0, { ...baseSnapshot, tripId: '100000' });
+    // 0 -> 100000 (slot), 0.5 -> 550000 (live), then 0.25 -> 325000.
+    const random = vi.spyOn(Math, 'random').mockReturnValueOnce(0).mockReturnValueOnce(0.5).mockReturnValueOnce(0.25);
+
+    const result = useSaveSlotStore.getState().saveCopyToSlot(1, baseSnapshot, ['550000']);
+
+    expect(result).toEqual({ ok: true, tripId: '325000' });
+    expect(random).toHaveBeenCalledTimes(3);
+  });
+
+  it('fails without writing when no unique ID can be generated', () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+
+    expect(useSaveSlotStore.getState().saveCopyToSlot(0, baseSnapshot, ['100000'])).toEqual({ ok: false });
+    expect(useSaveSlotStore.getState().slots[0]).toBeNull();
+  });
+
+  it('renames the saved trip while keeping savedAt and label', () => {
+    useSaveSlotStore.getState().saveToSlot(0, baseSnapshot);
+    const before = useSaveSlotStore.getState().slots[0]!;
+
+    expect(useSaveSlotStore.getState().renameSlotTrip(0, '  Renamed  ')).toBe(true);
+    const after = useSaveSlotStore.getState().slots[0]!;
+
+    expect(after.tripName).toBe('Renamed');
+    expect(after.data.tripName).toBe('Renamed');
+    expect(after.savedAt).toBe(before.savedAt);
+    expect(after.label).toBe(before.label);
+    expect(after.tripId).toBe(before.tripId);
+  });
+
+  it('truncates renamed trip names and rejects blank names and empty slots', () => {
+    useSaveSlotStore.getState().saveToSlot(0, baseSnapshot);
+
+    expect(useSaveSlotStore.getState().renameSlotTrip(0, '')).toBe(false);
+    expect(useSaveSlotStore.getState().renameSlotTrip(0, '   ')).toBe(false);
+    expect(useSaveSlotStore.getState().slots[0]?.tripName).toBe('Trip One');
+    expect(useSaveSlotStore.getState().renameSlotTrip(1, 'Name')).toBe(false);
+    expect(useSaveSlotStore.getState().slots[1]).toBeNull();
+
+    useSaveSlotStore.getState().renameSlotTrip(0, 'y'.repeat(MAX_TRIP_NAME_LENGTH + 10));
+    expect(useSaveSlotStore.getState().slots[0]?.tripName).toHaveLength(MAX_TRIP_NAME_LENGTH);
+  });
+
+  it('does not split a surrogate pair when truncating a renamed trip name', () => {
+    useSaveSlotStore.getState().saveToSlot(0, baseSnapshot);
+    // The limit falls between the two halves of the first emoji.
+    const longName = `${'x'.repeat(MAX_TRIP_NAME_LENGTH - 1)}${'😀'.repeat(3)}`;
+
+    expect(useSaveSlotStore.getState().renameSlotTrip(0, longName)).toBe(true);
+    const { tripName, data } = useSaveSlotStore.getState().slots[0]!;
+
+    expect(tripName).toBe('x'.repeat(MAX_TRIP_NAME_LENGTH - 1));
+    expect(data.tripName).toBe(tripName);
+    expect(tripName).not.toMatch(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/);
   });
 });

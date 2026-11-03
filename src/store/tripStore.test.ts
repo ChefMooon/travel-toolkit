@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { useTripStore } from './tripStore';
+import { generateTripId, generateUniqueTripId } from './tripId';
 import { useSettingsStore } from './settingsStore';
 import { useToastStore } from './toastStore';
 import { useSaveSlotStore } from './saveSlotStore';
@@ -124,6 +125,71 @@ describe('tripStore — new actions', () => {
       expect(useTripStore.getState().isDirty).toBe(true);
       useTripStore.getState().markClean();
       expect(useTripStore.getState().isDirty).toBe(false);
+    });
+
+    it('restores the previous clean baseline after markCleanForUndo, so the trip is dirty again', () => {
+      useTripStore.getState().setGlobalMarkup(10);
+      const token = useTripStore.getState().markCleanForUndo();
+      expect(useTripStore.getState().isDirty).toBe(false);
+
+      expect(useTripStore.getState().restoreCleanBaseline(token)).toBe(true);
+      expect(useTripStore.getState().isDirty).toBe(true);
+      // A second restore is refused: the baseline is no longer the one the token marked.
+      expect(useTripStore.getState().restoreCleanBaseline(token)).toBe(false);
+    });
+
+    it('keeps an already clean trip clean when its baseline is restored', () => {
+      const token = useTripStore.getState().markCleanForUndo();
+      expect(useTripStore.getState().restoreCleanBaseline(token)).toBe(true);
+      expect(useTripStore.getState().isDirty).toBe(false);
+    });
+
+    it('recomputes against the restored baseline when the trip changed after markCleanForUndo', () => {
+      const original = useTripStore.getState().globalMarkup;
+      useTripStore.getState().setGlobalMarkup(10);
+      const token = useTripStore.getState().markCleanForUndo();
+      // Edited back to the earlier clean state before the restore: nothing is unsaved.
+      useTripStore.getState().setGlobalMarkup(original);
+      expect(useTripStore.getState().isDirty).toBe(true);
+
+      useTripStore.getState().restoreCleanBaseline(token);
+      expect(useTripStore.getState().isDirty).toBe(false);
+    });
+
+    it.each(['markClean', 'loadSnapshot', 'resetTrip'] as const)(
+      'refuses the restore once %s moved the baseline',
+      (change) => {
+        useTripStore.getState().setGlobalMarkup(10);
+        const token = useTripStore.getState().markCleanForUndo();
+        const store = useTripStore.getState();
+        if (change === 'markClean') store.markClean();
+        if (change === 'loadSnapshot') store.loadSnapshot({ ...store.getSnapshot(), tripId: '987654' });
+        if (change === 'resetTrip') store.resetTrip();
+
+        expect(useTripStore.getState().restoreCleanBaseline(token)).toBe(false);
+        expect(useTripStore.getState().isDirty).toBe(false);
+      }
+    );
+
+    it('keeps history undo/redo and later markClean consistent with the restored baseline', () => {
+      const original = useTripStore.getState().globalMarkup;
+      useTripStore.getState().setGlobalMarkup(10);
+      const token = useTripStore.getState().markCleanForUndo();
+      useTripStore.getState().restoreCleanBaseline(token);
+      expect(useTripStore.getState().isDirty).toBe(true);
+
+      // History undo returns to the restored baseline: clean. Redo reapplies the edit: dirty.
+      useTripStore.getState().undo();
+      expect(useTripStore.getState().globalMarkup).toBe(original);
+      expect(useTripStore.getState().isDirty).toBe(false);
+      useTripStore.getState().redo();
+      expect(useTripStore.getState().globalMarkup).toBe(10);
+      expect(useTripStore.getState().isDirty).toBe(true);
+
+      useTripStore.getState().markClean();
+      expect(useTripStore.getState().isDirty).toBe(false);
+      useTripStore.getState().undo();
+      expect(useTripStore.getState().isDirty).toBe(true);
     });
   });
 
@@ -608,5 +674,48 @@ describe('tripStore — hard limits', () => {
       useTripStore.getState().editCost(id, { name: long });
       expect(useTripStore.getState().costs[0]!.name).toHaveLength(MAX_COST_NAME_LENGTH);
     });
+  });
+});
+
+describe('tripStore — trip IDs and copies', () => {
+  beforeEach(() => {
+    useTripStore.getState().resetTrip();
+    useTripStore.getState().markClean();
+    useSaveSlotStore.setState({ slots: [null, null, null], labels: ['Slot 1', 'Slot 2', 'Slot 3'] });
+    useToastStore.getState().clearToasts();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('generates 6-digit trip IDs for new trips', () => {
+    expect(generateTripId()).toMatch(/^\d{6}$/);
+    expect(useTripStore.getState().tripId).toMatch(/^\d{6}$/);
+  });
+
+  it('retries unique trip IDs on collision and throws after the attempt limit', () => {
+    vi.spyOn(Math, 'random').mockReturnValueOnce(0).mockReturnValueOnce(0).mockReturnValueOnce(0.5);
+    expect(generateUniqueTripId(['100000'])).toBe('550000');
+
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+    expect(() => generateUniqueTripId(new Set(['100000']), 3)).toThrow();
+  });
+
+  it('saving a copy leaves the live trip unchanged and avoids its ID', () => {
+    useTripStore.getState().addCouple('Group A');
+    useTripStore.getState().markClean();
+    const live = useTripStore.getState().getSnapshot();
+    useSaveSlotStore.getState().saveToSlot(0, live);
+
+    const result = useSaveSlotStore.getState().saveCopyToSlot(1, live, [live.tripId]);
+
+    expect(result.ok).toBe(true);
+    const state = useTripStore.getState();
+    expect(state.tripId).toBe(live.tripId);
+    expect(state.tripName).toBe(live.tripName);
+    expect(state.couples).toBe(live.couples);
+    expect(state.isDirty).toBe(false);
+    expect(useSaveSlotStore.getState().slots[1]?.tripId).not.toBe(live.tripId);
   });
 });

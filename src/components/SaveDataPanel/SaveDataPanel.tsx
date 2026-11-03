@@ -1,72 +1,64 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
-import { ArrowLeftRight, ChevronDown, Edit2, RotateCcw, X, AlertTriangle } from 'lucide-react';
-import Modal from '@/components/Modal';
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { ChevronDown, X, AlertTriangle } from 'lucide-react';
+import Modal, { ModalShell } from '@/components/Modal';
+import { useToastHost } from '@/components/ToastViewport';
+import { clearImportedTripGuard } from '@/store/importedTripGuard';
 import { useSaveSlotStore } from '@/store/saveSlotStore';
+import { recordSlotUndo } from '@/store/slotUndo';
 import { useToastStore } from '@/store/toastStore';
 import { useTripStore } from '@/store/tripStore';
-import {
-  MAX_SAVE_SLOTS,
-  MAX_SLOT_LABEL_LENGTH,
-  getDefaultSlotLabel,
-  type TripSnapshot,
-} from '@/store/types';
-import type { ExportSchema, ExportSource, FileNamePreset } from '@/lib/xlsx/types';
+import { useTripSaveStatus } from '@/store/useTripSaveStatus';
+import { getDefaultSlotLabel } from '@/store/types';
+import type { ExportSource } from '@/lib/xlsx/types';
 import { useSettingsStore } from '@/store/settingsStore';
+import { usePresence } from '@/lib/motion';
 import ImportExportSettingsModal from '@/components/ImportExportSettingsModal';
-import CogIcon from '@/components/ImportExportSettingsModal/CogIcon';
 import { useTranslation } from 'react-i18next';
-import i18n from '@/i18n';
-import { activeLocale } from '@/i18n/format';
+import DuplicateTripDialog from './DuplicateTripDialog';
+import ExportPopover from './ExportPopover';
+import ImportConfirmDialog from './ImportConfirmDialog';
+import type { InlineEditableTextHandle } from './InlineEditableText';
+import PanelModeBanner from './PanelModeBanner';
+import { quickSaveActiveTrip, saveActiveTripToSlot, saveCopy, undoSlotWrite } from './saveActions';
+import SlotCard, { type SlotCardAction, type SlotCardOverlay } from './SlotCard';
+import SlotList from './SlotList';
+import SlotMenu from './SlotMenu';
+import { useImportTrip } from './useImportTrip';
+import { isPickSourceSlot, usePanelMode, type PickPurpose, type PickSource } from './usePanelMode';
 
 interface SaveDataPanelProps {
   open: boolean;
   onClose: () => void;
   onSaveComplete?: () => void;
   onCancelSaveContinuation?: () => void;
+  /**
+   * `browse` (default) shows the wallet; `pick` opens straight into choosing a slot for the live
+   * trip. `pick` is the entry point for the trip page's save split button ("Save to a slot…").
+   */
+  mode?: 'browse' | 'pick';
 }
 
 type ConfirmIntent =
   | { type: 'load'; slotIndex: number }
-  | { type: 'overwrite'; slotIndex: number }
   | { type: 'clear'; slotIndex: number }
-  | { type: 'import' }
-  | { type: 'swap'; firstSlotIndex: number; secondSlotIndex: number };
+  | { type: 'overwrite'; slotIndex: number; source: PickSource; purpose: PickPurpose }
+  | { type: 'imported-quick-save'; slotIndex: number };
 
-type ImportRateMode = 'hybrid' | 'keep-imported' | 'refresh-live';
+type PendingFocus =
+  | { type: 'menu'; slotIndex: number }
+  | { type: 'trip-name'; slotIndex: number }
+  | { type: 'first-target' }
+  | { type: 'header-save' };
 
-function snapshotsEqual(a: TripSnapshot, b: TripSnapshot): boolean {
-  return JSON.stringify(a) === JSON.stringify(b);
-}
+// Shown in the footer note only. Deliberately not derived from MAX_SAVE_SLOTS: displayed capacity
+// may later come from the account (paid or cloud slots) rather than the local slot count.
+const DISPLAYED_SLOT_CAPACITY = 3;
 
-function formatRelativeTime(iso: string): string {
-  const timestamp = Date.parse(iso);
-  if (Number.isNaN(timestamp)) {
-    return i18n.t('unknownSaveTime');
-  }
-
-  const seconds = Math.round((Date.now() - timestamp) / 1000);
-  const absSeconds = Math.abs(seconds);
-  const rtf = new Intl.RelativeTimeFormat(activeLocale(), { numeric: 'auto' });
-
-  if (absSeconds < 60) {
-    return rtf.format(-seconds, 'second');
-  }
-  const minutes = Math.round(seconds / 60);
-  if (Math.abs(minutes) < 60) {
-    return rtf.format(-minutes, 'minute');
-  }
-  const hours = Math.round(minutes / 60);
-  if (Math.abs(hours) < 24) {
-    return rtf.format(-hours, 'hour');
-  }
-  const days = Math.round(hours / 24);
-  return rtf.format(-days, 'day');
-}
+const focusCloseButton = (dialog: HTMLElement) => dialog.querySelector<HTMLElement>('.save-panel-close');
 
 function ImportIcon() {
   return (
-    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" height="14" width="14">
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" height="14" width="14" aria-hidden="true">
       <path d="M15.056 9.568c-0.208 0-0.407 0.083-0.554 0.23s-0.23 0.346-0.23 0.554v3.136c0 0.208-0.083 0.407-0.23 0.554s-0.346 0.23-0.554 0.23H2.512c-0.208 0-0.407-0.083-0.554-0.23-0.147-0.147-0.23-0.346-0.23-0.554v-3.136c0-0.208-0.083-0.407-0.23-0.554-0.147-0.147-0.346-0.23-0.554-0.23s-0.407 0.083-0.554 0.23c-0.147 0.147-0.23 0.346-0.23 0.554v3.136c0 0.624 0.248 1.222 0.689 1.663 0.441 0.441 1.039 0.689 1.663 0.689h10.976c0.624 0 1.222-0.248 1.663-0.689 0.441-0.441 0.689-1.039 0.689-1.663v-3.136c0-0.208-0.083-0.407-0.23-0.554s-0.346-0.23-0.554-0.23Zm-7.613 1.341c0.075 0.071 0.162 0.127 0.259 0.165 0.094 0.041 0.195 0.063 0.298 0.063 0.103 0 0.204-0.021 0.298-0.063 0.096-0.037 0.184-0.093 0.259-0.165l3.136-3.136c0.148-0.148 0.231-0.348 0.231-0.557s-0.083-0.409-0.231-0.557c-0.148-0.148-0.348-0.231-0.557-0.231s-0.409 0.083-0.557 0.231l-1.795 1.803V0.944c0-0.208-0.083-0.407-0.23-0.554C8.407 0.243 8.208 0.16 8 0.16c-0.208 0-0.407 0.083-0.554 0.23-0.147 0.147-0.23 0.346-0.23 0.554v7.519L5.421 6.659c-0.073-0.073-0.16-0.131-0.255-0.171-0.096-0.039-0.198-0.06-0.301-0.06-0.103 0-0.206 0.02-0.301 0.06-0.095 0.04-0.182 0.098-0.255 0.171-0.073 0.073-0.131 0.16-0.171 0.255-0.04 0.095-0.06 0.198-0.06 0.301 0 0.103 0.02 0.206 0.06 0.301 0.04 0.096 0.098 0.182 0.171 0.255l3.136 3.136Z" fill="currentColor" strokeWidth="0.667"/>
     </svg>
   );
@@ -74,187 +66,257 @@ function ImportIcon() {
 
 function ExportIcon() {
   return (
-    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" height="14" width="14">
+    <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" height="14" width="14" aria-hidden="true">
       <path d="m5.421 4.635 1.795-1.803v7.519c0 0.208 0.083 0.407 0.23 0.554 0.147 0.147 0.346 0.23 0.554 0.23 0.208 0 0.407-0.083 0.554-0.23 0.147-0.147 0.23-0.346 0.23-0.554V2.831l1.795 1.803c0.073 0.074 0.16 0.132 0.255 0.172 0.096 0.04 0.198 0.06 0.302 0.06s0.206-0.02 0.302-0.06c0.095-0.04 0.182-0.098 0.255-0.172 0.073-0.073 0.132-0.16 0.172-0.255 0.04-0.096 0.06-0.198 0.06-0.301 0-0.104-0.02-0.206-0.06-0.302-0.04-0.096-0.098-0.182-0.172-0.255L8.557 0.385c-0.075-0.071-0.162-0.127-0.259-0.165-0.191-0.078-0.405-0.078-0.596 0-0.096 0.037-0.184 0.093-0.259 0.165l-3.136 3.136c-0.073 0.073-0.131 0.16-0.171 0.255-0.04 0.096-0.06 0.198-0.06 0.301 0 0.103 0.02 0.206 0.06 0.301 0.04 0.095 0.098 0.182 0.171 0.255 0.073 0.073 0.16 0.131 0.255 0.171 0.096 0.04 0.198 0.06 0.301 0.06 0.104 0 0.206-0.02 0.301-0.06 0.095-0.04 0.182-0.098 0.255-0.171Zm9.635 4.931c-0.208 0-0.407 0.083-0.554 0.23s-0.23 0.346-0.23 0.554v3.136c0 0.208-0.083 0.407-0.23 0.554-0.147 0.147-0.346 0.23-0.554 0.23H2.512c-0.208 0-0.407-0.083-0.554-0.23-0.147-0.147-0.23-0.346-0.23-0.554v-3.136c0-0.208-0.083-0.407-0.23-0.554-0.147-0.147-0.346-0.23-0.554-0.23s-0.407 0.083-0.554 0.23c-0.147 0.147-0.23 0.346-0.23 0.554v3.136c0 0.624 0.248 1.222 0.689 1.663 0.441 0.441 1.039 0.689 1.663 0.689h10.976c0.624 0 1.222-0.248 1.663-0.689 0.441-0.441 0.689-1.039 0.689-1.663v-3.136c0-0.208-0.083-0.407-0.23-0.554s-0.346-0.23-0.554-0.23Z" fill="currentColor" strokeWidth="0.667"/>
     </svg>
   );
 }
 
-export default function SaveDataPanel({
-  open,
+export default function SaveDataPanel({ open, ...props }: SaveDataPanelProps) {
+  const { mounted, state } = usePresence(open);
+  // Count openings so a reopen during the exit animation still mounts a fresh dialog body.
+  const [openCount, setOpenCount] = useState(0);
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (prevOpen !== open) {
+    setPrevOpen(open);
+    if (open) setOpenCount((count) => count + 1);
+  }
+  // The dialog body mounts per opening, so its state (mode, continuation flag) resets each time.
+  if (!mounted) return null;
+  return <SaveDataPanelDialog key={openCount} {...props} state={state} />;
+}
+
+function SaveDataPanelDialog({
   onClose,
   onSaveComplete,
   onCancelSaveContinuation,
-}: SaveDataPanelProps) {
+  mode: initialMode = 'browse',
+  state,
+}: Omit<SaveDataPanelProps, 'open'> & { state: 'open' | 'closing' }) {
   const { t } = useTranslation();
   const slots = useSaveSlotStore((s) => s.slots);
   const labels = useSaveSlotStore((s) => s.labels ?? []);
-  const saveToSlot = useSaveSlotStore((s) => s.saveToSlot);
   const loadFromSlot = useSaveSlotStore((s) => s.loadFromSlot);
   const clearSlot = useSaveSlotStore((s) => s.clearSlot);
   const swapSlots = useSaveSlotStore((s) => s.swapSlots);
   const renameSlot = useSaveSlotStore((s) => s.renameSlot);
+  const renameSlotTrip = useSaveSlotStore((s) => s.renameSlotTrip);
 
   const tripName = useTripStore((s) => s.tripName);
   const tripId = useTripStore((s) => s.tripId);
   const isDirty = useTripStore((s) => s.isDirty);
   const dateDraftError = useTripStore((s) => s.dateDraftError);
-  const getSnapshot = useTripStore((s) => s.getSnapshot);
   const loadSnapshot = useTripStore((s) => s.loadSnapshot);
   const markClean = useTripStore((s) => s.markClean);
+  const { status, homeSlotIndex, hasUnsavedWork } = useTripSaveStatus();
+  const homeCurrency = useSettingsStore((s) => s.preferredCurrency) || 'USD';
 
   const pushToast = useToastStore((s) => s.pushToast);
 
+  const [mode, dispatchMode] = usePanelMode(initialMode);
   const [confirmIntent, setConfirmIntent] = useState<ConfirmIntent | null>(null);
-  const [selectedForSwap, setSelectedForSwap] = useState<number[]>([]);
-  const [editingSlotIndex, setEditingSlotIndex] = useState<number | null>(null);
-  const [labelDraft, setLabelDraft] = useState('');
-
-  // ── Import / Export state ──
-  const [exportSchema, setExportSchema] = useState<ExportSchema>(() => useSettingsStore.getState().exportSchema);
-  const [exportSource, setExportSource] = useState<ExportSource>({ type: 'active' });
-  const [namePreset, setNamePreset] = useState<FileNamePreset>(() => useSettingsStore.getState().exportFilenamePreset);
-  const [customName, setCustomName] = useState('');
-  const [includeDateInFileName, setIncludeDateInFileName] = useState(() => useSettingsStore.getState().exportIncludeDate);
-  const [importRateMode, setImportRateMode] = useState<ImportRateMode>(() => useSettingsStore.getState().importExchangeRateMode);
+  const [duplicate, setDuplicate] = useState<{ homeIndex: number; targetIndex: number } | null>(null);
+  const [menuSlot, setMenuSlot] = useState<number | null>(null);
+  // The card whose details drawer is open; only one at a time.
+  const [drawerSlot, setDrawerSlot] = useState<number | null>(null);
+  const [pendingFocus, setPendingFocus] = useState<PendingFocus | null>(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
-  const [importRateDropdownOpen, setImportRateDropdownOpen] = useState(false);
-  const [schemaDropdownOpen, setSchemaDropdownOpen] = useState(false);
-  const [sourceDropdownOpen, setSourceDropdownOpen] = useState(false);
-  const [namePresetDropdownOpen, setNamePresetDropdownOpen] = useState(false);
-  const [isExporting, setIsExporting] = useState(false);
-  const [isImporting, setIsImporting] = useState(false);
-  const [pendingImportFile, setPendingImportFile] = useState<File | null>(null);
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [exportSession, setExportSession] = useState(0);
+  const [exportInitialSource, setExportInitialSource] = useState<ExportSource>({ type: 'active' });
   const saveContinuationCancelledRef = useRef(false);
-  const wasOpenRef = useRef(false);
 
-  const dialogRef = useRef<HTMLDivElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const importButtonRef = useRef<HTMLButtonElement | null>(null);
+  const exportButtonRef = useRef<HTMLButtonElement | null>(null);
+  const headerSaveRef = useRef<HTMLButtonElement | null>(null);
+  const listRef = useRef<HTMLDivElement | null>(null);
+  const menuButtonRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const tripNameRefs = useRef<(InlineEditableTextHandle | null)[]>([]);
+  const seatRefs = useRef<(InlineEditableTextHandle | null)[]>([]);
+  // The menu is a single popover; this points it at the trigger of the card it was opened from.
+  const menuAnchorRef = useRef<HTMLElement | null>(null);
+  // Released as soon as the panel starts closing: it is inert then, so toasts belong elsewhere.
+  const toastHostRef = useToastHost(state === 'open');
   const titleId = useId();
   const bodyId = useId();
+  const importHintId = useId();
+  const exportPopoverId = useId();
+  const menuId = useId();
+  const editHintId = useId();
 
-  const canSwap = selectedForSwap.length === 2;
-
+  // Rendered from the slots array, not MAX_SAVE_SLOTS, so capacity can change without UI edits.
   const displayLabels = useMemo(
-    () => Array.from({ length: MAX_SAVE_SLOTS }, (_, index) => labels[index] ?? getDefaultSlotLabel(index)),
-    [labels]
+    () => Array.from({ length: slots.length }, (_, index) => labels[index] ?? getDefaultSlotLabel(index)),
+    [labels, slots.length]
   );
+  const labelOf = useCallback(
+    (slotIndex: number) => displayLabels[slotIndex] ?? getDefaultSlotLabel(slotIndex),
+    [displayLabels]
+  );
+  const liveName = tripName || t('untitledTrip');
+  const hasHome = homeSlotIndex >= 0;
 
-  const currentSnapshot = getSnapshot();
-  const matchedSlotIndex = slots.findIndex((slot) => (slot ? snapshotsEqual(slot.data, currentSnapshot) : false));
-  const statusText = matchedSlotIndex >= 0
-    ? ` — ${t('allChangesSaved', { slot: displayLabels[matchedSlotIndex] ?? getDefaultSlotLabel(matchedSlotIndex) })}`
-    : isDirty
-      ? ` — ${t('unsavedChanges')}`
-      : ` — ${t('notSavedToSlot')}`;
+  const statusText = status.type === 'saved'
+    ? t('allChangesSaved', { slot: labelOf(status.slotIndex) })
+    : status.type === 'unsaved-changes' || isDirty
+      ? t('unsavedChanges')
+      : t('notSavedToSlot');
+  const filledSlotCount = slots.filter(Boolean).length;
 
+  // Bring the active trip's card into view once, without animating.
+  useLayoutEffect(() => {
+    const activeCard = listRef.current?.querySelector<HTMLElement>('.slot-card--active');
+    activeCard?.scrollIntoView?.({ block: 'nearest', inline: 'nearest', behavior: 'instant' });
+  }, []);
+
+  // A drawer whose slot was emptied (e.g. by an Undo) must not reopen when the slot is filled again.
   useEffect(() => {
-    if (!open) {
-      wasOpenRef.current = false;
-      saveContinuationCancelledRef.current = false;
-      setConfirmIntent(null);
-      setSelectedForSwap([]);
-      setEditingSlotIndex(null);
-      setPendingImportFile(null);
-      setImportRateDropdownOpen(false);
-      setSchemaDropdownOpen(false);
-      setSourceDropdownOpen(false);
-      setNamePresetDropdownOpen(false);
-      setSettingsModalOpen(false);
-      return;
+    if (drawerSlot !== null && !slots[drawerSlot]) setDrawerSlot(null);
+  }, [drawerSlot, slots]);
+
+  // Focus moves that must wait for the next render (a new card, a mode switch, a swap). A passive
+  // effect on purpose: it runs after a closing confirm dialog has handed focus back to its opener.
+  useEffect(() => {
+    if (!pendingFocus) return;
+    setPendingFocus(null);
+    if (pendingFocus.type === 'menu') menuButtonRefs.current[pendingFocus.slotIndex]?.focus();
+    if (pendingFocus.type === 'trip-name') tripNameRefs.current[pendingFocus.slotIndex]?.startEditing();
+    if (pendingFocus.type === 'header-save') headerSaveRef.current?.focus();
+    if (pendingFocus.type === 'first-target') {
+      listRef.current?.querySelector<HTMLElement>('.slot-overlay, .slot-action:not([aria-disabled="true"])')?.focus();
     }
+  }, [pendingFocus]);
 
-    if (!wasOpenRef.current) {
-      saveContinuationCancelledRef.current = false;
-      wasOpenRef.current = true;
+  const closePopovers = useCallback(() => {
+    setMenuSlot(null);
+    setExportOpen(false);
+  }, []);
+
+  const enterPick = useCallback((source: PickSource, purpose: PickPurpose) => {
+    closePopovers();
+    setDrawerSlot(null);
+    dispatchMode({ type: 'pick', source, purpose });
+    setPendingFocus({ type: 'first-target' });
+  }, [closePopovers, dispatchMode]);
+
+  const enterMove = useCallback((slotIndex: number) => {
+    closePopovers();
+    setDrawerSlot(null);
+    dispatchMode({ type: 'move', slotIndex });
+    setPendingFocus({ type: 'first-target' });
+  }, [closePopovers, dispatchMode]);
+
+  const exitMode = useCallback(() => {
+    if (mode.type === 'move') setPendingFocus({ type: 'menu', slotIndex: mode.slotIndex });
+    else if (mode.type === 'pick') {
+      setPendingFocus(mode.source === 'live' ? { type: 'header-save' } : { type: 'menu', slotIndex: mode.source.slotIndex });
     }
-
-    const s = useSettingsStore.getState();
-    setExportSchema(s.exportSchema);
-    setNamePreset(s.exportFilenamePreset);
-    setIncludeDateInFileName(s.exportIncludeDate);
-    setImportRateMode(s.importExchangeRateMode);
-
-    const dialog = dialogRef.current;
-    if (!dialog) {
-      return;
-    }
-
-    const firstFocusable = dialog.querySelector<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    );
-    firstFocusable?.focus();
-  }, [open]);
-
-  const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLDivElement>) => {
-      if (settingsModalOpen) return;
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        onClose();
-        return;
-      }
-
-      if (e.key !== 'Tab') {
-        return;
-      }
-
-      const dialog = dialogRef.current;
-      if (!dialog) {
-        return;
-      }
-
-      const focusable = dialog.querySelectorAll<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      );
-      const first = focusable.item(0);
-      const last = focusable.item(focusable.length - 1);
-      if (!first || !last) {
-        return;
-      }
-
-      const active = document.activeElement;
-      if (!e.shiftKey && active === last) {
-        e.preventDefault();
-        first.focus();
-      } else if (e.shiftKey && active === first) {
-        e.preventDefault();
-        last.focus();
-      }
-    },
-    [onClose, settingsModalOpen]
-  );
-
-  const runSave = useCallback(
-    (slotIndex: number) => {
-      if (useTripStore.getState().dateDraftError) {
-        pushToast({ type: 'warning', title: t('tripDatesNeedAttention'), message: t('invalidTripDateDraft') });
-        return;
-      }
-      const ok = saveToSlot(slotIndex, getSnapshot());
-      if (!ok) {
-        return;
-      }
-
-      markClean();
-      if (onSaveComplete && !saveContinuationCancelledRef.current) {
-        onSaveComplete();
-        return;
-      }
-
-      pushToast({
-        type: 'success',
-        title: t('tripSavedTitle'),
-        message: t('tripSavedMessage', { slot: displayLabels[slotIndex] ?? getDefaultSlotLabel(slotIndex) }),
-      });
-    },
-    [displayLabels, getSnapshot, markClean, onSaveComplete, pushToast, saveToSlot, t]
-  );
+    dispatchMode({ type: 'browse' });
+  }, [dispatchMode, mode]);
 
   const cancelSaveContinuation = useCallback(() => {
     saveContinuationCancelledRef.current = true;
     onCancelSaveContinuation?.();
   }, [onCancelSaveContinuation]);
+
+  const continuationArmed = useCallback(
+    () => Boolean(onSaveComplete) && !saveContinuationCancelledRef.current,
+    [onSaveComplete]
+  );
+
+  // Save-continuation contract: after a write of live-trip data, finish the caller's flow (e.g.
+  // "Save & start new trip") when it is armed and not cancelled; otherwise confirm with a toast.
+  // Returns true when the continuation took over (the caller usually closes the panel then).
+  const completeLiveSave = useCallback(
+    (slotIndex: number) => {
+      if (continuationArmed()) {
+        onSaveComplete?.();
+        return true;
+      }
+      pushToast({ type: 'success', title: t('tripSavedTitle'), message: t('tripSavedMessage', { slot: labelOf(slotIndex) }) });
+      return false;
+    },
+    [continuationArmed, labelOf, onSaveComplete, pushToast, t]
+  );
+
+  // Quick save to the home slot (header strip and the home card). saveActions shows the toast
+  // with Undo unless a continuation takes over.
+  const runQuickSave = useCallback(
+    (confirmed = false) => {
+      const armed = continuationArmed();
+      const result = quickSaveActiveTrip({ confirmed, notify: !armed });
+      if (result.type === 'needs-confirm') {
+        setConfirmIntent({ type: 'imported-quick-save', slotIndex: result.slotIndex });
+      } else if (result.type === 'no-home') {
+        enterPick('live', 'save');
+      } else if (armed && (result.type === 'saved' || result.type === 'already-saved')) {
+        // Already saved means nothing is at risk, so the continuation may proceed as well.
+        onSaveComplete?.();
+      }
+    },
+    [continuationArmed, enterPick, onSaveComplete]
+  );
+
+  const runSaveToSlot = useCallback(
+    (slotIndex: number) => {
+      const result = saveActiveTripToSlot(slotIndex);
+      if (result.type === 'duplicate') {
+        setDuplicate({ homeIndex: result.slotIndex, targetIndex: slotIndex });
+        return;
+      }
+      if (result.type !== 'saved') return;
+      dispatchMode({ type: 'browse' });
+      // The pressed control (an empty card's blank or a pick action) is gone or replaced, so focus
+      // moves to the saved card's menu button rather than falling back to <body>.
+      if (!completeLiveSave(slotIndex)) setPendingFocus({ type: 'menu', slotIndex });
+    },
+    [completeLiveSave, dispatchMode]
+  );
+
+  const runCopy = useCallback(
+    (source: PickSource, targetIndex: number) => {
+      let sourceSnapshot;
+      if (source === 'live') {
+        const trip = useTripStore.getState();
+        if (trip.dateDraftError) {
+          pushToast({ type: 'warning', title: t('tripDatesNeedAttention'), message: t('invalidTripDateDraft') });
+          return;
+        }
+        sourceSnapshot = trip.getSnapshot();
+      } else {
+        const slot = useSaveSlotStore.getState().slots[source.slotIndex];
+        // The source slot changed while picking (e.g. an Undo emptied it or swapped another trip in):
+        // stop picking and say so rather than copying a different trip.
+        if (slot?.tripId !== source.tripId) {
+          exitMode();
+          pushToast(slot
+            ? { type: 'warning', title: t('copyFailedTitle'), message: t('copyFailedMessage') }
+            : { type: 'warning', title: t('slotEmptyTitle'), message: t('slotEmptyMessage', { slot: labelOf(source.slotIndex) }) });
+          return;
+        }
+        sourceSnapshot = slot.data;
+      }
+
+      const result = saveCopy(sourceSnapshot, targetIndex);
+      if (!result.ok) {
+        pushToast({ type: 'error', title: t('copyFailedTitle'), message: t('copyFailedMessage') });
+        return;
+      }
+      dispatchMode({ type: 'browse' });
+      // A copy of the live trip keeps its data safe, so it may finish a continuation; a copy of
+      // another slot does not save the live trip and never does.
+      if (source === 'live' && continuationArmed()) {
+        onSaveComplete?.();
+        return;
+      }
+      pushToast({ type: 'success', title: t('copySavedTitle'), message: t('copySavedMessage', { slot: labelOf(targetIndex) }) });
+      setPendingFocus({ type: 'trip-name', slotIndex: targetIndex });
+    },
+    [continuationArmed, dispatchMode, exitMode, labelOf, onSaveComplete, pushToast, t]
+  );
+
+  const { pendingFile, isImporting, selectFile, cancelImport, confirmImport } = useImportTrip({ cancelSaveContinuation });
 
   const runLoad = useCallback(
     (slotIndex: number) => {
@@ -265,7 +327,7 @@ export default function SaveDataPanel({
           pushToast({
             type: 'warning',
             title: t('slotEmptyTitle'),
-            message: t('slotEmptyMessage', { slot: displayLabels[slotIndex] ?? getDefaultSlotLabel(slotIndex) }),
+            message: t('slotEmptyMessage', { slot: labelOf(slotIndex) }),
           });
         }
         return;
@@ -274,13 +336,14 @@ export default function SaveDataPanel({
       cancelSaveContinuation();
       loadSnapshot(snapshot);
       markClean();
+      clearImportedTripGuard();
       pushToast({
         type: 'success',
         title: t('tripLoadedTitle'),
-        message: t('tripLoadedMessage', { trip: snapshot.tripName || displayLabels[slotIndex] || getDefaultSlotLabel(slotIndex) }),
+        message: t('tripLoadedMessage', { trip: snapshot.tripName || labelOf(slotIndex) }),
       });
     },
-    [cancelSaveContinuation, displayLabels, loadFromSlot, loadSnapshot, markClean, pushToast, slots, t]
+    [cancelSaveContinuation, labelOf, loadFromSlot, loadSnapshot, markClean, pushToast, slots, t]
   );
 
   const runClear = useCallback(
@@ -289,735 +352,436 @@ export default function SaveDataPanel({
       pushToast({
         type: 'success',
         title: t('slotClearedTitle'),
-        message: t('slotClearedMessage', { slot: displayLabels[slotIndex] ?? getDefaultSlotLabel(slotIndex) }),
+        message: t('slotClearedMessage', { slot: labelOf(slotIndex) }),
       });
     },
-    [clearSlot, displayLabels, pushToast, t]
+    [clearSlot, labelOf, pushToast, t]
   );
 
-  const runSwap = useCallback(
-    (firstSlotIndex: number, secondSlotIndex: number) => {
-      swapSlots(firstSlotIndex, secondSlotIndex);
-      setSelectedForSwap([]);
+  // Move/swap: no confirm, an Undo toast instead. Labels stay with their positions.
+  const runMove = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      const store = useSaveSlotStore.getState();
+      const targetFilled = Boolean(store.slots[toIndex]);
+      const movedName = store.slots[fromIndex]?.tripName || t('untitledTrip');
+      const handle = recordSlotUndo(() => {
+        swapSlots(fromIndex, toIndex);
+        return true;
+      });
+      dispatchMode({ type: 'browse' });
+      setPendingFocus({ type: 'menu', slotIndex: toIndex });
+      if (!handle) return;
       pushToast({
         type: 'success',
-        title: t('slotsSwappedTitle'),
-        message: t('slotsSwappedMessage', { first: displayLabels[firstSlotIndex] ?? getDefaultSlotLabel(firstSlotIndex), second: displayLabels[secondSlotIndex] ?? getDefaultSlotLabel(secondSlotIndex) }),
+        title: targetFilled ? t('slotsSwappedTitle') : t('tripMovedTitle'),
+        message: targetFilled
+          ? t('swappedSlots', { first: labelOf(fromIndex), second: labelOf(toIndex) })
+          : t('movedToSlot', { trip: movedName, slot: labelOf(toIndex) }),
+        action: { label: t('undo'), onAction: () => { undoSlotWrite(handle); } },
       });
     },
-    [displayLabels, pushToast, swapSlots, t]
+    [dispatchMode, labelOf, pushToast, swapSlots, t]
   );
 
   const handleLoadClick = useCallback(
     (slotIndex: number) => {
-      if (isDirty || dateDraftError) {
+      if (hasUnsavedWork || dateDraftError) {
         setConfirmIntent({ type: 'load', slotIndex });
         return;
       }
       runLoad(slotIndex);
     },
-    [dateDraftError, isDirty, runLoad]
+    [dateDraftError, hasUnsavedWork, runLoad]
   );
 
-  const handleSwapToggle = useCallback((slotIndex: number) => {
-    setSelectedForSwap((prev) => {
-      if (prev.includes(slotIndex)) {
-        return prev.filter((entry) => entry !== slotIndex);
-      }
-      if (prev.length >= 2) {
-        return [prev[1]!, slotIndex];
-      }
-      return [...prev, slotIndex];
-    });
-  }, []);
-
-  const openRename = useCallback(
-    (slotIndex: number) => {
-      setEditingSlotIndex(slotIndex);
-      setLabelDraft(displayLabels[slotIndex] ?? getDefaultSlotLabel(slotIndex));
+  // Renaming the home card's trip renames the live trip too (always written through, even when the
+  // live trip has other unsaved edits). savedAt is not bumped. When the pair was clean and in sync
+  // before, it is marked clean again so the rename alone never reads as "unsaved changes"; when the
+  // live trip was dirty, its dirty flag is left as it is.
+  const handleRenameTrip = useCallback(
+    (slotIndex: number, name: string) => {
+      const slot = useSaveSlotStore.getState().slots[slotIndex];
+      if (!slot) return;
+      const trip = useTripStore.getState();
+      const isLive = slot.tripId === trip.tripId;
+      const wasCleanAndSaved = isLive && !trip.isDirty && status.type === 'saved' && status.slotIndex === slotIndex;
+      if (!renameSlotTrip(slotIndex, name)) return;
+      if (!isLive) return;
+      trip.setTripName(useSaveSlotStore.getState().slots[slotIndex]?.tripName ?? name);
+      if (wasCleanAndSaved) useTripStore.getState().markClean();
     },
-    [displayLabels]
+    [renameSlotTrip, status]
   );
 
-  const commitRename = useCallback(() => {
-    if (editingSlotIndex === null) {
-      return;
-    }
-    renameSlot(editingSlotIndex, labelDraft);
-    setEditingSlotIndex(null);
-  }, [editingSlotIndex, labelDraft, renameSlot]);
+  // ── Import: the button opens the file picker at once; the rate mode is chosen in the confirm step ──
+  const handleImportClick = useCallback(() => {
+    if (isImporting) return;
+    fileInputRef.current?.click();
+  }, [isImporting]);
 
-  const runImportFile = useCallback(
-    async (file: File) => {
-      setIsImporting(true);
-      try {
-        const { importWorkbook } = await import('@/lib/xlsx/importWorkbook');
-        const { snapshot: exportable, warnings } = await importWorkbook(file);
-
-        const adjustedExchangeRates = exportable.exchangeRates.map((rate) => {
-          if (importRateMode === 'keep-imported') {
-            return { ...rate, isOverridden: true };
-          }
-          if (importRateMode === 'refresh-live') {
-            return { ...rate, isOverridden: false };
-          }
-          return rate;
-        });
-
-        const adjustedExportable = {
-          ...exportable,
-          exchangeRates: adjustedExchangeRates,
-        };
-
-        cancelSaveContinuation();
-        loadSnapshot(adjustedExportable);
-        markClean();
-
-        if (warnings.length > 0) {
-          pushToast({
-            type: 'warning',
-            title: t('importedWithWarnings'),
-            message: t('importWarningsDetails'),
-          });
-        } else {
-          pushToast({
-            type: 'success',
-            title: t('tripImported'),
-            message: t('tripImportedMessage', { trip: adjustedExportable.tripName }),
-          });
-        }
-      } catch {
-        pushToast({
-          type: 'error',
-          title: t('importFailed'),
-          message: t('couldNotReadFile'),
-        });
-      } finally {
-        setIsImporting(false);
-      }
-    },
-    [cancelSaveContinuation, importRateMode, loadSnapshot, markClean, pushToast, t],
-  );
-
-  // ── Import handler ──
   const handleImportFile = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
+    (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0];
-      if (!file) return;
       // Reset the input so re-selecting the same file triggers onChange
       e.target.value = '';
-
-      if (isDirty || dateDraftError) {
-        setPendingImportFile(file);
-        setConfirmIntent({ type: 'import' });
-        return;
-      }
-
-      await runImportFile(file);
+      if (file) selectFile(file);
     },
-    [dateDraftError, isDirty, runImportFile],
+    [selectFile],
   );
 
-  const handleConfirmAction = useCallback(async () => {
+  // ── Export: popover anchored to the footer button; also opened per slot from the card menu ──
+  const openExport = useCallback((source: ExportSource = { type: 'active' }) => {
+    setExportInitialSource(source);
+    setExportSession((session) => session + 1);
+    setExportOpen(true);
+  }, []);
+  const closeExport = useCallback(() => setExportOpen(false), []);
+
+  const toggleMenu = useCallback((slotIndex: number) => {
+    setExportOpen(false);
+    setMenuSlot((current) => {
+      if (current === slotIndex) return null;
+      menuAnchorRef.current = menuButtonRefs.current[slotIndex] ?? null;
+      return slotIndex;
+    });
+  }, []);
+  const closeMenu = useCallback(() => setMenuSlot(null), []);
+
+  const handleConfirmAction = useCallback(() => {
     if (!confirmIntent) {
       return;
     }
-
-    if (confirmIntent.type === 'load') {
-      runLoad(confirmIntent.slotIndex);
-    }
-
-    if (confirmIntent.type === 'overwrite') {
-      runSave(confirmIntent.slotIndex);
-    }
-
-    if (confirmIntent.type === 'clear') {
-      runClear(confirmIntent.slotIndex);
-    }
-
-    if (confirmIntent.type === 'swap') {
-      runSwap(confirmIntent.firstSlotIndex, confirmIntent.secondSlotIndex);
-    }
-
-    if (confirmIntent.type === 'import') {
-      if (pendingImportFile) {
-        await runImportFile(pendingImportFile);
-      }
-      setPendingImportFile(null);
-    }
-
     setConfirmIntent(null);
-  }, [confirmIntent, pendingImportFile, runClear, runImportFile, runLoad, runSave, runSwap]);
 
-  // ── Export handler ──
-  const handleExport = useCallback(async () => {
-    if (exportSource.type === 'active' && useTripStore.getState().dateDraftError) {
-      pushToast({ type: 'warning', title: t('tripDatesNeedAttention'), message: t('invalidTripDateDraft') });
-      return;
+    if (confirmIntent.type === 'load') runLoad(confirmIntent.slotIndex);
+    if (confirmIntent.type === 'clear') runClear(confirmIntent.slotIndex);
+    if (confirmIntent.type === 'imported-quick-save') runQuickSave(true);
+    if (confirmIntent.type === 'overwrite') {
+      if (confirmIntent.purpose === 'copy') runCopy(confirmIntent.source, confirmIntent.slotIndex);
+      else runSaveToSlot(confirmIntent.slotIndex);
     }
-    setIsExporting(true);
-    try {
-      let snapshot: TripSnapshot;
-      let slotLabel: string | undefined;
+  }, [confirmIntent, runClear, runCopy, runLoad, runQuickSave, runSaveToSlot]);
 
-      if (exportSource.type === 'slot') {
-        const slot = slots[exportSource.slotIndex];
-        if (!slot) {
-          pushToast({ type: 'warning', title: t('slotEmptyTitle'), message: t('emptySlotSelect') });
-          return;
-        }
-        snapshot = slot.data;
-        slotLabel = displayLabels[exportSource.slotIndex];
-      } else {
-        snapshot = getSnapshot();
-        slotLabel = undefined;
+  // Escape leaves move/pick mode first; ModalShell skips an Escape that was already handled.
+  const handlePanelKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>) => {
+      if (event.key !== 'Escape' || event.defaultPrevented || mode.type === 'browse') return;
+      event.preventDefault();
+      exitMode();
+    },
+    [exitMode, mode.type]
+  );
+
+  // ── Per-card action, note and overlay for the current mode ──
+  const cardState = (slotIndex: number): { action: SlotCardAction | null; note?: string; overlay?: SlotCardOverlay | null } => {
+    const slot = slots[slotIndex] ?? null;
+    const isHome = slot?.tripId === tripId;
+
+    if (mode.type === 'move') {
+      if (slotIndex === mode.slotIndex) return { action: null };
+      return {
+        action: null,
+        overlay: {
+          title: slot ? t('swapHere') : t('moveHere'),
+          detail: slot ? t('swapWithSlot', { slot: labelOf(slotIndex) }) : t('moveToSlot', { slot: labelOf(slotIndex) }),
+          onChoose: () => runMove(mode.slotIndex, slotIndex),
+        },
+      };
+    }
+
+    if (mode.type === 'pick') {
+      const { source, purpose } = mode;
+      const copying = purpose === 'copy' || hasHome;
+      if (isPickSourceSlot(mode, slotIndex) || (purpose === 'copy' && source === 'live' && isHome)) {
+        return { action: null, note: t('copyingFromHere') };
       }
-
-      const { exportWorkbook } = await import('@/lib/xlsx/exportWorkbook');
-      await exportWorkbook(snapshot, {
-        schema: exportSchema,
-        source: exportSource,
-        namePreset,
-        customName: customName || undefined,
-        slotLabel,
-        includeDate: includeDateInFileName,
-      });
-
-      pushToast({
-        type: 'success',
-        title: t('exported'),
-        message: t('tripExported', { format: t(exportSchema === 'three-sheet' ? 'multiSheetFormat' : 'singleSheetFormat') }),
-      });
-    } catch {
-      pushToast({
-        type: 'error',
-        title: t('exportFailed'),
-        message: t('couldNotGenerateFile'),
-      });
-    } finally {
-      setIsExporting(false);
-    }
-  }, [
-    exportSchema,
-    exportSource,
-    namePreset,
-    customName,
-    includeDateInFileName,
-    slots,
-    displayLabels,
-    getSnapshot,
-    pushToast,
-    t,
-  ]);
-
-  // Build export source options
-  const exportSourceOptions = useMemo(() => {
-    const options: { label: string; source: ExportSource }[] = [
-      { label: t('activeTrip'), source: { type: 'active' } },
-    ];
-    for (let i = 0; i < MAX_SAVE_SLOTS; i++) {
-      const slot = slots[i];
-      if (slot) {
-        options.push({
-          label: `${displayLabels[i]} — ${slot.tripName || t('untitledTrip')}`,
-          source: { type: 'slot', slotIndex: i },
-        });
+      if (!slot) {
+        return copying
+          ? { action: { label: t('saveCopyHere'), variant: 'primary', onClick: () => runCopy(source, slotIndex) } }
+          : { action: { label: t('saveHere'), variant: 'primary', onClick: () => runSaveToSlot(slotIndex) } };
       }
+      if (isHome && purpose === 'save') {
+        return { action: { label: t('updateHere'), variant: 'primary', onClick: () => runSaveToSlot(slotIndex) } };
+      }
+      // With a home slot, another filled slot can only take a copy (the trip ID lives in one slot),
+      // so this asks one question ("replace it with a copy?") instead of a confirm then a duplicate.
+      return {
+        action: {
+          label: t('overwriteEllipsis'),
+          variant: 'load',
+          onClick: () => setConfirmIntent({ type: 'overwrite', slotIndex, source, purpose: copying ? 'copy' : purpose }),
+        },
+      };
     }
-    return options;
-  }, [slots, displayLabels, t]);
 
-  const selectedExportSourceLabel = useMemo(() => {
-    if (exportSource.type === 'active') {
-      return t('activeTrip');
+    if (!slot) {
+      return hasHome
+        ? { action: { label: t('saveCopyHere'), variant: 'plain', onClick: () => runCopy('live', slotIndex) } }
+        : { action: { label: t('saveCurrentTripHere'), variant: 'plain', onClick: () => runSaveToSlot(slotIndex) } };
     }
-    const option = exportSourceOptions.find(
-      (item) => item.source.type === 'slot' && item.source.slotIndex === exportSource.slotIndex,
-    );
-    return option?.label ?? t('slotNumber', { number: exportSource.slotIndex + 1 });
-  }, [exportSource, exportSourceOptions, t]);
+    if (isHome) {
+      const saved = status.type === 'saved';
+      return {
+        action: {
+          label: saved ? t('savedButton') : t('save'),
+          variant: 'primary',
+          inactive: saved,
+          onClick: () => runQuickSave(),
+        },
+      };
+    }
+    return { action: { label: t('load'), variant: 'load', onClick: () => handleLoadClick(slotIndex) } };
+  };
 
-  const namePresetLabel = useMemo(() => {
-    if (namePreset === 'tripName') return t('tripNamePreset');
-    if (namePreset === 'slotLabel') return t('slotNamePreset');
-    if (namePreset === 'custom') return t('customPreset');
-    return t('tripId');
-  }, [namePreset, t]);
+  const pickSourceName = (source: PickSource) =>
+    source === 'live' ? liveName : slots[source.slotIndex]?.tripName || t('untitledTrip');
 
-  const importRateModeLabel = useMemo(() => {
-    if (importRateMode === 'keep-imported') return t('keepImportedRates');
-    if (importRateMode === 'refresh-live') return t('refreshWithLive');
-    return t('hybridRates');
-  }, [importRateMode, t]);
-
-  if (!open) {
-    return null;
+  let banner = null;
+  if (mode.type === 'pick') {
+    const message = mode.purpose === 'copy'
+      ? t('chooseSlotForCopy', { name: pickSourceName(mode.source) })
+      : hasHome
+        ? t('tripAlreadyInSlot', { slot: labelOf(homeSlotIndex) })
+        : t('chooseSlotFor', { trip: liveName });
+    // Future: when no slot is empty, a `detail` line here says "All slots are full" and carries the
+    // upgrade CTA (more or cloud slots), the same hook as the locked slot card.
+    banner = <PanelModeBanner variant="pick" message={message} onCancel={exitMode} />;
+  } else if (mode.type === 'move') {
+    const movingName = slots[mode.slotIndex]?.tripName || t('untitledTrip');
+    banner = <PanelModeBanner variant="move" message={t('movingTripBanner', { trip: movingName })} onCancel={exitMode} />;
   }
 
-  return createPortal(
+  const confirmCopy = (() => {
+    if (!confirmIntent) return null;
+    if (confirmIntent.type === 'load') {
+      return { title: t('loadSavedTripTitle'), body: t(dateDraftError ? 'loadTripWithInvalidDateBody' : 'loadTripBody') };
+    }
+    if (confirmIntent.type === 'clear') return { title: t('clearSlotTitle'), body: t('clearSlotBody') };
+    if (confirmIntent.type === 'imported-quick-save') {
+      const slot = labelOf(confirmIntent.slotIndex);
+      return { title: t('overwriteImportedTripTitle', { slot }), body: t('overwriteImportedTripBody', { slot }) };
+    }
+    const saved = slots[confirmIntent.slotIndex]?.tripName || t('untitledTrip');
+    const slot = labelOf(confirmIntent.slotIndex);
+    return {
+      title: t('overwriteSlotTitle'),
+      body: confirmIntent.purpose === 'copy'
+        ? t('overwriteSlotWithCopyBody', { slot, saved, trip: pickSourceName(confirmIntent.source) })
+        : t('overwriteSlotWithTripBody', { slot, saved, trip: liveName }),
+    };
+  })();
+
+  const menuSlotData = menuSlot === null ? null : slots[menuSlot] ?? null;
+
+  return (
     <>
-      <div className="save-data-panel-overlay" onClick={onClose}>
-        <div
-          ref={dialogRef}
-          className="save-data-panel"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby={titleId}
-          aria-describedby={bodyId}
-          tabIndex={-1}
-          onClick={(e) => e.stopPropagation()}
-          onKeyDown={handleKeyDown}
-        >
-          <div className="save-data-panel-header">
-            <div>
-              <h2 id={titleId}>{t('saveDataSlots')}</h2>
-              <p id={bodyId}>
-                {t('activeTrip')}: <strong><bdi dir="auto">{tripName || t('untitledTrip')}</bdi></strong> ({t('tripId')} <bdi dir="ltr">{tripId}</bdi>)
-                {statusText}
+      <ModalShell
+        onClose={onClose}
+        labelledBy={titleId}
+        describedBy={bodyId}
+        className="save-panel"
+        overlayClassName="save-panel-overlay"
+        state={state}
+        initialFocus={focusCloseButton}
+      >
+        {/* display: contents, so the sections below stay the dialog's flex children. */}
+        <div className="save-panel-content" onKeyDown={handlePanelKeyDown}>
+          <header className="save-panel-header">
+            <div className="save-panel-header-top">
+              <h2 id={titleId} className="save-panel-title">{t('saveDataSlots')}</h2>
+              <button type="button" className="save-panel-close" onClick={onClose} aria-label={t('closeSaveDataPanel')}>
+                <X size={16} aria-hidden="true" />
+              </button>
+            </div>
+            <div className="save-panel-strip">
+              <p className="save-panel-strip-info" id={bodyId}>
+                <span className="save-panel-kicker">{t('activeTrip')}</span>
+                <bdi className="save-panel-strip-name" dir="auto">{liveName}</bdi>
+                {/* One flex item for the label and the ID, so the strip's gap never splits them. */}
+                <span>{t('tripId')} <bdi dir="ltr">{tripId}</bdi></span>
+                <span className="save-panel-status" role="status" data-state={status.type}>{statusText}</span>
               </p>
-            </div>
-            <div className="save-data-panel-header-actions">
-              {selectedForSwap.length > 0 ? (
-                <div
-                  className="save-data-panel-swap-actions"
-                  role="group"
-                  aria-label={t('swapSelectionActions')}
-                >
-                  {canSwap ? (
-                    <button
-                      type="button"
-                      className="save-slot-swap-action is-primary"
-                      onClick={() => {
-                        setConfirmIntent({
-                          type: 'swap',
-                          firstSlotIndex: selectedForSwap[0]!,
-                          secondSlotIndex: selectedForSwap[1]!,
-                        });
-                      }}
-                    >
-                      <ArrowLeftRight size={14} aria-hidden="true" />
-                      {t('swapSelectedSlots')}
-                    </button>
-                  ) : null}
-                  <button
-                    type="button"
-                    className="save-slot-swap-action is-clear"
-                    onClick={() => setSelectedForSwap([])}
-                  >
-                    <RotateCcw size={13} aria-hidden="true" />
-                    {t('clearSwapSelection')}
-                  </button>
-                </div>
-              ) : null}
-              <button type="button" className="save-data-panel-close" onClick={onClose} aria-label={t('closeSaveDataPanel')}>
-                <X size={16} />
-              </button>
-            </div>
-          </div>
-
-          {/* ── Import / Export row ── */}
-          <div className="save-data-io-row">
-            <div className="save-data-io-left">
-              <span className="save-data-io-label">{t('dataLabel')}</span>
+              {/* With a home slot: quick save there. Without one: choose a slot (pick mode). */}
               <button
+                ref={headerSaveRef}
                 type="button"
-                className="save-data-io-btn"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isImporting}
+                className="save-panel-btn is-primary save-panel-strip-save"
+                onClick={() => (hasHome ? runQuickSave() : enterPick('live', 'save'))}
               >
-                <span style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                  <ImportIcon /> {t('import')}
-                </span>
+                {hasHome ? t('save') : t('saveEllipsis')}
               </button>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".xlsx"
-                className="save-data-io-file-input"
-                onChange={handleImportFile}
-                tabIndex={-1}
-                aria-hidden="true"
-              />
-
-              <div className="save-data-io-dropdown-wrap">
-                <button
-                  type="button"
-                  className="save-data-io-dropdown-btn save-data-io-dropdown-btn-wide"
-                  onClick={() => {
-                    setImportRateDropdownOpen((v) => !v);
-                    setSchemaDropdownOpen(false);
-                    setSourceDropdownOpen(false);
-                    setNamePresetDropdownOpen(false);
-                  }}
-                  aria-haspopup="listbox"
-                  aria-expanded={importRateDropdownOpen}
-                >
-                  <span className="save-data-io-dropdown-btn-text">{importRateModeLabel}</span>
-                  <ChevronDown size={12} />
-                </button>
-                {importRateDropdownOpen ? (
-                  <div className="save-data-io-dropdown" role="listbox">
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={importRateMode === 'hybrid'}
-                      className={`save-data-io-dropdown-item${importRateMode === 'hybrid' ? ' is-active' : ''}`}
-                      onClick={() => {
-                        setImportRateMode('hybrid');
-                        setImportRateDropdownOpen(false);
-                      }}
-                    >
-                      <span className="save-data-io-dropdown-dot" style={{ background: '#5AA3FF' }} />
-                      <span>{t('hybridRates')}</span>
-                      <span className="save-data-io-dropdown-desc">{t('keepOverridesRefreshOthers')}</span>
-                    </button>
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={importRateMode === 'keep-imported'}
-                      className={`save-data-io-dropdown-item${importRateMode === 'keep-imported' ? ' is-active' : ''}`}
-                      onClick={() => {
-                        setImportRateMode('keep-imported');
-                        setImportRateDropdownOpen(false);
-                      }}
-                    >
-                      <span className="save-data-io-dropdown-dot" style={{ background: '#2CBF6D' }} />
-                      <span>{t('keepImportedRates')}</span>
-                      <span className="save-data-io-dropdown-desc">{t('freezeRatesFromFile')}</span>
-                    </button>
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={importRateMode === 'refresh-live'}
-                      className={`save-data-io-dropdown-item${importRateMode === 'refresh-live' ? ' is-active' : ''}`}
-                      onClick={() => {
-                        setImportRateMode('refresh-live');
-                        setImportRateDropdownOpen(false);
-                      }}
-                    >
-                      <span className="save-data-io-dropdown-dot" style={{ background: '#F2B65A' }} />
-                      <span>{t('refreshWithLive')}</span>
-                      <span className="save-data-io-dropdown-desc">{t('liveRatesOverrideImported')}</span>
-                    </button>
-                  </div>
-                ) : null}
-              </div>
             </div>
+          </header>
 
-            <div className="save-data-io-right">
-              <span className="save-data-io-label">{t('exportAs')}</span>
+          {banner}
+          <span className="sr-only" id={editHintId}>{t('activateToRename')}</span>
 
-              {/* Schema selector (dropdown) */}
-              <div className="save-data-io-dropdown-wrap">
-                <button
-                  type="button"
-                  className="save-data-io-dropdown-btn"
-                  onClick={() => {
-                    setSchemaDropdownOpen((v) => !v);
-                    setSourceDropdownOpen(false);
-                    setNamePresetDropdownOpen(false);
-                  }}
-                  aria-haspopup="listbox"
-                  aria-expanded={schemaDropdownOpen}
-                >
-                  {exportSchema === 'three-sheet' ? '.xlsx v1' : '.xlsx v2'}
-                  <ChevronDown size={12} />
-                </button>
-                {schemaDropdownOpen ? (
-                  <div className="save-data-io-dropdown" role="listbox">
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={exportSchema === 'three-sheet'}
-                      className={`save-data-io-dropdown-item${exportSchema === 'three-sheet' ? ' is-active' : ''}`}
-                      onClick={() => { setExportSchema('three-sheet'); setSchemaDropdownOpen(false); }}
-                    >
-                      <span className="save-data-io-dropdown-dot" style={{ background: '#2CBF6D' }} />
-                      <span>.xlsx v1</span>
-                      <span className="save-data-io-dropdown-desc">{t('multiSheet')}</span>
-                    </button>
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={exportSchema === 'single-sheet'}
-                      className={`save-data-io-dropdown-item${exportSchema === 'single-sheet' ? ' is-active' : ''}`}
-                      onClick={() => { setExportSchema('single-sheet'); setSchemaDropdownOpen(false); }}
-                    >
-                      <span className="save-data-io-dropdown-dot" style={{ background: '#9CE7B5' }} />
-                      <span>.xlsx v2</span>
-                      <span className="save-data-io-dropdown-desc">{t('singleSheet')}</span>
-                    </button>
-                  </div>
-                ) : null}
-              </div>
-
-              {/* Source selector */}
-              <div className="save-data-io-dropdown-wrap">
-                <button
-                  type="button"
-                  className="save-data-io-dropdown-btn save-data-io-dropdown-btn-wide"
-                  onClick={() => {
-                    setSourceDropdownOpen((v) => !v);
-                    setSchemaDropdownOpen(false);
-                    setNamePresetDropdownOpen(false);
-                  }}
-                  aria-haspopup="listbox"
-                  aria-expanded={sourceDropdownOpen}
-                >
-                  <span className="save-data-io-dropdown-btn-text">{selectedExportSourceLabel}</span>
-                  <ChevronDown size={12} />
-                </button>
-                {sourceDropdownOpen ? (
-                  <div className="save-data-io-dropdown" role="listbox">
-                    {exportSourceOptions.map((opt) => {
-                      const selected =
-                        (opt.source.type === 'active' && exportSource.type === 'active') ||
-                        (opt.source.type === 'slot' &&
-                          exportSource.type === 'slot' &&
-                          opt.source.slotIndex === exportSource.slotIndex);
-                      return (
-                        <button
-                          key={opt.source.type === 'active' ? 'active' : `slot-${opt.source.slotIndex}`}
-                          type="button"
-                          role="option"
-                          aria-selected={selected}
-                          className={`save-data-io-dropdown-item${selected ? ' is-active' : ''}`}
-                          onClick={() => {
-                            setExportSource(opt.source);
-                            setSourceDropdownOpen(false);
-                          }}
-                        >
-                          <span>{opt.label}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                ) : null}
-              </div>
-
-              {/* Name preset + custom input */}
-              <div className="save-data-io-dropdown-wrap save-data-io-dropdown-wrap-left">
-                <button
-                  type="button"
-                  className="save-data-io-dropdown-btn"
-                  onClick={() => {
-                    setNamePresetDropdownOpen((v) => !v);
-                    setSchemaDropdownOpen(false);
-                    setSourceDropdownOpen(false);
-                  }}
-                  aria-haspopup="listbox"
-                  aria-expanded={namePresetDropdownOpen}
-                >
-                  <span>{namePresetLabel}</span>
-                  <ChevronDown size={12} />
-                </button>
-                {namePresetDropdownOpen ? (
-                  <div className="save-data-io-dropdown" role="listbox">
-                    {[
-                      { value: 'tripId' as const, label: t('tripId') },
-                      { value: 'tripName' as const, label: t('tripNamePreset') },
-                      { value: 'slotLabel' as const, label: t('slotNamePreset') },
-                      { value: 'custom' as const, label: t('customPreset') },
-                    ].map((item) => (
-                      <button
-                        key={item.value}
-                        type="button"
-                        role="option"
-                        aria-selected={namePreset === item.value}
-                        className={`save-data-io-dropdown-item${namePreset === item.value ? ' is-active' : ''}`}
-                        onClick={() => {
-                          setNamePreset(item.value);
-                          setNamePresetDropdownOpen(false);
-                        }}
-                      >
-                        <span>{item.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-
-              <label className="save-data-io-date-toggle" htmlFor="save-data-include-date">
-                <input
-                  id="save-data-include-date"
-                  type="checkbox"
-                  checked={includeDateInFileName}
-                  onChange={(e) => setIncludeDateInFileName(e.target.checked)}
-                />
-                <span>{t('addDate')}</span>
-              </label>
-              {namePreset === 'custom' ? (
-                <input
-                  className="save-data-io-name-input"
-                  type="text"
-                  placeholder={t('fileName')}
-                  value={customName}
-                  onChange={(e) => setCustomName(e.target.value.slice(0, 60))}
-                  maxLength={60}
-                />
-              ) : null}
-
-              <div className="save-data-io-export-actions">
-                <button
-                  type="button"
-                  className="save-data-io-export-btn"
-                  onClick={handleExport}
-                  disabled={isExporting}
-                >
-                  <span style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                    <ExportIcon /> {t('export')}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  className="save-data-io-cog-btn"
-                  onClick={() => setSettingsModalOpen(true)}
-                  aria-label={t('importExportSettings')}
-                >
-                  <CogIcon />
-                </button>
-              </div>
-            </div>
+          <div ref={listRef} className="save-panel-list" data-mode={mode.type}>
+            <SlotList mode={mode.type}>
+              {slots.map((slot, slotIndex) => {
+                const { action, note, overlay } = cardState(slotIndex);
+                const isSource =
+                  (mode.type === 'move' && mode.slotIndex === slotIndex) || note !== undefined;
+                return (
+                  <SlotCard
+                    key={slotIndex}
+                    slotIndex={slotIndex}
+                    slot={slot}
+                    label={labelOf(slotIndex)}
+                    isActiveTrip={slot?.tripId === tripId}
+                    homeCurrency={homeCurrency}
+                    action={action}
+                    note={note}
+                    overlay={overlay}
+                    isSource={isSource}
+                    inert={mode.type === 'move'}
+                    menuHidden={mode.type !== 'browse'}
+                    menuOpen={menuSlot === slotIndex}
+                    menuId={menuId}
+                    menuButtonRef={(element) => { menuButtonRefs.current[slotIndex] = element; }}
+                    onMenuToggle={() => toggleMenu(slotIndex)}
+                    tripNameRef={(handle) => { tripNameRefs.current[slotIndex] = handle; }}
+                    seatRef={(handle) => { seatRefs.current[slotIndex] = handle; }}
+                    onRenameTrip={(name) => handleRenameTrip(slotIndex, name)}
+                    onRenameSlot={(label) => renameSlot(slotIndex, label)}
+                    editHintId={editHintId}
+                    drawerOpen={drawerSlot === slotIndex && slot !== null}
+                    onDrawerToggle={(open) => setDrawerSlot(open ? slotIndex : null)}
+                  />
+                );
+              })}
+            </SlotList>
           </div>
 
-          <div className="save-slot-grid">
-            {Array.from({ length: MAX_SAVE_SLOTS }, (_, slotIndex) => {
-              const slot = slots[slotIndex] ?? null;
-              const label = displayLabels[slotIndex] ?? getDefaultSlotLabel(slotIndex);
-              const selected = selectedForSwap.includes(slotIndex);
+          <footer className="save-panel-footer">
+            <span className="save-panel-note">
+              {t('slotUsageNote', { count: filledSlotCount, total: DISPLAYED_SLOT_CAPACITY })}
+            </span>
+            <button
+              ref={importButtonRef}
+              type="button"
+              className="save-panel-btn"
+              onClick={handleImportClick}
+              disabled={isImporting}
+              aria-busy={isImporting}
+              aria-describedby={importHintId}
+            >
+              <ImportIcon />
+              {t('import')}
+            </button>
+            <span className="sr-only" id={importHintId}>{t('importHint')}</span>
+            <button
+              ref={exportButtonRef}
+              type="button"
+              className="save-panel-btn"
+              aria-haspopup="dialog"
+              aria-expanded={exportOpen}
+              aria-controls={exportOpen ? exportPopoverId : undefined}
+              onClick={() => {
+                setMenuSlot(null);
+                if (exportOpen) closeExport();
+                else openExport();
+              }}
+            >
+              <ExportIcon />
+              {t('export')}
+              <ChevronDown size={14} aria-hidden="true" className="save-panel-btn-chevron" />
+            </button>
+          </footer>
 
-              return (
-                <section key={slotIndex} className={`save-slot-card${selected ? ' is-selected' : ''}`}>
-                  <div className="save-slot-title-row">
-                    {editingSlotIndex === slotIndex ? (
-                      <input
-                        className="save-slot-label-input"
-                        value={labelDraft}
-                        onChange={(e) => setLabelDraft(e.target.value.slice(0, MAX_SLOT_LABEL_LENGTH))}
-                        onBlur={commitRename}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter') {
-                            commitRename();
-                          }
-                          if (e.key === 'Escape') {
-                            setEditingSlotIndex(null);
-                          }
-                        }}
-                        maxLength={MAX_SLOT_LABEL_LENGTH}
-                        autoFocus
-                        aria-label={t('renameSlot', { label })}
-                      />
-                    ) : (
-                      <h3>{label}</h3>
-                    )}
-                    <button
-                      type="button"
-                      className="save-slot-icon-btn"
-                      onClick={() => openRename(slotIndex)}
-                      aria-label={t('renameSlot', { label })}
-                    >
-                      <Edit2 size={13} />
-                    </button>
-                  </div>
-
-                  {slot ? (
-                    <>
-                      <div className="save-slot-meta">
-                        <div><span>{t('tripLabel')}</span><strong><bdi dir="auto">{slot.tripName || t('untitledTrip')}</bdi></strong></div>
-                        <div><span>{t('tripId')}</span><strong><bdi dir="ltr">{slot.tripId}</bdi></strong></div>
-                        <div><span>{t('savedLabel')}</span><strong>{formatRelativeTime(slot.savedAt)}</strong></div>
-                        <div><span>{t('partyLabel')}</span><strong>{t('groupCount', { count: slot.coupleCount })}</strong></div>
-                        <div><span>{t('costsLabel')}</span><strong>{t('entryCount', { count: slot.costCount })}</strong></div>
-                        <div><span>{t('currencyLabel')}</span><strong><bdi dir="ltr">{slot.targetCurrency}</bdi></strong></div>
-                      </div>
-                      <div className="save-slot-chip-row">
-                        <span className="save-slot-chip">v{slot.schemaVersion}</span>
-                      </div>
-                      <div className="save-slot-actions">
-                        <button type="button" className="save-slot-btn" onClick={() => handleLoadClick(slotIndex)}>
-                          {t('load')}
-                        </button>
-                        <button
-                          type="button"
-                          className="save-slot-btn"
-                          onClick={() => setConfirmIntent({ type: 'overwrite', slotIndex })}
-                        >
-                          {t('overwrite')}
-                        </button>
-                        <button
-                          type="button"
-                          className="save-slot-btn danger"
-                          onClick={() => setConfirmIntent({ type: 'clear', slotIndex })}
-                        >
-                          {t('clear')}
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <p className="save-slot-empty">{t('noSavedTripInSlot')}</p>
-                      <div className="save-slot-actions">
-                        <button type="button" className="save-slot-btn" onClick={() => runSave(slotIndex)}>
-                          {t('saveHere')}
-                        </button>
-                      </div>
-                    </>
-                  )}
-
-                  <button
-                    type="button"
-                    className={`save-slot-swap-btn${selected ? ' is-selected' : ''}`}
-                    onClick={() => handleSwapToggle(slotIndex)}
-                  >
-                    {selected ? t('selectedForSwap') : t('selectForSwap')}
-                  </button>
-                </section>
-              );
-            })}
+          {/* Popovers live here, outside the scrolling list, so the scroller never clips them. */}
+          <div className="save-panel-layer">
+            <ExportPopover
+              key={exportSession}
+              open={exportOpen}
+              onClose={closeExport}
+              anchorRef={exportButtonRef}
+              id={exportPopoverId}
+              initialSource={exportInitialSource}
+              slots={slots}
+              displayLabels={displayLabels}
+              onOpenSettings={() => setSettingsModalOpen(true)}
+              settingsOpen={settingsModalOpen}
+            />
+            <SlotMenu
+              open={menuSlot !== null}
+              onClose={closeMenu}
+              anchorRef={menuAnchorRef}
+              scrollContainerRef={listRef}
+              id={menuId}
+              label={menuSlot === null ? '' : labelOf(menuSlot)}
+              filled={Boolean(menuSlotData)}
+              onRename={() => { if (menuSlot !== null) seatRefs.current[menuSlot]?.startEditing(); }}
+              onExport={() => { if (menuSlot !== null) openExport({ type: 'slot', slotIndex: menuSlot }); }}
+              onMove={() => { if (menuSlot !== null) enterMove(menuSlot); }}
+              onSaveCopy={() => {
+                if (menuSlot === null) return;
+                // A copy of the home card is a copy of the live trip, unsaved edits included.
+                if (!menuSlotData) return;
+                enterPick(menuSlotData.tripId === tripId ? 'live' : { slotIndex: menuSlot, tripId: menuSlotData.tripId }, 'copy');
+              }}
+              onClear={() => { if (menuSlot !== null) setConfirmIntent({ type: 'clear', slotIndex: menuSlot }); }}
+            />
           </div>
+
+          {/* Toasts render here while the panel is open, inside its focus trap (Undo is reachable). */}
+          <div ref={toastHostRef} className="save-panel-toast-host" />
         </div>
-      </div>
+      </ModalShell>
+
+      {/* Never a tab stop, so it stays outside the dialog and out of the focus trap's reach. */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".xlsx"
+        className="save-panel-file-input"
+        onChange={handleImportFile}
+        tabIndex={-1}
+        aria-hidden="true"
+      />
 
       {settingsModalOpen ? (
         <ImportExportSettingsModal onClose={() => setSettingsModalOpen(false)} />
       ) : null}
 
-      {confirmIntent ? (
-        <Modal
-          icon={AlertTriangle}
-          title={
-            confirmIntent.type === 'load'
-              ? t('loadSavedTripTitle')
-              : confirmIntent.type === 'overwrite'
-              ? t('overwriteSlotTitle')
-              : confirmIntent.type === 'clear'
-              ? t('clearSlotTitle')
-              : confirmIntent.type === 'import'
-              ? t('importOverwriteTripTitle')
-              : t('swapSlotsTitle')
-          }
-          body={
-            confirmIntent.type === 'load'
-              ? t(dateDraftError ? 'loadTripWithInvalidDateBody' : 'loadTripBody')
-              : confirmIntent.type === 'overwrite'
-              ? t('overwriteSlotBody')
-              : confirmIntent.type === 'clear'
-              ? t('clearSlotBody')
-              : confirmIntent.type === 'import'
-              ? t(dateDraftError ? 'importWithInvalidDateBody' : 'importTripBody')
-              : t('swapSlotsBody')
-          }
-          confirmLabel={t('confirm')}
-          onConfirm={handleConfirmAction}
-          onCancel={() => {
-            if (confirmIntent.type === 'import') {
-              setPendingImportFile(null);
-            }
-            setConfirmIntent(null);
-          }}
+      {pendingFile ? (
+        <ImportConfirmDialog
+          fileName={pendingFile.name}
+          defaultMode={useSettingsStore.getState().importExchangeRateMode}
+          replaceWarning={dateDraftError ? 'invalid-date' : hasUnsavedWork ? 'unsaved' : 'none'}
+          busy={isImporting}
+          onConfirm={(rateMode) => { void confirmImport(rateMode); }}
+          onCancel={cancelImport}
+          returnFocusRef={importButtonRef}
         />
       ) : null}
-    </>,
-    document.body
+
+      {duplicate ? (
+        <DuplicateTripDialog
+          homeLabel={labelOf(duplicate.homeIndex)}
+          targetLabel={labelOf(duplicate.targetIndex)}
+          onOverwriteHome={() => {
+            setDuplicate(null);
+            runSaveToSlot(duplicate.homeIndex);
+          }}
+          onSaveCopy={() => {
+            setDuplicate(null);
+            runCopy('live', duplicate.targetIndex);
+          }}
+          onCancel={() => setDuplicate(null)}
+        />
+      ) : null}
+
+      {confirmIntent && confirmCopy ? (
+        <Modal
+          icon={AlertTriangle}
+          title={confirmCopy.title}
+          body={confirmCopy.body}
+          confirmLabel={t('confirm')}
+          onConfirm={handleConfirmAction}
+          onCancel={() => setConfirmIntent(null)}
+        />
+      ) : null}
+    </>
   );
 }

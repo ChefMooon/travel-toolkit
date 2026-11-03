@@ -73,12 +73,22 @@ const mockStoreState = {
   setTripName: vi.fn(),
   globalMarkup: baseSnapshot.globalMarkup,
   setGlobalMarkup: vi.fn(),
+  // Trip content read by useTripSaveStatus in the save panel.
+  couples: baseSnapshot.couples,
+  nonPayingTravellers: baseSnapshot.nonPayingTravellers,
+  costs: baseSnapshot.costs,
+  exchangeRates: baseSnapshot.exchangeRates,
+  region: baseSnapshot.region,
+  targetCurrency: baseSnapshot.targetCurrency,
   isDirty: false,
   dateDraftError: '',
   resetTrip: vi.fn(),
   getSnapshot: vi.fn(() => activeSnapshot),
   loadSnapshot: vi.fn<(snapshot: TripSnapshot) => void>(),
   markClean: vi.fn(),
+  // Quick save marks clean through the undoable variant (its Undo restores the baseline).
+  markCleanForUndo: vi.fn(),
+  restoreCleanBaseline: vi.fn(() => true),
 };
 (useTripStore as unknown as { getState: () => typeof mockStoreState }).getState = () => mockStoreState;
 
@@ -119,13 +129,22 @@ function createSlot(snapshot: TripSnapshot, slotIndex: number): SaveSlot {
   };
 }
 
-function getSlotActions(slotIndex: number) {
-  const heading = screen.getByRole('heading', { name: `Slot ${slotIndex + 1}` });
-  const section = heading.closest('section');
-  if (!section) {
-    throw new Error(`Could not find slot ${slotIndex + 1} section`);
+function getCard(slotIndex: number) {
+  const element = document.querySelector<HTMLElement>(`[data-slot-index="${slotIndex}"]`);
+  if (!element) {
+    throw new Error(`Could not find the slot ${slotIndex + 1} card`);
   }
-  return within(section);
+  return within(element);
+}
+
+function getPanelHeader() {
+  return within(document.querySelector<HTMLElement>('.save-panel-header')!);
+}
+
+function leavePickMode() {
+  const banner = document.querySelector<HTMLElement>('.save-panel-banner--pick');
+  if (!banner) throw new Error('The save panel is not in pick mode');
+  fireEvent.click(within(banner).getByRole('button', { name: 'Cancel' }));
 }
 
 function startSaveAndNewTrip() {
@@ -182,6 +201,11 @@ describe('TripToolbar', () => {
       (selector: (state: typeof mockStoreState) => unknown) => selector(mockStoreState)
     );
     Object.assign(useTripStore, { getState: () => mockStoreState });
+
+    // The panel's save actions read the stores outside React.
+    Object.assign(useSaveSlotStore, { getState: () => mockSaveStoreState });
+    Object.assign(useToastStore, { getState: () => mockToastStoreState });
+    Object.assign(useTripStore, { subscribe: () => () => {} });
 
     (useSaveSlotStore as unknown as ReturnType<typeof vi.fn>).mockImplementation(
       (selector: (state: typeof mockSaveStoreState) => unknown) => selector(mockSaveStoreState)
@@ -343,6 +367,8 @@ describe('TripToolbar', () => {
 
     expect(screen.queryByRole('dialog', { name: 'Start a new trip?' })).not.toBeInTheDocument();
     expect(screen.getByRole('dialog', { name: 'Save Data Slots' })).toBeInTheDocument();
+    // No home slot: the panel opens straight into choosing one.
+    expect(screen.getByText('Choose a slot for “Summer Trip”')).toBeInTheDocument();
     expect(mockSaveStoreState.saveToSlot).not.toHaveBeenCalled();
     expect(mockStoreState.resetTrip).not.toHaveBeenCalled();
   });
@@ -373,7 +399,7 @@ describe('TripToolbar', () => {
     startSaveAndNewTrip();
 
     expect(mockSaveStoreState.saveToSlot).not.toHaveBeenCalled();
-    fireEvent.click(getSlotActions(0).getByRole('button', { name: 'Save Here' }));
+    fireEvent.click(getCard(0).getByRole('button', { name: 'Save here' }));
 
     expect(mockSaveStoreState.saveToSlot).toHaveBeenCalledTimes(1);
     expect(mockSaveStoreState.saveToSlot).toHaveBeenCalledWith(0, baseSnapshot);
@@ -387,7 +413,7 @@ describe('TripToolbar', () => {
     });
   });
 
-  it('uses the manager overwrite confirmation for an existing related save', () => {
+  it('quick-saves an existing related save in its home slot before resetting, with one notification', () => {
     mockSaveStoreState.slots[0] = createSlot(
       { ...baseSnapshot, tripName: 'Older Version' },
       0
@@ -399,7 +425,26 @@ describe('TripToolbar', () => {
     expect(screen.queryByRole('button', { name: 'Update Save & Start Fresh' })).not.toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'Save & Start New Trip' }));
-    fireEvent.click(getSlotActions(0).getByRole('button', { name: 'Overwrite' }));
+    // A home slot: the panel opens to browse, where the home card's Save finishes the flow.
+    expect(screen.queryByText(/Choose a slot for/)).not.toBeInTheDocument();
+    fireEvent.click(getCard(0).getByRole('button', { name: 'Save' }));
+
+    expect(mockSaveStoreState.saveToSlot).toHaveBeenCalledTimes(1);
+    expect(mockSaveStoreState.saveToSlot).toHaveBeenCalledWith(0, baseSnapshot);
+    expect(mockStoreState.resetTrip).toHaveBeenCalledTimes(1);
+    expect(mockToastStoreState.pushToast).toHaveBeenCalledTimes(1);
+    expect(mockToastStoreState.pushToast).toHaveBeenCalledWith(
+      expect.objectContaining({ title: 'Saved and started new trip' })
+    );
+  });
+
+  it('uses the manager overwrite confirmation before saving over another trip', () => {
+    mockSaveStoreState.slots[0] = createSlot(savedSnapshot, 0);
+
+    render(<TripToolbar />);
+    startSaveAndNewTrip();
+    fireEvent.click(getPanelHeader().getByRole('button', { name: 'Save…' }));
+    fireEvent.click(getCard(0).getByRole('button', { name: 'Overwrite…' }));
 
     expect(mockSaveStoreState.saveToSlot).not.toHaveBeenCalled();
     expect(mockStoreState.resetTrip).not.toHaveBeenCalled();
@@ -416,14 +461,12 @@ describe('TripToolbar', () => {
   });
 
   it('keeps the manager open and the current trip intact when an overwrite is cancelled', () => {
-    mockSaveStoreState.slots[0] = createSlot(
-      { ...baseSnapshot, tripName: 'Older Version' },
-      0
-    );
+    mockSaveStoreState.slots[0] = createSlot(savedSnapshot, 0);
 
     render(<TripToolbar />);
     startSaveAndNewTrip();
-    fireEvent.click(getSlotActions(0).getByRole('button', { name: 'Overwrite' }));
+    fireEvent.click(getPanelHeader().getByRole('button', { name: 'Save…' }));
+    fireEvent.click(getCard(0).getByRole('button', { name: 'Overwrite…' }));
     const confirmation = screen.getByRole('dialog', { name: 'Overwrite slot data?' });
     fireEvent.click(within(confirmation).getByRole('button', { name: 'Cancel' }));
 
@@ -432,7 +475,7 @@ describe('TripToolbar', () => {
     expect(screen.getByRole('dialog', { name: 'Save Data Slots' })).toBeInTheDocument();
     expect(mockToastStoreState.pushToast).not.toHaveBeenCalled();
 
-    fireEvent.click(getSlotActions(0).getByRole('button', { name: 'Overwrite' }));
+    fireEvent.click(getCard(0).getByRole('button', { name: 'Overwrite…' }));
     fireEvent.click(
       within(screen.getByRole('dialog', { name: 'Overwrite slot data?' })).getByRole('button', {
         name: 'Confirm',
@@ -442,21 +485,19 @@ describe('TripToolbar', () => {
     expect(mockStoreState.resetTrip).toHaveBeenCalledTimes(1);
   });
 
-  it('does not reset when the store rejects a save to a different slot for a duplicate trip ID', () => {
-    mockSaveStoreState.slots[0] = createSlot(
-      { ...baseSnapshot, tripName: 'Older Version' },
-      0
-    );
+  it('does not reset when the store rejects the save', () => {
+    mockSaveStoreState.saveToSlot.mockImplementationOnce(() => false);
 
     render(<TripToolbar />);
     startSaveAndNewTrip();
-    fireEvent.click(getSlotActions(1).getByRole('button', { name: 'Save Here' }));
+    fireEvent.click(getCard(1).getByRole('button', { name: 'Save here' }));
 
     expect(mockSaveStoreState.saveToSlot).toHaveBeenCalledWith(1, baseSnapshot);
     expect(mockStoreState.resetTrip).not.toHaveBeenCalled();
+    expect(mockStoreState.markClean).not.toHaveBeenCalled();
     expect(screen.getByRole('dialog', { name: 'Save Data Slots' })).toBeInTheDocument();
-    expect(mockToastStoreState.pushToast).toHaveBeenCalledWith(
-      expect.objectContaining({ title: 'Duplicate trip ID' })
+    expect(mockToastStoreState.pushToast).not.toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'success' })
     );
   });
 
@@ -471,10 +512,50 @@ describe('TripToolbar', () => {
     expect(mockSaveStoreState.saveToSlot).not.toHaveBeenCalled();
 
     fireEvent.click(screen.getByRole('button', { name: 'Save & Start New Trip' }));
-    fireEvent.click(getSlotActions(0).getByRole('button', { name: 'Save Here' }));
+    fireEvent.click(getCard(0).getByRole('button', { name: 'Save here' }));
 
     expect(mockSaveStoreState.saveToSlot).toHaveBeenCalledTimes(1);
     expect(mockStoreState.resetTrip).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the panel to pick a slot from the main save button when the trip has no slot', () => {
+    render(<TripToolbar />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save to a slot…' }));
+
+    expect(screen.getByRole('dialog', { name: 'Save Data Slots' })).toBeInTheDocument();
+    expect(screen.getByText('Choose a slot for “Summer Trip”')).toBeInTheDocument();
+    fireEvent.click(getCard(0).getByRole('button', { name: 'Save here' }));
+    expect(mockSaveStoreState.saveToSlot).toHaveBeenCalledWith(0, baseSnapshot);
+    expect(mockStoreState.resetTrip).not.toHaveBeenCalled();
+  });
+
+  it('opens the panel to browse from the chevron', () => {
+    render(<TripToolbar />);
+    const chevron = screen.getByRole('button', { name: 'Open save slots' });
+    expect(chevron).toHaveAttribute('aria-expanded', 'false');
+
+    fireEvent.click(chevron);
+
+    expect(screen.getByRole('dialog', { name: 'Save Data Slots' })).toBeInTheDocument();
+    expect(screen.queryByText(/Choose a slot for/)).not.toBeInTheDocument();
+    expect(getCard(0).getByRole('button', { name: 'Save current trip here' })).toBeInTheDocument();
+  });
+
+  it('quick-saves to the home slot from the toolbar without opening the panel', () => {
+    mockSaveStoreState.slots[1] = createSlot({ ...baseSnapshot, tripName: 'Older Version' }, 1);
+    render(<TripToolbar />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save to Slot 2' }));
+
+    expect(mockSaveStoreState.saveToSlot).toHaveBeenCalledWith(1, baseSnapshot);
+    expect(mockStoreState.markCleanForUndo).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(mockStoreState.resetTrip).not.toHaveBeenCalled();
+    expect(mockToastStoreState.pushToast).toHaveBeenCalledTimes(1);
+    expect(mockToastStoreState.pushToast).toHaveBeenCalledWith(expect.objectContaining({
+      title: 'Trip saved', message: 'Saved to Slot 2.', action: expect.objectContaining({ label: 'Undo' }),
+    }));
   });
 
   it('keeps ordinary Save Data Slots use save-only after closing and cancelling a New Trip flow', () => {
@@ -485,7 +566,7 @@ describe('TripToolbar', () => {
     expect(screen.getByRole('dialog', { name: 'Start a new trip?' })).toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     fireEvent.click(screen.getByRole('button', { name: 'Open save slots' }));
-    fireEvent.click(getSlotActions(0).getByRole('button', { name: 'Save Here' }));
+    fireEvent.click(getCard(0).getByRole('button', { name: 'Save current trip here' }));
 
     expect(mockSaveStoreState.saveToSlot).toHaveBeenCalledTimes(1);
     expect(mockStoreState.resetTrip).not.toHaveBeenCalled();
@@ -497,21 +578,31 @@ describe('TripToolbar', () => {
     );
   });
 
+  // The mocked trip store is not reactive: edits are applied to both the state fields (read by the
+  // save status) and the snapshot (read by the save actions).
+  function editActiveTrip(tripName: string) {
+    activeSnapshot = { ...activeSnapshot, tripName };
+    mockStoreState.tripName = tripName;
+  }
+
   it('keeps the manager open and cancels the continuation after loading another trip', () => {
     mockSaveStoreState.slots[0] = createSlot(savedSnapshot, 0);
 
     render(<TripToolbar />);
     startSaveAndNewTrip();
-    fireEvent.click(getSlotActions(0).getByRole('button', { name: 'Load' }));
+    // The trip has no slot, so the panel opened to pick one: leave picking to reach Load.
+    leavePickMode();
+    fireEvent.click(getCard(0).getByRole('button', { name: 'Load' }));
 
     expect(mockStoreState.loadSnapshot).toHaveBeenCalledWith(savedSnapshot);
     expect(screen.getByRole('dialog', { name: 'Save Data Slots' })).toBeInTheDocument();
     mockToastStoreState.pushToast.mockClear();
 
-    fireEvent.click(getSlotActions(0).getByRole('button', { name: 'Overwrite' }));
-    const confirmation = screen.getByRole('dialog', { name: 'Overwrite slot data?' });
-    fireEvent.click(within(confirmation).getByRole('button', { name: 'Confirm' }));
+    // The loaded trip lives in Slot 1: an edit, then a quick save from the header.
+    editActiveTrip('Saved Trip, edited');
+    fireEvent.click(getPanelHeader().getByRole('button', { name: 'Save' }));
 
+    expect(mockSaveStoreState.saveToSlot).toHaveBeenCalledTimes(1);
     expect(mockStoreState.resetTrip).not.toHaveBeenCalled();
     expect(mockToastStoreState.pushToast).toHaveBeenCalledWith(
       expect.objectContaining({ title: 'Trip saved' })
@@ -519,14 +610,12 @@ describe('TripToolbar', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Close save data panel' }));
     expect(screen.getByRole('dialog', { name: 'Start a new trip?' })).toBeInTheDocument();
+    editActiveTrip('Saved Trip, edited again');
+    fireEvent.click(screen.getByRole('button', { name: 'Start new trip' }));
     fireEvent.click(screen.getByRole('button', { name: 'Save & Start New Trip' }));
-    fireEvent.click(getSlotActions(0).getByRole('button', { name: 'Overwrite' }));
-    fireEvent.click(
-      within(screen.getByRole('dialog', { name: 'Overwrite slot data?' })).getByRole('button', {
-        name: 'Confirm',
-      })
-    );
+    fireEvent.click(getPanelHeader().getByRole('button', { name: 'Save' }));
 
+    expect(mockSaveStoreState.saveToSlot).toHaveBeenCalledTimes(2);
     expect(mockStoreState.resetTrip).toHaveBeenCalledTimes(1);
     expect(mockToastStoreState.pushToast).toHaveBeenCalledWith(
       expect.objectContaining({ title: 'Saved and started new trip' })
@@ -548,6 +637,10 @@ describe('TripToolbar', () => {
         })],
       },
     });
+    // Import is always confirmed (the exchange-rate mode is chosen there).
+    fireEvent.click(
+      within(screen.getByRole('dialog', { name: 'Import trip from file?' })).getByRole('button', { name: 'Import' })
+    );
 
     await waitFor(() => {
       expect(mockStoreState.loadSnapshot).toHaveBeenCalledWith({
@@ -555,9 +648,10 @@ describe('TripToolbar', () => {
       });
     });
     expect(screen.getByRole('dialog', { name: 'Save Data Slots' })).toBeInTheDocument();
+    expect(mockToastStoreState.pushToast).toHaveBeenCalledWith(expect.objectContaining({ title: 'Trip imported' }));
     mockToastStoreState.pushToast.mockClear();
 
-    fireEvent.click(getSlotActions(0).getByRole('button', { name: 'Save Here' }));
+    fireEvent.click(getCard(0).getByRole('button', { name: 'Save here' }));
 
     expect(mockStoreState.resetTrip).not.toHaveBeenCalled();
     expect(mockToastStoreState.pushToast).toHaveBeenCalledWith(
@@ -566,14 +660,12 @@ describe('TripToolbar', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Close save data panel' }));
     expect(screen.getByRole('dialog', { name: 'Start a new trip?' })).toBeInTheDocument();
+    editActiveTrip('Imported Trip, edited');
+    fireEvent.click(screen.getByRole('button', { name: 'Start new trip' }));
     fireEvent.click(screen.getByRole('button', { name: 'Save & Start New Trip' }));
-    fireEvent.click(getSlotActions(0).getByRole('button', { name: 'Overwrite' }));
-    fireEvent.click(
-      within(screen.getByRole('dialog', { name: 'Overwrite slot data?' })).getByRole('button', {
-        name: 'Confirm',
-      })
-    );
+    fireEvent.click(getPanelHeader().getByRole('button', { name: 'Save' }));
 
+    expect(mockSaveStoreState.saveToSlot).toHaveBeenCalledTimes(2);
     expect(mockStoreState.resetTrip).toHaveBeenCalledTimes(1);
     expect(mockToastStoreState.pushToast).toHaveBeenCalledWith(
       expect.objectContaining({ title: 'Saved and started new trip' })

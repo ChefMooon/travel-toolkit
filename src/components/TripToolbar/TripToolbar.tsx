@@ -14,6 +14,7 @@ import {
 import SaveDataPanel from '@/components/SaveDataPanel';
 import Tooltip from '@/components/Tooltip';
 import { useDraftStore } from '@/store/draftStore';
+import SaveSplitButton, { type SavePanelMode } from './SaveSplitButton';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 
@@ -65,6 +66,7 @@ export default function TripToolbar() {
   const [showReset, setShowReset] = useState(false);
   const [tripSaveStatus, setTripSaveStatus] = useState<TripSaveStatus | null>(null);
   const [showSavePanel, setShowSavePanel] = useState(false);
+  const [savePanelMode, setSavePanelMode] = useState<SavePanelMode>('browse');
   const [saveContinuationArmed, setSaveContinuationArmed] = useState(false);
   const [tripNameFocused, setTripNameFocused] = useState(false);
   const [tripIdInput, setTripIdInput] = useState(tripId);
@@ -118,13 +120,17 @@ export default function TripToolbar() {
     setSaveContinuationArmed(false);
   }, []);
 
+  // Without a home slot the panel opens straight into choosing one. With a home slot it opens to
+  // browse, as before: the home card's Save (or another slot) finishes the continuation there.
   const handleSaveAndStartNewTrip = useCallback(() => {
+    const status = getTripSaveStatus(useSaveSlotStore.getState().slots, getSnapshot(), isDirty);
     saveContinuationArmedRef.current = true;
     setSaveContinuationArmed(true);
     savePanelOpenedFromNewTripRef.current = true;
     setShowReset(false);
+    setSavePanelMode(status.type === 'not-saved' ? 'pick' : 'browse');
     setShowSavePanel(true);
-  }, []);
+  }, [getSnapshot, isDirty]);
 
   const handleSaveComplete = useCallback(() => {
     if (!saveContinuationArmedRef.current) {
@@ -140,6 +146,7 @@ export default function TripToolbar() {
     setSaveContinuationArmed(false);
     savePanelOpenedFromNewTripRef.current = false;
     setShowSavePanel(false);
+    setSavePanelMode('browse');
     setShowReset(false);
     resetTrip();
     pushToast({
@@ -158,12 +165,14 @@ export default function TripToolbar() {
     savePanelOpenedFromNewTripRef.current = false;
     clearSaveContinuation();
     setShowSavePanel(false);
+    setSavePanelMode('browse');
     setShowReset(returnToNewTripDecision);
   }, [clearSaveContinuation]);
 
-  const handleOpenSavePanel = useCallback(() => {
+  const handleOpenSavePanel = useCallback((mode: SavePanelMode = 'browse') => {
     savePanelOpenedFromNewTripRef.current = false;
     clearSaveContinuation();
+    setSavePanelMode(mode);
     setShowSavePanel(true);
   }, [clearSaveContinuation]);
 
@@ -296,17 +305,7 @@ export default function TripToolbar() {
             </button>
           </Tooltip>
 
-          <Tooltip content={t('saveSlots')}>
-            <button
-              type="button"
-              className="rule-btn btn-save-panel"
-              data-dirty={isDirty ? 'true' : 'false'}
-              onClick={handleOpenSavePanel}
-              aria-label={t('openSaveSlots')}
-            >
-              <img src="/save.svg" alt="" aria-hidden="true" />
-            </button>
-          </Tooltip>
+          <SaveSplitButton panelOpen={showSavePanel} onOpenPanel={handleOpenSavePanel} />
         </div>
       </header>
 
@@ -326,6 +325,7 @@ export default function TripToolbar() {
       <SaveDataPanel
         open={showSavePanel}
         onClose={handleSavePanelClose}
+        mode={savePanelMode}
         onSaveComplete={saveContinuationArmed ? handleSaveComplete : undefined}
         onCancelSaveContinuation={
           saveContinuationArmed ? handleCancelSaveContinuation : undefined

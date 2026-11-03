@@ -15,13 +15,10 @@ import { useSaveSlotStore } from './saveSlotStore';
 import { migrateLegacyThemePreferenceBeforeTripCleanup, useSettingsStore } from './settingsStore';
 import { getAvailableCurrencies, getDefaultCurrency, REGION_LIST } from './types';
 import { isValidDateOnly } from '@/components/DatePicker/dateUtils';
+import { generateTripId } from './tripId';
 
 function generateId(): string {
   return crypto.randomUUID();
-}
-
-function generateTripId(): string {
-  return String(Math.floor(Math.random() * 900000) + 100000);
 }
 
 function hasDuplicateSavedTripId(tripId: string): boolean {
@@ -97,6 +94,14 @@ interface TripStore {
   getSnapshot: () => TripSnapshot;
   loadSnapshot: (snapshot: TripSnapshot) => void;
   markClean: () => void;
+  /** markClean that can be reverted: the token puts the previous clean baseline back (see restoreCleanBaseline). */
+  markCleanForUndo: () => CleanBaselineToken;
+  /**
+   * Restores the baseline a markCleanForUndo replaced and recomputes isDirty against it. Refused
+   * (false) once anything else moved the baseline (another save, load, new trip), so it never
+   * marks a different trip's state dirty or clean.
+   */
+  restoreCleanBaseline: (token: CleanBaselineToken) => boolean;
 
   // Reset
   resetTrip: () => void;
@@ -145,6 +150,11 @@ let baseline: HistorySnapshot | null = null;
 let historyReady = false;
 let applyingHistory = false;
 let suppressHistory = false;
+/** Opaque handle returned by markCleanForUndo. */
+export interface CleanBaselineToken {
+  readonly previous: HistorySnapshot | null;
+  readonly marked: HistorySnapshot;
+}
 function snapshotOf(state: HistorySnapshot): HistorySnapshot {
   // Zustand actions replace arrays/objects instead of mutating them, so retaining
   // these references gives us cheap snapshots with structural sharing.
@@ -522,6 +532,20 @@ export const useTripStore = create<TripStore>()(
       },
 
       markClean: () => { baseline = snapshotOf(get()); historyReady = true; set({ isDirty: false }); },
+
+      markCleanForUndo: () => {
+        const previous = baseline;
+        get().markClean();
+        return { previous, marked: baseline! };
+      },
+
+      restoreCleanBaseline: (token) => {
+        if (baseline !== token.marked) return false;
+        // A missing earlier baseline means nothing was known clean, so the trip reads as dirty.
+        baseline = token.previous;
+        set({ isDirty: !baseline || !same(snapshotOf(get()), baseline) });
+        return true;
+      },
 
       resetTrip: () => {
         if (get().dateDraftError) useToastStore.getState().pushToast({ type: 'warning', title: i18n.t('tripDateDraftDiscarded'), message: i18n.t('newTripClearedDateDraft') });

@@ -3,12 +3,14 @@ import { persist } from 'zustand/middleware';
 import {
   MAX_SAVE_SLOTS,
   MAX_SLOT_LABEL_LENGTH,
+  MAX_TRIP_NAME_LENGTH,
   SAVE_SLOT_SCHEMA_VERSION,
   getDefaultSlotLabel,
   type SaveSlot,
   type TripSnapshot,
 } from './types';
 import { useToastStore } from './toastStore';
+import { generateUniqueTripId } from './tripId';
 import { isValidDateOnly } from '@/components/DatePicker/dateUtils';
 import i18n from '@/i18n';
 
@@ -20,7 +22,15 @@ interface SaveSlotStore {
   clearSlot: (slotIndex: number) => void;
   swapSlots: (firstSlotIndex: number, secondSlotIndex: number) => void;
   renameSlot: (slotIndex: number, label: string) => void;
+  renameSlotTrip: (slotIndex: number, name: string) => boolean;
+  saveCopyToSlot: (slotIndex: number, sourceSnapshot: TripSnapshot, takenIds: string[]) => SaveCopyResult;
 }
+
+export type SaveCopyResult = { ok: true; tripId: string } | { ok: false };
+
+// Slots are addressed by position for now. A future schema v2 would add a stable slot id and
+// `location: 'local' | 'cloud'`, plus a locked state for paid slots; capacity should then come
+// from the account rather than MAX_SAVE_SLOTS.
 
 type PersistedSaveSlotStore = Partial<Pick<SaveSlotStore, 'slots' | 'labels'>>;
 
@@ -187,6 +197,29 @@ function findDuplicateTripId(
   return slots.findIndex((slot, index) => index !== targetSlotIndex && slot?.tripId === tripId);
 }
 
+// Lets the UI check for a duplicate trip ID before writing, instead of relying on the toast.
+export function findSlotIndexByTripId(
+  slots: Array<SaveSlot | null>,
+  tripId: string,
+  excludeIndex?: number
+): number {
+  return slots.findIndex((slot, index) => index !== excludeIndex && slot?.tripId === tripId);
+}
+
+// Same UTF-16 limit as the inputs' maxLength, but never ends on half of a surrogate pair (e.g. an emoji).
+function truncateName(value: string, max: number): string {
+  if (value.length <= max) return value;
+  const cut = value.slice(0, max);
+  return /[\uD800-\uDBFF]$/.test(cut) ? cut.slice(0, -1) : cut;
+}
+
+function getCopyName(name: string): string {
+  const source = name.trim() || i18n.t('untitledTrip');
+  const suffixLength = i18n.t('tripCopyName', { name: '' }).length;
+  const base = truncateName(source, Math.max(0, MAX_TRIP_NAME_LENGTH - suffixLength)).trimEnd();
+  return truncateName(i18n.t('tripCopyName', { name: base }).trim(), MAX_TRIP_NAME_LENGTH);
+}
+
 let persistNormalizedSlots: (() => void) | undefined;
 
 export const useSaveSlotStore = create<SaveSlotStore>()(
@@ -325,6 +358,50 @@ export const useSaveSlotStore = create<SaveSlotStore>()(
           }
           return { slots: nextSlots, labels };
         });
+      },
+
+      renameSlotTrip: (slotIndex, name) => {
+        if (!isValidSlotIndex(slotIndex)) {
+          return false;
+        }
+
+        const normalized = truncateName(name.trim(), MAX_TRIP_NAME_LENGTH);
+        const existing = ensureSlotArrayLength(get().slots)[slotIndex];
+        if (!normalized || !existing) {
+          return false;
+        }
+
+        set((state) => {
+          const nextSlots = ensureSlotArrayLength(state.slots);
+          nextSlots[slotIndex] = {
+            ...existing,
+            tripName: normalized,
+            data: { ...existing.data, tripName: normalized },
+          };
+          return { slots: nextSlots };
+        });
+        return true;
+      },
+
+      saveCopyToSlot: (slotIndex, sourceSnapshot, takenIds) => {
+        if (!isValidSlotIndex(slotIndex)) {
+          return { ok: false };
+        }
+
+        // The copy is a separate trip with a new ID. Couple/cost UUIDs are kept on purpose: the
+        // snapshot is self-contained, and keeping them leaves assignedCoupleIds references valid.
+        let copy: TripSnapshot;
+        const slotTripIds = get().slots.flatMap((slot) => (slot ? [slot.tripId] : []));
+        try {
+          // Inside the try: structuredClone throws a DataCloneError on uncloneable input.
+          copy = structuredClone(sourceSnapshot);
+          copy.tripId = generateUniqueTripId([...slotTripIds, sourceSnapshot.tripId, ...takenIds]);
+        } catch {
+          return { ok: false };
+        }
+        copy.tripName = getCopyName(sourceSnapshot.tripName);
+
+        return get().saveToSlot(slotIndex, copy) ? { ok: true, tripId: copy.tripId } : { ok: false };
       },
       };
     },
