@@ -60,6 +60,7 @@ describe('global settings', () => {
       en: 'en', 'en-GB': 'en', 'EN-us': 'en',
       fr: 'fr-FR', 'fr-FR': 'fr-FR', 'fr-BE': 'fr-FR', 'fr-CH': 'fr-FR', 'fr-CA': 'fr-CA', 'fr-ca': 'fr-CA', 'fr-Latn-CA': 'fr-CA',
       es: 'es-ES', 'es-ES': 'es-ES', 'es-AD': 'es-ES', 'es-MX': 'es-MX', 'es-419': 'es-MX', 'es-US': 'es-MX', 'es-AR': 'es-MX', 'es-CO': 'es-MX', 'es-Latn-MX': 'es-MX',
+      'fr-u-ca-gregory': 'fr-FR', 'fr-FR-u-ca-gregory': 'fr-FR', 'es-u-ca-gregory': 'es-ES', 'fr-CA-u-nu-latn': 'fr-CA',
       de: null, 'de-DE': null, pt: null, '': null,
     };
     for (const [tag, language] of Object.entries(expected)) expect(mapBrowserLanguage(tag), tag).toBe(language);

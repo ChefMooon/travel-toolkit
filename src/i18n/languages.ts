@@ -31,7 +31,10 @@ export const APP_LANGUAGES = Object.keys(LANGUAGES) as AppLanguage[];
 
 /** Maps one BCP 47 browser language tag to a supported app language, or null when unsupported. */
 export function mapBrowserLanguage(tag: string | undefined): AppLanguage | null {
-  const [language, ...subtags] = (tag ?? '').trim().toLowerCase().split(/[-_]/);
+  const [language, ...allSubtags] = (tag ?? '').trim().toLowerCase().split(/[-_]/);
+  // Extensions (`-u-ca-gregory`) start at a single-character subtag and never carry the region.
+  const extensionStart = allSubtags.findIndex((subtag) => subtag.length === 1);
+  const subtags = extensionStart === -1 ? allSubtags : allSubtags.slice(0, extensionStart);
   const region = subtags.find((subtag) => /^([a-z]{2}|\d{3})$/.test(subtag))?.toUpperCase();
   const candidates = (Object.entries(LANGUAGES) as [AppLanguage, LanguageDefinition][]).filter(([, definition]) => definition.browser.language === language);
   const regional = region ? candidates.find(([, definition]) => definition.browser.regions?.includes(region)) : undefined;
