@@ -6,6 +6,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ---
 
+## [1.5.1] - 2026-11-03
+
+### Added
+
+- Added French (France), Spanish (Spain), and Spanish (Mexico), with browser-language detection for French and Spanish variants.
+- Redesigned saved-trip slots as boarding-pass tickets.
+- Added travel-stamp illustrations to trip sections and a localized subtitle beneath the homepage title.
+
+### Changed
+
+- Refined tool layouts, navigation, and hover treatments to better match the postcard theme.
+- Improved action feedback, motion, trip totals, and export consistency across tools.
+
+### Fixed
+
+- Empty trips now appear as empty instead of being reported as missing an exchange rate.
+- Language loading now falls back to English when a translation stalls, preserves your saved language if a locale fails, and ignores tag extensions when detecting your browser region.
+
 ## [Unreleased]
 
 ### Changed
