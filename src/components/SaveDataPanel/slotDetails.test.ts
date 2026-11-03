@@ -73,8 +73,20 @@ describe('computeSlotDetails', () => {
     expect(computeSlotDetails(makeSlot({}, { exchangeRates: [] }))).toEqual({ unavailable: 'rates' });
   });
 
-  it('is unavailable (rates) for a trip without groups', () => {
-    expect(computeSlotDetails(makeSlot({}, { couples: [] }))).toEqual({ unavailable: 'rates' });
+  // A trip with no groups has nothing to total; that is "empty", not a missing exchange rate.
+  it('is unavailable (empty) for a trip without groups, even when rates are also missing', () => {
+    expect(computeSlotDetails(makeSlot({}, { couples: [] }))).toEqual({ unavailable: 'empty' });
+    expect(computeSlotDetails(makeSlot({}, { couples: [], costs: [], exchangeRates: [] }))).toEqual({ unavailable: 'empty' });
+  });
+
+  // Groups but no costs would total 0 with no breakdown, so it is treated as empty too.
+  it('is unavailable (empty) for groups with no cost entries', () => {
+    expect(computeSlotDetails(makeSlot({}, { costs: [] }))).toEqual({ unavailable: 'empty' });
+    expect(computeSlotDetails(makeSlot({}, { costs: [], exchangeRates: [] }))).toEqual({ unavailable: 'empty' });
+  });
+
+  it('keeps schema ahead of empty', () => {
+    expect(computeSlotDetails(makeSlot({ schemaVersion: 2 }, { couples: [], costs: [] }))).toEqual({ unavailable: 'schema' });
   });
 
   it('is unavailable (invalid) for corrupt data instead of throwing', () => {

@@ -152,7 +152,7 @@ describe('useSlotDetails', () => {
   it('discards a stale result after the slot changes', () => {
     computeTakes(300);
     const first = makeSlot({ tripId: '111111' }, { tripId: '111111' });
-    const second = makeSlot({ tripId: '222222' }, { tripId: '222222', costs: [] });
+    const second = makeSlot({ tripId: '222222' }, { tripId: '222222', globalMarkup: 5 });
     const { result, rerender } = renderDetails(first);
     advance(200);
     rerender({ current: second });

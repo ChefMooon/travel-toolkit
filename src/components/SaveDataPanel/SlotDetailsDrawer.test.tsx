@@ -79,6 +79,24 @@ describe('SlotDetailsDrawer', () => {
     }
   });
 
+  it.each([
+    ['no groups', { couples: [] }],
+    ['no costs', { costs: [] }],
+  ])('shows a quiet note, not "Total unavailable" or a rate error, for an empty trip (%s)', (_name, data) => {
+    const slot = makeSlot({}, data);
+    const { drawer } = renderDrawer(readyView(slot), slot);
+    for (const name of ['Costs', 'Group']) {
+      fireEvent.click(drawer.getByRole('tab', { name }));
+      const panel = within(drawer.getByRole('tabpanel', { name }));
+      expect(panel.getByText('No costs added yet.')).toBeInTheDocument();
+      expect(panel.queryByText('Total unavailable')).not.toBeInTheDocument();
+      expect(panel.queryByText(/exchange rate/i)).not.toBeInTheDocument();
+      expect(panel.queryByRole('img')).not.toBeInTheDocument();
+    }
+    fireEvent.click(drawer.getByRole('tab', { name: 'Trip' }));
+    expect(within(drawer.getByRole('tabpanel', { name: 'Trip' })).getByText('123456')).toBeInTheDocument();
+  });
+
   it('has tabs with roving tabindex and ARIA relationships', () => {
     const { drawer } = renderDrawer(readyView());
     const tabs = drawer.getAllByRole('tab');

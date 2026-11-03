@@ -19,6 +19,7 @@ const UNAVAILABLE_KEYS = {
   rates: 'totalUnavailableRates',
   schema: 'totalUnavailableSchema',
   invalid: 'totalUnavailableInvalid',
+  empty: 'totalUnavailableEmpty',
 } as const;
 
 interface SlotDetailsDrawerProps {
@@ -85,12 +86,19 @@ export default function SlotDetailsDrawer({ slot, view, open, id, onClose }: Slo
   const typeLabel = (share: CostTypeShare) =>
     share.id === 'other' ? t('otherCostType') : t(`costType_${share.id}` as 'costType_food', { defaultValue: share.id });
 
-  const unavailableNote = (reason: SlotUnavailableReason | null) => (
-    <div className="dr-note">
-      <strong>{t('totalUnavailable')}</strong>
-      {reason ? <span>{t(UNAVAILABLE_KEYS[reason])}</span> : null}
-    </div>
-  );
+  // An empty trip (no groups or no costs) is not an error: just the quiet note, no "Total unavailable"
+  // heading. The Costs and Group tabs both show it, like every other unavailable reason.
+  const unavailableNote = (reason: SlotUnavailableReason | null) =>
+    reason === 'empty' ? (
+      <div className="dr-note">
+        <span>{t(UNAVAILABLE_KEYS.empty)}</span>
+      </div>
+    ) : (
+      <div className="dr-note">
+        <strong>{t('totalUnavailable')}</strong>
+        {reason ? <span>{t(UNAVAILABLE_KEYS[reason])}</span> : null}
+      </div>
+    );
 
   const renderCosts = (d: SlotDetails) => (
     <>

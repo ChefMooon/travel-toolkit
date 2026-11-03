@@ -241,6 +241,17 @@ describe('SlotCard total and details drawer', () => {
     expect(card.getByText('2 groups')).toBeInTheDocument();
   });
 
+  it.each([
+    ['no groups', makeSlot({}, { couples: [] })],
+    ['no costs', makeSlot({}, { costs: [] })],
+  ])('leaves no Total cell for an empty trip (%s)', async (_name, slot) => {
+    renderIn(slot);
+    await waitFor(() => expect(totalCell()).toBeNull());
+    expect(within(screen.getByRole('listitem')).queryByText('Total')).not.toBeInTheDocument();
+    expect(document.querySelector('.slot-meta-total')).toBeNull();
+    expect(document.querySelector('.slot-meta [aria-hidden="true"]')).toBeNull();
+  });
+
   it('shows the Total label and value for a computable slot (positive control)', async () => {
     const slot = makeSlot();
     const d = slot.data;

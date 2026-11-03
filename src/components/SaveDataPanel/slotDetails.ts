@@ -2,7 +2,7 @@ import { buildSummary, getTripTotal, roundHalfUp, splitCost } from '@/lib/calcul
 import { isValidDateOnly } from '@/components/DatePicker/dateUtils';
 import { COST_ENTRY_TYPES, SAVE_SLOT_SCHEMA_VERSION, type Region, type SaveSlot } from '@/store/types';
 
-export type SlotUnavailableReason = 'schema' | 'rates' | 'invalid';
+export type SlotUnavailableReason = 'schema' | 'rates' | 'invalid' | 'empty';
 
 export interface SlotUnavailable {
   unavailable: SlotUnavailableReason;
@@ -72,6 +72,9 @@ export function computeSlotDetails(slot: SaveSlot): SlotDetailsResult {
   if (slot.schemaVersion !== SAVE_SLOT_SCHEMA_VERSION) return { unavailable: 'schema' };
   try {
     const d = slot.data;
+    // Nothing to total (no groups, or no costs yet) is not a missing rate; a zero total with no
+    // breakdown would only be noise, so it is reported as its own quiet reason.
+    if (d.couples.length === 0 || d.costs.length === 0) return { unavailable: 'empty' };
     const summaries = buildSummary(d.couples, d.costs, d.globalMarkup, d.exchangeRates, d.targetCurrency);
     const total = getTripTotal(summaries);
     if (total === null) return { unavailable: 'rates' };
