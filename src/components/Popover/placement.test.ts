@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { costTypePlacement, placeVertical, selectPlacement, timezonePlacement, type AnchorRect, type Viewport } from './placement';
+import { anchoredPopoverPlacement, costTypePlacement, placeVertical, selectPlacement, timezonePlacement, type AnchorRect, type Viewport } from './placement';
 
 const rect = (top: number, bottom: number, left: number, width: number): AnchorRect => ({ top, bottom, left, width });
 const viewport = (width: number, height: number): Viewport => ({ width, height });
@@ -48,6 +48,66 @@ describe('costTypePlacement', () => {
       { position: 'fixed', left: 8, width: 150, maxHeight: 0, overflowY: 'auto', top: 'auto', bottom: 99 }],
   ])('%s', (_name, anchor, view, form, expected) => {
     expect(costTypePlacement(anchor, view, form)).toEqual(expected);
+  });
+});
+
+describe('anchoredPopoverPlacement', () => {
+  const size = { width: 200, height: 150 };
+
+  it.each([
+    ['opens down, aligned to the trigger right edge', rect(100, 130, 300, 80), viewport(1024, 768), {},
+      { left: 180, top: 136, maxHeight: 624, side: 'down' }],
+    ['aligns to the trigger left edge in RTL', rect(100, 130, 300, 80), viewport(1024, 768), { rtl: true },
+      { left: 300, top: 136, maxHeight: 624, side: 'down' }],
+    ['flips up when it does not fit below', rect(700, 730, 300, 80), viewport(1024, 768), {},
+      { left: 180, top: 544, maxHeight: 686, side: 'up' }],
+    ['opens up when preferred and it fits', rect(600, 630, 300, 80), viewport(1024, 768), { prefer: 'up' },
+      { left: 180, top: 444, maxHeight: 586, side: 'up' }],
+    ['flips down when up is preferred but there is no room above', rect(40, 70, 300, 80), viewport(1024, 768), { prefer: 'up' },
+      { left: 180, top: 76, maxHeight: 684, side: 'down' }],
+    ['clamps left at the start margin', rect(100, 130, 10, 40), viewport(1024, 768), {},
+      { left: 8, top: 136, maxHeight: 624, side: 'down' }],
+    ['clamps left at the end margin in RTL', rect(100, 130, 900, 80), viewport(1024, 768), { rtl: true },
+      { left: 816, top: 136, maxHeight: 624, side: 'down' }],
+    ['uses the larger side and caps the height to its room when neither fits', rect(80, 110, 300, 80), viewport(1024, 200), {},
+      { left: 180, top: 116, maxHeight: 76, side: 'down' }],
+    ['caps the height to the room above when that is the larger side', rect(110, 140, 300, 80), viewport(1024, 200), {},
+      { left: 180, top: 8, maxHeight: 96, side: 'up' }],
+    ['falls back to the viewport and clamps when neither side has any room', rect(5, 195, 300, 80), viewport(1024, 200), {},
+      { left: 180, top: 42, maxHeight: 184, side: 'down' }],
+    ['falls back to the viewport when the roomier side (above) has only a sliver', rect(60, 150, 300, 80), viewport(1024, 200), {},
+      { left: 180, top: 8, maxHeight: 184, side: 'up' }],
+    ['falls back to the viewport when the roomier side (below) has only a sliver', rect(40, 136, 300, 80), viewport(1024, 200), {},
+      { left: 180, top: 42, maxHeight: 184, side: 'down' }],
+    ['honours a custom margin', rect(100, 130, 300, 80), viewport(1024, 768), { margin: 16 },
+      { left: 180, top: 136, maxHeight: 616, side: 'down' }],
+  ] as const)('%s', (_name, anchor, view, options, expected) => {
+    expect(anchoredPopoverPlacement(anchor, view, size, options)).toEqual(expected);
+  });
+
+  it('caps the width to the viewport so it stays inside the margins', () => {
+    expect(anchoredPopoverPlacement(rect(100, 130, 0, 40), viewport(150, 768), size)).toMatchObject({ left: 8 });
+  });
+
+  it('never overlaps the trigger while either side has usable room', () => {
+    const view = viewport(1024, 360);
+    for (const prefer of ['down', 'up'] as const) {
+      for (const height of [40, 150, 300, 600]) {
+        for (let top = 0; top <= 330; top += 15) {
+          const anchor = rect(top, top + 30, 300, 80);
+          const roomBelow = view.height - 8 - (anchor.bottom + 6);
+          const roomAbove = anchor.top - 6 - 8;
+          // Under 64px on both sides the popover deliberately overlaps (see the sliver cases above).
+          if (Math.max(roomBelow, roomAbove) < 64) continue;
+          const placed = anchoredPopoverPlacement(anchor, view, { width: 200, height }, { prefer });
+          const bottom = placed.top + Math.min(height, placed.maxHeight);
+          const overlaps = placed.top < anchor.bottom && bottom > anchor.top;
+          expect(overlaps, `prefer ${prefer}, height ${height}, anchor top ${top}`).toBe(false);
+          expect(placed.top).toBeGreaterThanOrEqual(8);
+          expect(bottom).toBeLessThanOrEqual(view.height - 8);
+        }
+      }
+    }
   });
 });
 

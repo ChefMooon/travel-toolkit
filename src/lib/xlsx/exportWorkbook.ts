@@ -1,13 +1,16 @@
 import type { TripSnapshot } from '@/store/types';
 import type { ExportOptions, ExportableSnapshot } from './types';
+import { buildExportFilename } from './filename';
 
 /**
  * Export a trip snapshot as an .xlsx file and trigger a browser download.
  * SheetJS is loaded dynamically to keep the main bundle small.
+ * Pass the `now` used for a file-name preview so the written name matches it.
  */
 export async function exportWorkbook(
   snapshot: TripSnapshot,
   options: ExportOptions,
+  now: Date = new Date(),
 ): Promise<void> {
   const XLSX = await import('xlsx');
 
@@ -36,47 +39,5 @@ export async function exportWorkbook(
     wb = buildSingleSheet(exportable, XLSX);
   }
 
-  const filename = buildFilename(snapshot, options);
-  XLSX.writeFile(wb, filename);
-}
-
-function buildFilename(snapshot: TripSnapshot, options: ExportOptions): string {
-  const now = new Date();
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const dateStamp = [
-    now.getFullYear(),
-    '-',
-    pad(now.getMonth() + 1),
-    '-',
-    pad(now.getDate()),
-  ].join('');
-
-  let prefix = '';
-  switch (options.namePreset) {
-    case 'slotLabel':
-      prefix = sanitizeFilename(options.slotLabel ?? '');
-      break;
-    case 'tripName':
-      prefix = sanitizeFilename(snapshot.tripName);
-      break;
-    case 'custom':
-      prefix = sanitizeFilename(options.customName ?? '');
-      break;
-    case 'tripId':
-    default:
-      break;
-  }
-
-  const baseName = prefix || sanitizeFilename(snapshot.tripId) || 'trip-export';
-  const includeDate = options.includeDate ?? true;
-  return includeDate ? `${baseName}_${dateStamp}.xlsx` : `${baseName}.xlsx`;
-}
-
-function sanitizeFilename(raw: string): string {
-  return raw
-    .replace(/[<>:"/\\|?*\x00-\x1f]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 60);
+  XLSX.writeFile(wb, buildExportFilename(snapshot, options, now));
 }

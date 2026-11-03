@@ -89,6 +89,73 @@ export function timezonePlacement(rect: AnchorRect, viewport: Viewport): Timezon
   return { top: placed.top ?? 0, left: placed.left, width: placed.width, maxHeight: placed.maxHeight };
 }
 
+export interface PopoverSize {
+  width: number;
+  height: number;
+}
+
+export interface AnchoredPopoverPlacementOptions {
+  /** Align to the trigger's left edge (its inline end in RTL) instead of its right edge. */
+  rtl?: boolean;
+  /** Preferred side; the popover flips when it does not fit there. */
+  prefer?: 'down' | 'up';
+  /** Distance kept from the viewport edges. */
+  margin?: number;
+  /** Distance between the trigger and the popover. */
+  gap?: number;
+}
+
+export interface AnchoredPopoverPlacement {
+  left: number;
+  top: number;
+  /** Cap for the popover height: the room on the chosen side, so it never covers the trigger. */
+  maxHeight: number;
+  side: 'down' | 'up';
+}
+
+/** Below this much room on the chosen side, a height cap would leave only a sliver to scroll in. */
+const MIN_USABLE_SIDE_ROOM = 64;
+
+/**
+ * Fixed-position placement for menus and small dialogs: aligns to the trigger's inline-end edge,
+ * opens on the preferred side, flips when it does not fit, and clamps into the viewport.
+ */
+export function anchoredPopoverPlacement(
+  anchor: AnchorRect,
+  viewport: Viewport,
+  size: PopoverSize,
+  { rtl = false, prefer = 'down', margin = 8, gap = 6 }: AnchoredPopoverPlacementOptions = {},
+): AnchoredPopoverPlacement {
+  const viewportMaxHeight = Math.max(0, viewport.height - margin * 2);
+  const width = Math.min(size.width, Math.max(0, viewport.width - margin * 2));
+  const height = Math.min(size.height, viewportMaxHeight);
+
+  const anchorRight = anchor.left + anchor.width;
+  const rawLeft = rtl ? anchor.left : anchorRight - width;
+  const left = Math.max(margin, Math.min(rawLeft, viewport.width - margin - width));
+
+  const below = anchor.bottom + gap;
+  const above = anchor.top - gap - height;
+  const fitsBelow = below + height <= viewport.height - margin;
+  const fitsAbove = above >= margin;
+  const roomBelow = viewport.height - margin - below;
+  const roomAbove = anchor.top - gap - margin;
+  const up = prefer === 'up'
+    ? fitsAbove || (!fitsBelow && roomAbove > roomBelow)
+    : !fitsBelow && (fitsAbove || roomAbove > roomBelow);
+
+  // Cap the height to the room on the chosen side so the popover scrolls inside itself rather than
+  // sliding over its trigger. When even that side is too cramped to be usable, overlapping is the
+  // lesser evil: use the viewport height and let the clamp below keep it on screen.
+  const sideRoom = up ? roomAbove : roomBelow;
+  const maxHeight = sideRoom >= MIN_USABLE_SIDE_ROOM ? Math.min(viewportMaxHeight, sideRoom) : viewportMaxHeight;
+  const placedHeight = Math.min(height, maxHeight);
+
+  const rawTop = up ? anchor.top - gap - placedHeight : below;
+  const top = Math.max(margin, Math.min(rawTop, viewport.height - margin - placedHeight));
+  return { left, top, maxHeight, side: up ? 'up' : 'down' };
+}
+
 /** Cost type menu: edge 8, gap 4, flips under 270px (unclamped space), width 150 or trigger width in form mode. */
 export function costTypePlacement(rect: AnchorRect, viewport: Viewport, form: boolean): CSSProperties {
   const placed = placeVertical(rect, viewport, {
