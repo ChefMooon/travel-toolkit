@@ -119,8 +119,8 @@ export async function activateLanguage(
       if (requestVersion !== activationVersion) return false;
       console.error('Unable to load the translation; continuing in English.', error);
       if (!await changeLanguageForRequest('en', requestVersion)) return false;
+      // Show English for this session only; the stored choice is kept so the next load retries it.
       syncDocumentLocale('en', localeDirections.en);
-      useSettingsStore.getState().setLanguage('en');
       return false;
     }
   })();

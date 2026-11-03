@@ -142,12 +142,13 @@ describe('site language activation', () => {
     }
   });
 
-  it('falls back to English and persists matching metadata when the French resource fails to load', async () => {
+  it('shows English with matching metadata but keeps the saved language when the French resource fails to load', async () => {
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    useSettingsStore.setState({ language: 'fr-CA' });
     const activated = await activateLanguage('fr-CA', () => Promise.reject(new Error('resource unavailable')));
     expect(activated).toBe(false);
     expect(i18n.resolvedLanguage).toBe('en');
-    expect(useSettingsStore.getState().language).toBe('en');
+    expect(useSettingsStore.getState().language).toBe('fr-CA');
     expect(document.documentElement.lang).toBe('en');
   });
 });
