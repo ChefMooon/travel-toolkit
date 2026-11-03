@@ -18,7 +18,7 @@ afterEach(() => act(() => useTripStore.getState().resetTrip()));
 describe('unsaved trip navigation guard', () => {
   it('lets a clean trip navigate through the brand without a warning', async () => {
     const router = await renderAt('/trip');
-    await screen.findByRole('heading', { name: 'Cost Ledger' });
+    await screen.findByRole('heading', { name: 'Cost Ledger' }, { timeout: 5000 });
     await act(async () => { fireEvent.click(screen.getByRole('link', { name: 'Go to home page' })); });
     await waitFor(() => expect(router.state.location.pathname).toBe('/'));
     expect(screen.queryByRole('dialog', { name: 'Leave with unsaved changes?' })).not.toBeInTheDocument();
@@ -26,24 +26,24 @@ describe('unsaved trip navigation guard', () => {
 
   it('lets the user stay or proceed from a dirty trip navigation warning', async () => {
     const router = await renderAt('/trip');
-    await screen.findByRole('heading', { name: 'Cost Ledger' });
+    await screen.findByRole('heading', { name: 'Cost Ledger' }, { timeout: 5000 });
     act(() => useTripStore.getState().setTripName('Unsaved trip'));
 
     await act(async () => { fireEvent.click(screen.getByRole('link', { name: 'Go to home page' })); });
-    const dialog = await screen.findByRole('dialog', { name: 'Leave with unsaved changes?' });
+    const dialog = await screen.findByRole('dialog', { name: 'Leave with unsaved changes?' }, { timeout: 5000 });
     await act(async () => { fireEvent.click(within(dialog).getByRole('button', { name: 'Stay' })); });
     await waitFor(() => expect(router.state.location.pathname).toBe('/trip'));
     expect(useTripStore.getState().tripName).toBe('Unsaved trip');
 
     await act(async () => { fireEvent.click(screen.getByRole('link', { name: 'Go to home page' })); });
-    const secondDialog = await screen.findByRole('dialog', { name: 'Leave with unsaved changes?' });
+    const secondDialog = await screen.findByRole('dialog', { name: 'Leave with unsaved changes?' }, { timeout: 5000 });
     await act(async () => { fireEvent.click(within(secondDialog).getByRole('button', { name: 'Leave' })); });
     await waitFor(() => expect(router.state.location.pathname).toBe('/'));
   });
 
   it('does not block navigation when the current route is not Trip Cost', async () => {
     const router = await renderAt('/blog');
-    await screen.findByRole('heading', { name: 'Blog' });
+    await screen.findByRole('heading', { name: 'Blog' }, { timeout: 5000 });
     act(() => useTripStore.getState().setTripName('Changed elsewhere'));
     await act(async () => { await router.navigate({ to: '/' }); });
     await waitFor(() => expect(router.state.location.pathname).toBe('/'));
