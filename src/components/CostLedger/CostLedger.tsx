@@ -23,6 +23,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { getAvailableCurrencies, getDefaultCurrency, type SplitType, MAX_COST_ENTRIES } from '@/store/types';
 import { getSaveFailureCopy, useToastStore } from '@/store/toastStore';
 import Select from '@/components/Select/Select';
+import { LedgerMark, LedgerEmptyArt } from '@/components/SectionArt';
 import { useTranslation } from 'react-i18next';
 import '@/i18n';
 
@@ -203,6 +204,7 @@ export default function CostLedger() {
       <div className="card cost-ledger-card" style={{ marginTop: 16 }}>
         <div className="card-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+            <LedgerMark className="section-heading-mark" />
             <h2 id="cost-ledger-heading" className="card-title">{t('costLedger')}</h2>
             <span aria-hidden="true" style={{ color: 'var(--text-3)', fontWeight: 700 }}>·</span>
             <span style={{ fontSize: 11, color: 'var(--text-3)', fontWeight: 700 }}>
@@ -239,6 +241,13 @@ export default function CostLedger() {
           currencies={availableBulkCurrencies}
         />
 
+        {costs.length === 0 && !isAdding && (
+          <div className="empty-state ledger-empty-state" data-testid="ledger-empty-state">
+            <div className="empty-state-icon"><LedgerEmptyArt /></div>
+            <div className="empty-state-text">{t('ledgerEmptyTitle')}</div>
+            <div className="empty-state-sub">{t('ledgerEmptyHelp')}</div>
+          </div>
+        )}
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}

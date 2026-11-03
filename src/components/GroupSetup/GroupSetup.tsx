@@ -24,6 +24,7 @@ import IconChoiceModal from '../IconChoiceModal';
 import ColorChoiceModal from '../ColorChoiceModal';
 import RegionSelector from '../RegionSelector';
 import Tooltip from '@/components/Tooltip';
+import { PartyMark, PartyEmptyArt, ChildMark } from '@/components/SectionArt';
 import { useResolvedTheme } from '@/store/theme';
 import { getGroupPresentation } from '@/lib/groupPresentation';
 import { useTranslation } from 'react-i18next';
@@ -152,7 +153,7 @@ function SortableGroup({
                 color: coupleColor,
               }}
             >
-              👶 <bdi dir="auto">{child.label}</bdi>
+              <ChildMark /> <bdi dir="auto">{child.label}</bdi>
               <Tooltip content={t('removeChildFromGroup')}>
                 <button
                   type="button"
@@ -230,7 +231,10 @@ export default function GroupSetup() {
       <RegionSelector />
       <div className="card">
         <div className="card-header">
-          <h2 id="party-heading" className="card-title">{t('travellingParty')}</h2>
+          <div className="section-heading-group">
+            <PartyMark className="section-heading-mark" />
+            <h2 id="party-heading" className="card-title">{t('travellingParty')}</h2>
+          </div>
           <div className="add-btns">
             <button type="button" className="btn-add" onClick={() => addCouple()} disabled={couples.length >= MAX_GROUPS}>
               <Plus size={12} /> {t('addGroup')}
@@ -279,7 +283,7 @@ export default function GroupSetup() {
         <div className="card-body">
           {couples.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-state-icon">👥</div>
+              <div className="empty-state-icon"><PartyEmptyArt /></div>
               <div className="empty-state-text">{t('noGroupsYet')}</div>
               <div className="empty-state-sub">{t('addGroupsToSplitCosts')}</div>
             </div>

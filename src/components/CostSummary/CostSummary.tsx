@@ -5,6 +5,7 @@ import { getAvailableCurrencies } from '@/store/types';
 import { useTripRates } from '@/features/currency/useTripRates';
 import Select from '@/components/Select/Select';
 import CoupleCard from '../CoupleCard';
+import { SummaryMark, SummaryEmptyArt } from '@/components/SectionArt';
 import { useSettingsStore } from '@/store/settingsStore';
 import { activeLocale } from '@/i18n/format';
 import { useTranslation } from 'react-i18next';
@@ -59,6 +60,7 @@ export default function CostSummary() {
     <div className="card">
       <div className="card-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <SummaryMark className="section-heading-mark" />
           <h2 id="cost-summary-heading" className="card-title">{t('costSummary')}</h2>
           <span aria-hidden="true" style={{ color: 'var(--text-3)', fontWeight: 700 }}>
             ·
@@ -90,7 +92,7 @@ export default function CostSummary() {
       <div className="card-body" style={{ padding: '15px 16px' }}>
         {summaries.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-state-icon">📊</div>
+            <div className="empty-state-icon"><SummaryEmptyArt /></div>
             <div className="empty-state-text">{t('noSummary')}</div>
             <div className="empty-state-sub">{t('summaryEmptyHelp')}</div>
           </div>

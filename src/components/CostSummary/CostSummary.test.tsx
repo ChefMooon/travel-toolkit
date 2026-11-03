@@ -81,6 +81,14 @@ describe('CostSummary', () => {
     expect(screen.queryByTestId('trip-total')).not.toBeInTheDocument();
   });
 
+  it('renders a decorative header mark and SVG empty art instead of an emoji', () => {
+    const { container } = render(<CostSummary />);
+    const mark = container.querySelector('.section-art--summary-mark');
+    expect(mark).toHaveAttribute('aria-hidden', 'true');
+    expect(container.querySelector('.empty-state-icon .section-art--summary-empty')).toBeInTheDocument();
+    expect(container).not.toHaveTextContent('📊');
+  });
+
   it('renders the combined group totals formatted in the selected target currency', () => {
     mockStoreState.couples = [
       { id: 'c1', name: 'Group 1', colorIndex: 1, iconIndex: 1, sortOrder: 0 },

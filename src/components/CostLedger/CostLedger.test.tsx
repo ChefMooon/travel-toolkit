@@ -234,6 +234,29 @@ describe('CostLedger', () => {
     }
   });
 
+  it('renders a decorative header mark', () => {
+    const { container } = render(<CostLedger />);
+    const mark = container.querySelector('.section-art--ledger-mark');
+    expect(mark).toBeInTheDocument();
+    expect(mark).toHaveAttribute('aria-hidden', 'true');
+  });
+
+  it('shows the empty state only when there are no costs', () => {
+    mockStoreState.costs = [];
+    const { container, unmount } = render(<CostLedger />);
+    expect(screen.getByTestId('ledger-empty-state')).toBeInTheDocument();
+    expect(screen.getByText('No costs yet')).toBeInTheDocument();
+    expect(container.querySelector('.section-art--ledger-empty')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Add Cost Entry/i })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /Add Cost Entry/i }));
+    expect(screen.queryByTestId('ledger-empty-state')).not.toBeInTheDocument();
+    unmount();
+
+    mockStoreState.costs = [...mockCosts];
+    render(<CostLedger />);
+    expect(screen.queryByTestId('ledger-empty-state')).not.toBeInTheDocument();
+  });
+
   it('FE-LED-002 adds a new cost via add flow', () => {
     render(<CostLedger />);
 

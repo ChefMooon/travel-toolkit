@@ -44,6 +44,19 @@ const createMockStore = (couples = mockCouples) => ({
   removeNonPayingTraveller: vi.fn(),
 });
 
+describe('GroupSetup - section art', () => {
+  it('renders a decorative header mark and SVG empty art instead of an emoji', () => {
+    const mockStore = createMockStore([]);
+    (useTripStore as any).mockImplementation((selector: any) => selector(mockStore));
+
+    const { container } = render(<GroupSetup />);
+
+    expect(container.querySelector('.section-art--party-mark')).toHaveAttribute('aria-hidden', 'true');
+    expect(container.querySelector('.empty-state-icon .section-art--party-empty')).toBeInTheDocument();
+    expect(container).not.toHaveTextContent('👥');
+  });
+});
+
 describe('GroupSetup - Phase 4: Icon and Color Selection', () => {
   beforeEach(() => {
     vi.clearAllMocks();
