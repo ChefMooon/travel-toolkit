@@ -56,6 +56,35 @@ describe('ModalShell', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it('does not close when a press starts inside the dialog and ends on the backdrop', () => {
+    const onClose = vi.fn();
+    render(<Shell onClose={onClose} />);
+    const backdrop = document.querySelector('.modal-bd')!;
+
+    fireEvent.mouseDown(screen.getByRole('button', { name: 'Middle' }));
+    fireEvent.click(backdrop);
+    expect(onClose).not.toHaveBeenCalled();
+
+    fireEvent.pointerDown(backdrop);
+    fireEvent.click(backdrop);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('sets data-state and inert only when closing', () => {
+    const { rerender } = render(<Shell />);
+    expect(screen.getByRole('dialog')).not.toHaveAttribute('data-state');
+    expect(screen.getByRole('dialog')).not.toHaveAttribute('inert');
+
+    rerender(<Shell state="open" />);
+    expect(screen.getByRole('dialog')).toHaveAttribute('data-state', 'open');
+    expect(screen.getByRole('dialog')).not.toHaveAttribute('inert');
+
+    rerender(<Shell state="closing" />);
+    expect(document.querySelector('.modal-bd')).toHaveAttribute('data-state', 'closing');
+    expect(screen.getByRole('dialog', { hidden: true })).toHaveAttribute('data-state', 'closing');
+    expect(screen.getByRole('dialog', { hidden: true })).toHaveAttribute('inert');
+  });
+
   it('closes on Escape without bubbling to a parent key handler', () => {
     const onClose = vi.fn();
     const parentKeyDown = vi.fn();
@@ -119,6 +148,18 @@ describe('ModalShell', () => {
     render(<Shell><p>Text only</p></Shell>);
 
     expect(screen.getByRole('dialog')).toHaveFocus();
+  });
+
+  it.each([false, true])('keeps focus on the dialog on Tab (shift: %s) when nothing inside is focusable', (shiftKey) => {
+    render(<Shell><button disabled>Busy</button></Shell>);
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveFocus();
+
+    const event = new KeyboardEvent('keydown', { key: 'Tab', shiftKey, bubbles: true, cancelable: true });
+    dialog.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(dialog).toHaveFocus();
   });
 
   it('uses initialFocus when provided', () => {

@@ -3,12 +3,18 @@ import i18n from '@/i18n';
 
 export type ToastType = 'success' | 'warning' | 'error';
 
+export interface ToastAction {
+  label: string;
+  onAction: () => void;
+}
+
 export interface ToastItem {
   id: string;
   type: ToastType;
   title: string;
   message: string;
   durationMs: number;
+  action?: ToastAction;
 }
 
 interface ToastInput {
@@ -16,6 +22,7 @@ interface ToastInput {
   title: string;
   message: string;
   durationMs?: number;
+  action?: ToastAction;
 }
 
 interface ToastStore {
@@ -68,7 +75,9 @@ export function getSaveFailureCopy(error: unknown, mode: 'new' | 'edit'): Pick<T
   };
 }
 
+// Toasts with an action stay longer so there is time to reach the button.
 const DEFAULT_DURATION_MS = 4800;
+const DEFAULT_ACTION_DURATION_MS = 8000;
 
 export const useToastStore = create<ToastStore>((set) => ({
   toasts: [],
@@ -79,7 +88,8 @@ export const useToastStore = create<ToastStore>((set) => ({
       type: toast.type,
       title: toast.title,
       message: toast.message,
-      durationMs: toast.durationMs ?? DEFAULT_DURATION_MS,
+      durationMs: toast.durationMs ?? (toast.action ? DEFAULT_ACTION_DURATION_MS : DEFAULT_DURATION_MS),
+      action: toast.action,
     };
 
     set((state) => ({ toasts: [...state.toasts, nextToast] }));

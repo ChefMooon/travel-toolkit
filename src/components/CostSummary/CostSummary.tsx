@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTripStore } from '@/store/tripStore';
-import { buildSummary } from '@/lib/calculations';
+import { buildSummary, getTripTotal } from '@/lib/calculations';
 import { getAvailableCurrencies } from '@/store/types';
 import { useTripRates } from '@/features/currency/useTripRates';
 import Select from '@/components/Select/Select';
@@ -48,9 +48,7 @@ export default function CostSummary() {
     [couples, costs, globalMarkup, exchangeRates, targetCurrency]
   );
 
-  const tripTotal = summaries.length > 0 && summaries.every((summary) => summary.grandTotal !== null)
-    ? summaries.reduce((total, summary) => total + (summary.grandTotal ?? 0), 0)
-    : null;
+  const tripTotal = getTripTotal(summaries);
 
   const currenciesUsed = useMemo(
     () => new Set(costs.map((c) => c.currency)).size,

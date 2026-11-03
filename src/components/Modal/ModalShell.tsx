@@ -37,6 +37,7 @@ interface ModalShellProps {
   initialFocus?: (dialog: HTMLElement) => HTMLElement | null;
   returnFocusRef?: RefObject<HTMLElement | null>;
   lockScroll?: boolean;
+  state?: 'open' | 'closing';
   children: ReactNode;
 }
 
@@ -50,6 +51,7 @@ export default function ModalShell({
   initialFocus,
   returnFocusRef,
   lockScroll = true,
+  state,
   children,
 }: ModalShellProps) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
@@ -84,9 +86,19 @@ export default function ModalShell({
     return unlockBodyScroll;
   }, [lockScroll]);
 
+  // Whether the latest press began on the backdrop itself; null when no press was seen (e.g. synthetic clicks).
+  const pressStartedOnBackdropRef = useRef<boolean | null>(null);
+
+  const handleBackdropPress = useCallback((e: React.SyntheticEvent<HTMLDivElement>) => {
+    pressStartedOnBackdropRef.current = e.target === e.currentTarget;
+  }, []);
+
   const handleBackdropClick = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
-      if (e.target === e.currentTarget) onClose();
+      const startedOnBackdrop = pressStartedOnBackdropRef.current !== false;
+      pressStartedOnBackdropRef.current = null;
+      // A drag that began inside the dialog (e.g. selecting text) must not close it.
+      if (e.target === e.currentTarget && startedOnBackdrop) onClose();
     },
     [onClose]
   );
@@ -110,7 +122,12 @@ export default function ModalShell({
       const focusable = dialog.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR);
       const first = focusable.item(0);
       const last = focusable.item(focusable.length - 1);
-      if (!first || !last) return;
+      if (!first || !last) {
+        // Nothing focusable (e.g. every control disabled while busy): keep focus on the dialog.
+        e.preventDefault();
+        dialog.focus();
+        return;
+      }
       const active = document.activeElement;
 
       if (!e.shiftKey && active === last) {
@@ -127,7 +144,13 @@ export default function ModalShell({
   if (typeof document === 'undefined') return null;
 
   return createPortal(
-    <div className={overlayClassName ? `modal-bd ${overlayClassName}` : 'modal-bd'} onClick={handleBackdropClick}>
+    <div
+      className={overlayClassName ? `modal-bd ${overlayClassName}` : 'modal-bd'}
+      data-state={state}
+      onPointerDown={handleBackdropPress}
+      onMouseDown={handleBackdropPress}
+      onClick={handleBackdropClick}
+    >
       <div
         ref={dialogRef}
         id={id}
@@ -137,6 +160,8 @@ export default function ModalShell({
         aria-labelledby={labelledBy}
         aria-describedby={describedBy}
         tabIndex={-1}
+        data-state={state}
+        inert={state === 'closing' ? true : undefined}
         onKeyDown={handleDialogKeyDown}
       >
         {children}

@@ -112,6 +112,14 @@ export function splitCost(
 }
 
 /**
+ * Trip total across all couples; null when there are no summaries or any total is unavailable.
+ */
+export function getTripTotal(summaries: CoupleSummary[]): number | null {
+  if (summaries.length === 0 || !summaries.every((summary) => summary.grandTotal !== null)) return null;
+  return summaries.reduce((total, summary) => total + (summary.grandTotal ?? 0), 0);
+}
+
+/**
  * Build full summary for all couples grouped by currency.
  */
 export function buildSummary(

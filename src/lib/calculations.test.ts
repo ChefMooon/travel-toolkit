@@ -4,11 +4,12 @@ import {
   formatCurrency,
   getCostWithMarkup,
   getEffectiveMarkup,
+  getTripTotal,
   roundHalfUp,
   splitCost,
   validateCost,
 } from '@/lib/calculations';
-import type { CostEntry, Couple, ExchangeRate } from '@/store/types';
+import type { CoupleSummary, CostEntry, Couple, ExchangeRate } from '@/store/types';
 
 const couples: Couple[] = [
   { id: 'c1', name: 'Couple 1', colorIndex: 1, iconIndex: 1, sortOrder: 0 },
@@ -397,5 +398,29 @@ describe('formatCurrency', () => {
 
   it('CALC-FMT-002 falls back to currency code prefix for unknown codes', () => {
     expect(formatCurrency(7.5, 'ABC')).toBe('ABC 7.50');
+  });
+});
+
+describe('getTripTotal', () => {
+  const row = (grandTotal: number | null): CoupleSummary => ({
+    coupleId: 'x',
+    coupleName: 'X',
+    colorIndex: 1,
+    iconIndex: 1,
+    currencies: [],
+    grandTotal,
+    targetCurrency: 'USD',
+  });
+
+  it('is null for an empty list', () => {
+    expect(getTripTotal([])).toBeNull();
+  });
+
+  it('sums grand totals', () => {
+    expect(getTripTotal([row(10.5), row(0), row(4.5)])).toBe(15);
+  });
+
+  it('is null when any total is unavailable', () => {
+    expect(getTripTotal([row(10), row(null)])).toBeNull();
   });
 });
